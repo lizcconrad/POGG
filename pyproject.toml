@@ -24,22 +24,72 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "networkx>=3.4.2",
+  "pydelphin>=1.9.1",
+  "pyyaml>=6.0.2",
+]
+#[tool.hatch.envs.codev]
+#pre-install-commands = [
+#  "pip install -e ../pydelphin"
+#]
+#[tool.hatch.metadata]
+#allow-direct-references = true
 
 [project.urls]
-Documentation = "https://github.com/U.N. Owen/pogg#readme"
-Issues = "https://github.com/U.N. Owen/pogg/issues"
-Source = "https://github.com/U.N. Owen/pogg"
+Documentation = "https://github.com/lizcconrad/POGG#readme"
+Issues = "https://github.com/lizcconrad/POGG/issues"
+Source = "https://github.com/lizcconrad/POGG"
 
 [tool.hatch.version]
 path = "src/pogg/__about__.py"
 
+
 [tool.hatch.envs.types]
 extra-dependencies = [
-  "mypy>=1.0.0",
+  "mypy>=1.0.0"
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/pogg tests}"
+
+# workaround for pycharm for now ...?
+[tool.hatch.envs.default]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_default"
+
+# docs environment
+# inherits from default by default
+[tool.hatch.envs.docs]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_docs"
+dependencies = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "sphinx-autobuild",
+  "sphinx-design"
+]
+[tool.hatch.envs.docs.scripts]
+build = "make html"
+clean = "make clean"
+cleanbuild = "make clean & make html"
+autobuild = "sphinx-autobuild source build/html"
+
+# test environment
+# inheits from default by default
+[tool.hatch.envs.tests]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_tests"
+# default dependencies for hatch-test but pycharm doesn't get along with hatch so i'm making it myself
+dependencies = [
+  "coverage-enable-subprocess==1.0",
+  "coverage[toml]~=7.4",
+  "pytest~=8.1",
+  "pytest-mock~=3.12",
+  "pytest-randomly~=3.15",
+  "pytest-rerunfailures~=14.0",
+  "pytest-xdist[psutil]~=3.5",
+]
+
 
 [tool.coverage.run]
 source_pkgs = ["pogg", "tests"]
@@ -54,6 +104,7 @@ pogg = ["src/pogg", "*/pogg/src/pogg"]
 tests = ["tests", "*/pogg/tests"]
 
 [tool.coverage.report]
+show_missing = true
 exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
