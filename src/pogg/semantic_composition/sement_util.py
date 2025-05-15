@@ -110,7 +110,7 @@ def get_most_specified_variable(eq_vars):
 
 def overwrite_eqs(sement):
     """
-    Create a new SEMENT where the EQs have been overwritten to one representative value
+    Create a new SEMENT where any variables that are members of an EQ have been overwritten to one representative value
 
     Args:
         sement (SEMENT): SEMENT structure with unresolved variable equalities
@@ -208,6 +208,18 @@ def overwrite_eqs(sement):
 
 # per delphinqa communication
 def is_sement_isomorphic(s1: SEMENT, s2: SEMENT) -> bool:
+    """
+    Check whether two SEMENTs are isomorphic
+    i.e. The SEMENTs have the same directed graph structure, but might not be literally identical.
+    For example, the EPs in the RELS list may be in different orders.
+
+    Args:
+        s1 (SEMENT): first SEMENT
+        s2 (SEMENT): second SEMENT
+
+    Returns:
+        bool: whether the two SEMENTs are isomorphic
+    """
 
     # overwrite EQs in both SEMENTs for ease of checking isomorphism
     s1_ovrwrit = overwrite_eqs(s1)

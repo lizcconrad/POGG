@@ -21,6 +21,7 @@ API Reference
    :maxdepth: 1
    :caption: Semantic Composition Modules
 
+   sement_util.py <pogg/semantic_composition/pogg.semantic_composition.sement_util.rst>
    semantic_algebra.py <pogg/semantic_composition/pogg.semantic_composition.semantic_algebra.rst>
 
 
@@ -36,3 +37,18 @@ The following pages provide some primers for background knowledge that is helpfu
    English Resource Grammar (ERG) <education/erg.rst>
    Minimal Recursion Semantics (MRS) <education/mrs.rst>
 
+
+------------
+
+
+Undocumented Elements
+----------------------
+
+The following aspects of the code are not included in this documentation
+
+* SEMENT class
+   * Extension of the PyDelphin MRS class that includes additional features (EQs list, SLOTS list), ideally this will be merged into the official PyDelphin codebase and documented accordingly at that time
+* SEMENT encoder functions
+   * Functions that encode a SEMENT object into a string serialization (to be added to PyDelphin)
+* SEMENT decoder functions
+   * Functions that decode a string of a SEMENT into a SEMENT objet (to be added to PyDelphin)

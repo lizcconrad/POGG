@@ -23,9 +23,9 @@ Module Functions
 
             * - Parameter
               - Type
-              - Default (take out if necessary)
+              - Default (take out if necessary) ... ALSO EDIT WIDTHS ABOVE IF REMOVING
               - Description
-            * - ...
+            * - ``...``
               - ...
               - ...
               - ...
@@ -47,7 +47,7 @@ Module Functions
               - ...
 
 
-        .. dropdown:: Example usage
+        .. dropdown-syntax:: Example usage
 
             ...
 
@@ -140,7 +140,7 @@ Public Classes OR Private Classes
 
             * - Return Type
               - Description
-            * - ...
+            * - ``...``
               - ...
 
 
