@@ -1,3 +1,4 @@
+import os
 import unittest
 from tempfile import NamedTemporaryFile
 import delphin
@@ -89,10 +90,8 @@ class TestPOGGConfig(unittest.TestCase):
         self.config_mock = POGGConfig(self.temp_config.name)
 
         # create a POGGConfig object that points to a real grammar for testing functionality
-        # path for running tests in pycharm using "Current File" configuration
-        # self.pogg_config = POGGConfig("test_data/test_config.yml")
-        # path for running tests using hatch
-        self.pogg_config = POGGConfig("tests/test_data/test_config.yml")
+        self.test_dir = os.getenv("TEST_WORKING_DIR")
+        self.pogg_config = POGGConfig(os.path.join(self.test_dir, "test_data/test_config.yml"))
 
 
     ### OBJECT INITIALIZATION TESTS ###

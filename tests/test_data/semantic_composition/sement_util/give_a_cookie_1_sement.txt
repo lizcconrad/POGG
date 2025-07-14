@@ -1,0 +1,13 @@
+[
+    TOP: h0101
+    INDEX: e1101 [e NUM: sg]
+    RELS: <
+        [ _a_q LBL: h10 ARG0: x11 RSTR: h12 BODY: h13]
+        [ _cookie_n_1 LBL: h6 ARG0: x7 ]
+        [ _give_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: i4 ]
+    >
+    EQS: < x11 eq x7 eq i2 h0101 eq h0 e1 eq e1101 >
+    SLOTS: < ARG2: u3 ARG3: i4 >
+    HCONS: < h12 qeq h6 >
+
+]

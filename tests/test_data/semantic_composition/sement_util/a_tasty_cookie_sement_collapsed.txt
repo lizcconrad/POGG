@@ -1,0 +1,7 @@
+[ TOP: h9
+  INDEX: x4
+  RELS: < [ _tasty_a_1 LBL: h0 ARG0: e1 ARG1: x4 ]
+          [ _cookie_n_1 LBL: h0 ARG0: x4 ]
+          [ _a_q LBL: h5 ARG0: x4 RSTR: h7 BODY: h8 ] >
+  SLOTS: < BODY: h8 >
+  HCONS: < h7 qeq h0 > ]

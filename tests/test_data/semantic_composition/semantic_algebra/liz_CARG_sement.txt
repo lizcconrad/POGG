@@ -1,0 +1,3 @@
+[ TOP: h0
+  INDEX: x1
+  RELS: < [ named LBL: h0 ARG0: x1 CARG: "Liz" ] > ]

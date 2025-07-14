@@ -2,7 +2,7 @@ import unittest
 from copy import deepcopy
 from delphin import mrs
 from pogg.semantic_composition.sement_util import SEMENT
-import pogg.my_delphin.sement as sement
+import pogg.my_delphin.sementcodecs as sement
 
 
 class TestCodecs(unittest.TestCase):

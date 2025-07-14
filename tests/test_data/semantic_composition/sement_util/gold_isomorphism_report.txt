@@ -1,0 +1,44 @@
+SEMANTIC ROLE EQUIVALENCES
+================================
+OVERLAPPING
+Role Set                        Gold Var    Actual Var
+------------------------------  ----------  ------------
+['INDEX', '_believe_v_1.ARG0']  e101        e1
+['TOP', '_believe_v_1.LBL']     h105        h0
+['_believe_v_1.ARG1']           i102        i2
+['_believe_v_1.ARG2']           u103        u3
+['_believe_v_1.ARG3']           h104        h4
+['_cat_n_1.LBL']                h112        h9
+['_sleep_v_1.ARG0']             e113        e12
+['_sleep_v_1.LBL']              h115        h11
+['udef_q.BODY']                 h108        h8
+['udef_q.LBL']                  h109        h5
+['udef_q.RSTR']                 h107        h7
+
+GOLD ONLY
+Role Set                                             Gold Var
+---------------------------------------------------  ----------
+['_cat_n_1.ARG0', '_sleep_v_1.ARG1', 'udef_q.ARG0']  x106
+
+ACTUAL ONLY
+Role Set                          Actual Var
+--------------------------------  ------------
+['_cat_n_1.ARG0', 'udef_q.ARG0']  x10
+['_sleep_v_1.ARG1']               x10111
+
+HANDLE CONSTRAINTS
+=====================
+OVERLAPPING
+Hi Role Set      Lo Role Set       Gold QEQ       Actual QEQ
+---------------  ----------------  -------------  ------------
+['udef_q.RSTR']  ['_cat_n_1.LBL']  h107 qeq h112  h7 qeq h9
+
+GOLD ONLY
+Hi Role Set            Lo Role Set         Gold QEQ
+---------------------  ------------------  -------------
+['_believe_v_1.ARG2']  ['_sleep_v_1.LBL']  u103 qeq h115
+
+ACTUAL ONLY
+Hi Role Set            Lo Role Set         Actual QEQ
+---------------------  ------------------  ------------
+['_believe_v_1.ARG3']  ['_sleep_v_1.LBL']  h4 qeq h11

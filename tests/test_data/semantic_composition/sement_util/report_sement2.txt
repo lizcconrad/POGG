@@ -1,0 +1,8 @@
+[ TOP: h0
+  INDEX: e1
+  RELS: < [ _believe_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: h4 ]
+          [ udef_q LBL: h5 ARG0: x10 RSTR: h7 BODY: h8 ]
+          [ _cat_n_1 LBL: h9 ARG0: x10 ]
+          [ _sleep_v_1 LBL: h11 ARG0: e12 ARG1: x10111 ] >
+  SLOTS: < ARG1: i2 ARG3: h4 >
+  HCONS: < h7 qeq h9 h4 qeq h11 > ]

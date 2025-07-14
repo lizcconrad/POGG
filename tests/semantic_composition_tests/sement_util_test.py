@@ -1,127 +1,27 @@
-import unittest, unittest.mock
-from copy import deepcopy
+import unittest.mock
+import os
+from pogg.pogg_config import POGGConfig
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
+import pogg.my_delphin.sementcodecs as sementcodecs
 import pogg.semantic_composition.sement_util as sement_util
+import re
 
 
 class TestSEMENTUtilFunctions(unittest.TestCase):
     """
     Tests functions included in the semantic algebra
     """
-    # SETUP USING ACTUAL SEMENT CLASS
-    # TODO: just do a decoding... but I don't have SEMENT decoding implemented yet :/
     def setUp(self):
-        # FIRST SEMENT
-        self.top_first = 'h0101'
-        self.index_first = 'e1101'
-
-        self.a_ep_first = mrs.EP('_a_q', 'h10', {'ARG0': 'x11', 'RSTR': 'h12', 'BODY': 'h13'})
-        self.cookie_ep_first = mrs.EP('_cookie_n_1', 'h6', {'ARG0': 'x7'})
-        self.give_ep_first = mrs.EP('_give_v_1', 'h0', {'ARG0': 'e1', 'ARG1': 'i2', 'ARG2': 'u3', 'ARG3': 'i4'})
-        self.rels_first_first = [self.a_ep_first, self.cookie_ep_first, self.give_ep_first]
-
-        self.eqs_first = [('x11', 'x7'), ('x7', 'i2'), ('h0101', 'h0'), ('e1', 'e1101')]
-        self.slots_first = {'ARG2': 'u3', 'ARG3': 'i4'}
-        self.hcons_first = [mrs.HCons.qeq('h12', 'h6')]
-
-        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        self.sement = SEMENT(self.top_first, self.index_first, self.rels_first_first, self.slots_first, self.eqs_first, self.hcons_first)
-        # set a variable property
-        self.sement.variables['e1'] = {'NUM': 'sg'}
-
-        # SECOND SEMENT #
-        self.top_second = 'h011'
-        self.index_second = 'e111'
-
-        self.a_ep_second = mrs.EP('_a_q', 'h1011', {'ARG0': 'x1111', 'RSTR': 'h1211', 'BODY': 'h1311'})
-        self.cookie_ep_second = mrs.EP('_cookie_n_1', 'h611', {'ARG0': 'x711'})
-        self.give_ep_second = mrs.EP('_give_v_1', 'h011', {'ARG0': 'e111', 'ARG1': 'i211', 'ARG2': 'u311', 'ARG3': 'i411'})
-        self.rels_second = [self.cookie_ep_second, self.give_ep_second, self.a_ep_second]
-
-        self.eqs_second = [('x1111', 'x711'), ('x711', 'i211')]
-        self.slots_second = {'ARG2': 'u311', 'ARG3': 'i411'}
-        self.hcons_second = [mrs.HCons.qeq('h1211', 'h611')]
-
-        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        self.second_sement = SEMENT(self.top_second, self.index_second, self.rels_second, self.slots_second, self.eqs_second, self.hcons_second)
-        self.second_sement.variables['e111'] = {'NUM': 'sg'}
-
-        # "a tasty cookie"
-        self.tasty_ep = mrs.EP('_tasty_a_1', 'h20', {'ARG0': 'e21', 'ARG1': 'x22'})
-        self.tasty_cookies_top = 'h6'
-        self.tasty_cookies_index = 'x7'
-        self.tasty_cookies_rels = [self.a_ep_first, self.cookie_ep_first, self.tasty_ep]
-        self.tasty_cookies_eqs = [('x7', 'x22', 'x11'), ('h6', 'h20')]
-        self.tasty_cookies_hcons = [mrs.HCons.qeq('h10', 'h6')]
-        self.tasty_cookies_sement = SEMENT(self.tasty_cookies_top, self.tasty_cookies_index, self.tasty_cookies_rels,
-                                           {}, self.tasty_cookies_eqs, self.tasty_cookies_hcons)
+        # create a POGGConfig object that points to a real grammar for testing functionality
+        self.top_test_dir = os.getenv("TEST_WORKING_DIR")
+        self.test_dir = os.path.join(self.top_test_dir, "test_data/semantic_composition/sement_util")
+        self.pogg_config = POGGConfig(os.path.join(self.top_test_dir, "test_data/test_config.yml"))
 
 
-    # SETUP USING MOCK
-    # def setUp(self):
-    #     self.sement = unittest.mock.Mock()
-    #
-    #     # Example sement that is mocked below
-    #     self.gold_full_encoding = """
-    #     [ TOP: h0
-    #         INDEX: e1
-    #         RELS: < [ _give_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: i4 ]
-    #             [ _a_q LBL: h10 ARG0: x11 RSTR: h12 BODY: h13 ]
-    #             [ _cookie_n_1 LBL: h6 ARG0: x7 ] >
-    #         HCONS: < h12 qeq h6 >
-    #         EQS: < (x11,x7), (x7,i2) >
-    #         SLOTS: < ARG2: u3, ARG3: i4 > ]
-    #     """
-    #
-    #     # mock the EPs
-    #     self.give = unittest.mock.Mock()
-    #     self.give.args = {'ARG0': 'e1', 'ARG1': 'i2', 'ARG2': 'u3', 'ARG3': 'i4'}
-    #     self.give.id = 'e1'
-    #     self.give.iv = 'e1'
-    #     self.give.label = 'h0'
-    #     self.give.predicate = '_give_v_1'
-    #     self.give.type = 'e'
-    #
-    #     self.a = unittest.mock.Mock()
-    #     self.a.args = {'ARG0': 'x11', 'RSTR': 'h12', 'BODY': 'h13'}
-    #     self.a.id = 'x11'
-    #     self.a.iv = 'x11'
-    #     self.a.label = 'h10'
-    #     self.a.predicate = '_a_q'
-    #     self.a.type = 'x'
-    #
-    #     self.cookie = unittest.mock.Mock()
-    #     self.cookie.args = {'ARG0': 'x7'}
-    #     self.cookie.id = 'x7'
-    #     self.cookie.iv = 'x7'
-    #     self.cookie.label = 'h6'
-    #     self.cookie.predicate = '_cookie_n_1'
-    #     self.cookie.type = 'x'
-    #
-    #     self.sement.top = 'h0'
-    #     self.sement.index = 'e1'
-    #     self.sement.variables = {}
-    #     self.sement.predications = [self.give, self.a, self.cookie]
-    #     self.sement.rels = [self.give, self.a, self.cookie]
-    #     self.sement.eqs = [(self.a.args['ARG0'], self.cookie.args['ARG0']),
-    #                        (self.cookie.args['ARG0'], self.give.args['ARG1'])]
-    #
-    #     # make a mock hcons
-    #     self.sement.hcons_obj.hi = self.a.args['RSTR']
-    #     self.sement.hcons_obj.relation = "qeq"
-    #     self.sement.hcons_obj.lo = self.cookie.label
-    #     self.sement.hcons = [self.sement.hcons_obj]
-    #
-    #     self.sement.icons = []
-    #
-    #     # copy args and pop ARG1
-    #     give_args = deepcopy(self.give.args)
-    #     # delete the intrinsic arg, as it's not a slot
-    #     del give_args['ARG0']
-    #     # delete the hole that would be filled, in this case ARG1
-    #     del give_args['ARG1']
-    #     self.sement.slots = give_args
+    def decode_gold_sement_string(self, filename):
+        return sementcodecs.decode(open(os.path.join(self.test_dir, filename)).read())
+
 
     def test_group_equalities(self):
         eqs = [("x1", "x2"), ("x3", "x4"), ("x1", "x4"), ("x5", "x6")]
@@ -142,7 +42,9 @@ class TestSEMENTUtilFunctions(unittest.TestCase):
         self.assertEqual(most_specified_var, vars[2])
 
     def test_overwrite_eqs(self):
-        new_sement = sement_util.overwrite_eqs(self.sement)
+        test_sement = self.decode_gold_sement_string("give_a_cookie_1_sement.txt")
+
+        new_sement = sement_util.overwrite_eqs(test_sement)
 
         # for the sement "give a cookie"
         # the following should all be the same if the overwrite worked:
@@ -169,11 +71,13 @@ class TestSEMENTUtilFunctions(unittest.TestCase):
     def test_overwrite_eqs2(self):
         # checks whether overwrite works when a member of a handle constraint are members of an eq
         # this case was unaccounted for above
-        new_sement = sement_util.overwrite_eqs(self.tasty_cookies_sement)
+        a_tasty_cookie_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        new_sement = sement_util.overwrite_eqs(a_tasty_cookie_sement)
 
         # for the sement "a tasty cookie"
         # the following should all be the same if the overwrite worked:
         # a.ARG0 = cookie.ARG0 = tasty.ARG1
+        # cookie.LBL = tasty.LBL
 
         for r in new_sement.rels:
             if r.predicate == "_a_q":
@@ -191,11 +95,23 @@ class TestSEMENTUtilFunctions(unittest.TestCase):
         self.assertTrue(new_sement.top == cookie_lbl == tasty_lbl)
 
 
+    def test_original_eqs_preserved(self):
+        # test to make sure the EQs in the original SEMENT are not eliminated
+        # i.e. computation should not alter original EQ list, that SEMENT object should stay intact
+        test_sement = self.decode_gold_sement_string("give_a_cookie_1_sement.txt")
+
+        eqs_pre_rewrite = test_sement.eqs.copy()
+        sement_util.overwrite_eqs(test_sement)
+        self.assertEqual(eqs_pre_rewrite, test_sement.eqs)
+
 
     def test_is_sement_isomorphic_true(self):
         # two SEMENTs for the VP "give a cookie"
         # identical other than the order of RELs and specific numbers for variable values
-        self.assertTrue(sement_util.is_sement_isomorphic(self.sement, self.second_sement))
+        sement_1 = self.decode_gold_sement_string("give_a_cookie_1_sement.txt")
+        sement_2 = self.decode_gold_sement_string("give_a_cookie_2_sement.txt")
+
+        self.assertTrue(sement_util.is_sement_isomorphic(sement_1, sement_2))
 
 
     def test_is_sement_isomorphic_false(self):
@@ -203,7 +119,312 @@ class TestSEMENTUtilFunctions(unittest.TestCase):
         # identical other than the order of RELs and specific numbers for variable values
         # but also the TOP is incorrect in this one (refers to LBL of 'cookie' not 'give')
         # so they should not be isomorphic
+        correct_sement = self.decode_gold_sement_string("give_a_cookie_1_sement.txt")
+        broken_sement = self.decode_gold_sement_string("give_a_cookie_wrong_top_sement.txt")
 
-        # change top
-        self.second_sement.top = self.cookie_ep_second.label
-        self.assertFalse(sement_util.is_sement_isomorphic(self.sement, self.second_sement))
+        self.assertFalse(sement_util.is_sement_isomorphic(correct_sement, broken_sement))
+
+    def test_create_variable_roles_dict(self):
+        # test using a collapsed SEMENT so that there's no risk of nondeterminism when choosing the representative variable
+        a_tasty_cookie_sement = self.decode_gold_sement_string("a_tasty_cookie_sement_collapsed.txt")
+
+        gold_roles_dict = {
+            'h0': ["_cookie_n_1.LBL", "_tasty_a_1.LBL"],
+            'e1': ["_tasty_a_1.ARG0"],
+            'x4': ["INDEX", "_a_q.ARG0", "_cookie_n_1.ARG0", "_tasty_a_1.ARG1"],
+            'h5': ["_a_q.LBL"],
+            'h7': ["_a_q.RSTR"],
+            'h8': ["_a_q.BODY"],
+            'h9': ["TOP"]
+        }
+
+        a_tasty_cookie_roles_dict = sement_util.create_variable_roles_dict(a_tasty_cookie_sement)
+        self.assertEqual(gold_roles_dict, a_tasty_cookie_roles_dict, 
+                         "Gold: {} \nActual:{}".format(gold_roles_dict, a_tasty_cookie_roles_dict))
+
+    def test_create_variable_roles_dict_valueerror(self):
+        a_tasty_cookie_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        self.assertRaises(ValueError, sement_util.create_variable_roles_dict, a_tasty_cookie_sement)
+
+    def test_create_hcons_list(self):
+        # test using a collapsed SEMENT so that there's no risk of nondeterminism when choosing the representative variable
+        a_tasty_cookie_sement = self.decode_gold_sement_string("a_tasty_cookie_sement_collapsed.txt")
+
+        gold_hcons_list = [{
+            "hi_role_set": ["_a_q.RSTR"],
+            "lo_role_set": ["_cookie_n_1.LBL", "_tasty_a_1.LBL"],
+            "hi_var": "h7",
+            "lo_var": "h0",
+        }]
+        
+        a_tasty_cookie_hcons_list = sement_util.create_hcons_list(a_tasty_cookie_sement)
+
+        self.assertEqual(gold_hcons_list, a_tasty_cookie_hcons_list,
+                         "Gold: {} \nActual:{}".format(gold_hcons_list, a_tasty_cookie_hcons_list))
+
+    def test_create_hcons_list_valueerror(self):
+        a_tasty_cookie_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        self.assertRaises(ValueError, sement_util.create_hcons_list, a_tasty_cookie_sement)
+
+    def test_find_var_eq_overlaps(self):
+        # use collapsed version to avoid nondeterminism in representative variable
+        gold_tasty_cookie_sement = self.decode_gold_sement_string("tasty_cookie_sement_collapsed.txt")
+        # this SEMENT doesn't include the equivalence between the LBLs of tasty and cookie
+        broken_tasty_cookie_sement = self.decode_gold_sement_string("tasty_cookie_broken_sement.txt")
+
+        gold_overlap_eqs = [{
+            "eq_set": ["INDEX", "_cookie_n_1.ARG0", "_tasty_a_1.ARG1"],
+            "gold_var": "x4",
+            "actual_var": "x04"
+        }, {
+            "eq_set": ["_tasty_a_1.ARG0"],
+            "gold_var": "e1",
+            "actual_var": "e01"
+        }]
+
+        gold_gold_eqs = [{
+            "eq_set": ["TOP", "_cookie_n_1.LBL", "_tasty_a_1.LBL"],
+            "gold_var": "h0"
+        }]
+
+        gold_actual_eqs = [{
+            "eq_set": ["TOP", "_cookie_n_1.LBL"],
+            "actual_var": "h03"
+        }, {
+            "eq_set": ["_tasty_a_1.LBL"],
+            "actual_var": "h00"
+        }]
+
+        test_overlap_eqs, test_gold_eqs, test_actual_eqs = sement_util.find_var_eq_overlaps(gold_tasty_cookie_sement, broken_tasty_cookie_sement)
+
+        self.assertEqual(gold_overlap_eqs, test_overlap_eqs,
+                         "Gold Overlap: {} \nActual Overlap:{}".format(gold_overlap_eqs, test_overlap_eqs))
+        self.assertEqual(gold_overlap_eqs, test_overlap_eqs,
+                         "Gold Gold: {} \nActual Gold:{}".format(gold_gold_eqs, test_gold_eqs))
+        self.assertEqual(gold_overlap_eqs, test_overlap_eqs,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_actual_eqs, test_actual_eqs))
+
+    def test_find_var_eq_overlaps_gold_valueerror(self):
+        uncollapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        collapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement_collapsed.txt")
+        self.assertRaises(ValueError, sement_util.find_var_eq_overlaps, uncollapsed_sement, collapsed_sement)
+
+    def test_find_var_eq_overlaps_actual_valueerror(self):
+        uncollapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        collapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement_collapsed.txt")
+        self.assertRaises(ValueError, sement_util.find_var_eq_overlaps, collapsed_sement, uncollapsed_sement)
+
+
+    def test_find_hcons_overlaps(self):
+        # use collapsed version to avoid nondeterminism in representative variable
+        gold_believe_cats_sleep_sement = self.decode_gold_sement_string("believe_cats_sleep_sement_collapsed.txt")
+        # this SEMENT doesn't include handle constraint between _believe_v_1.ARG2 and _sleep_v_1.LBL
+        broken_believe_cats_sleep_sement = self.decode_gold_sement_string("believe_cats_sleep_broken_hcons_sement.txt")
+
+        gold_overlap_hcons = [{
+            "hi_role_set": ["udef_q.RSTR"],
+            "lo_role_set": ["_cat_n_1.LBL"],
+            "gold_hi_var": "h7",
+            "gold_lo_var": "h9",
+            "actual_hi_var": "h07",
+            "actual_lo_var": "h09",
+        }]
+
+        gold_gold_hcons = [{
+            "hi_role_set": ["_believe_v_1.ARG2"],
+            "lo_role_set": ["_sleep_v_1.LBL"],
+            "gold_hi_var": "u3",
+            "gold_lo_var": "h11",
+        }]
+
+        gold_actual_hcons = [{
+            "hi_role_set": ["_believe_v_1.ARG3"],
+            "lo_role_set": ["_sleep_v_1.LBL"],
+            "gold_hi_var": "h04",
+            "gold_lo_var": "h011",
+        }]
+
+        test_overlap_hcons, test_gold_hcons, test_actual_hcons = sement_util.find_hcons_overlaps(gold_believe_cats_sleep_sement,
+                                                                                            broken_believe_cats_sleep_sement)
+
+        self.assertEqual(gold_overlap_hcons, test_overlap_hcons,
+                         "Gold Overlap: {} \nActual Overlap: {}".format(gold_overlap_hcons, test_overlap_hcons))
+        self.assertEqual(gold_overlap_hcons, test_overlap_hcons,
+                         "Gold Gold: {} \nActual Gold:{}".format(gold_overlap_hcons, test_overlap_hcons))
+        self.assertEqual(gold_overlap_hcons, test_overlap_hcons,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_overlap_hcons, test_overlap_hcons))
+
+    def test_find_hcons_lists_overlaps_gold_valueerror(self):
+        uncollapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        collapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement_collapsed.txt")
+        self.assertRaises(ValueError, sement_util.find_hcons_overlaps, uncollapsed_sement, collapsed_sement)
+
+    def test_find_hcons_lists_overlaps_actual_valueerror(self):
+        uncollapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement.txt")
+        collapsed_sement = self.decode_gold_sement_string("a_tasty_cookie_sement_collapsed.txt")
+        self.assertRaises(ValueError, sement_util.find_hcons_overlaps, collapsed_sement, uncollapsed_sement)
+
+
+    def test__build_overlap_eqs_table(self):
+        gold_eq_table = """Role Set                     Gold Var    Actual Var
+        ---------------------------  ----------  ------------
+        ['role0', 'role1', 'role2']  x1          x01
+        ['role3', 'role4']           x2          x02"""
+
+        mock_overlap_eqs = [{
+            "eq_set": ["role0", "role1", "role2"],
+            "gold_var": "x1",
+            "actual_var": "x01"
+        }, {
+            "eq_set": ["role3", "role4"],
+            "gold_var": "x2",
+            "actual_var": "x02"
+        }]
+
+        test_overlap_eq_table = sement_util._build_overlap_eqs_table(mock_overlap_eqs)
+
+        gold_chars = [c for c in gold_eq_table if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_overlap_eq_table if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_eq_table, test_overlap_eq_table))
+
+    def test__build_nonoverlap_gold_eqs_table(self):
+        gold_eq_table = """Role Set                     Gold Var
+        ---------------------------  ----------
+        ['role0', 'role1', 'role2']  x1
+        ['role3', 'role4']           x2"""
+
+        mock_nonoverlap_eqs = [{
+            "eq_set": ["role0", "role1", "role2"],
+            "gold_var": "x1",
+        }, {
+            "eq_set": ["role3", "role4"],
+            "gold_var": "x2",
+        }]
+
+        test_nonoverlap_eq_table = sement_util._build_nonoverlap_eqs_table(mock_nonoverlap_eqs, "gold")
+
+        gold_chars = [c for c in gold_eq_table if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_nonoverlap_eq_table if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_eq_table, test_nonoverlap_eq_table))
+
+    def test__build_nonoverlap_actual_eqs_table(self):
+        gold_eq_table = """Role Set                     Actual Var
+        ---------------------------  ----------
+        ['role0', 'role1', 'role2']  x1
+        ['role3', 'role4']           x2"""
+
+        mock_nonoverlap_eqs = [{
+            "eq_set": ["role0", "role1", "role2"],
+            "actual_var": "x1",
+        }, {
+            "eq_set": ["role3", "role4"],
+            "actual_var": "x2",
+        }]
+
+        test_nonoverlap_eq_table = sement_util._build_nonoverlap_eqs_table(mock_nonoverlap_eqs, "actual")
+
+        gold_chars = [c for c in gold_eq_table if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_nonoverlap_eq_table if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                        "Gold Actual: {} \nActual Actual:{}".format(gold_eq_table, test_nonoverlap_eq_table))
+
+    def test__build_overlap_hcons_table(self):
+        gold_hcons_table = """Hi Role Set            Lo Role Set         Gold QEQ       Actual QEQ
+        ---------------------  ------------------  -------------  ------------
+        ['role0', 'role1']        ['role2', 'role3']    h0 qeq h1  h00 qeq h01
+        ['role4']        ['role5']    h2 qeq h3  h02 qeq h03"""
+
+        mock_overlap_eqs = [{
+            "hi_role_set": ["role0", "role1"],
+            "lo_role_set": ["role2", "role3"],
+            "gold_hi_var": "h0",
+            "gold_lo_var": "h1",
+            "actual_hi_var": "h00",
+            "actual_lo_var": "h01",
+        }, {
+            "hi_role_set": ["role4"],
+            "lo_role_set": ["role5"],
+            "gold_hi_var": "h2",
+            "gold_lo_var": "h3",
+            "actual_hi_var": "h02",
+            "actual_lo_var": "h03",
+        }]
+
+        test_overlap_hcons_table = sement_util._build_overlap_hcons_table(mock_overlap_eqs)
+
+        gold_chars = [c for c in gold_hcons_table if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_overlap_hcons_table if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_hcons_table, test_overlap_hcons_table))
+
+    def test__build_nonoverlap_gold_hcons_table(self):
+        gold_hcons_table = """Hi Role Set            Lo Role Set         Gold QEQ
+        ---------------------  ------------------  -------------
+        ['role0', 'role1']        ['role2', 'role3']    h0 qeq h1
+        ['role4']        ['role5']    h2 qeq h3"""
+
+        mock_overlap_eqs = [{
+            "hi_role_set": ["role0", "role1"],
+            "lo_role_set": ["role2", "role3"],
+            "gold_hi_var": "h0",
+            "gold_lo_var": "h1",
+        }, {
+            "hi_role_set": ["role4"],
+            "lo_role_set": ["role5"],
+            "gold_hi_var": "h2",
+            "gold_lo_var": "h3",
+        }]
+
+        test_nonoverlap_hcons_table = sement_util._build_nonoverlap_hcons_table(mock_overlap_eqs, "gold")
+
+        gold_chars = [c for c in gold_hcons_table if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_nonoverlap_hcons_table if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_hcons_table, test_nonoverlap_hcons_table))
+
+    def test__build_nonoverlap_actual_hcons_table(self):
+        gold_hcons_table = """Hi Role Set            Lo Role Set      Actual QEQ
+        ---------------------  ------------------  -------------  ------------
+        ['role0', 'role1']        ['role2', 'role3']    h00 qeq h01
+        ['role4']        ['role5']    h02 qeq h03"""
+
+        mock_overlap_eqs = [{
+            "hi_role_set": ["role0", "role1"],
+            "lo_role_set": ["role2", "role3"],
+            "actual_hi_var": "h00",
+            "actual_lo_var": "h01",
+        }, {
+            "hi_role_set": ["role4"],
+            "lo_role_set": ["role5"],
+            "actual_hi_var": "h02",
+            "actual_lo_var": "h03",
+        }]
+
+        test_noverlap_hcons_table = sement_util._build_nonoverlap_hcons_table(mock_overlap_eqs, "actual")
+
+        gold_chars = [c for c in gold_hcons_table if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_noverlap_hcons_table if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_hcons_table, test_noverlap_hcons_table))
+
+    def test_build_isomorphism_report(self):
+        gold_report = open(os.path.join(self.test_dir, "gold_isomorphism_report.txt")).read()
+
+        report_sement1 = self.decode_gold_sement_string("report_sement1.txt")
+        report_sement2 = self.decode_gold_sement_string("report_sement2.txt")
+
+        test_report = sement_util.build_isomorphism_report(report_sement1, report_sement2)
+
+        gold_chars = [c for c in gold_report if re.match(r'[^\s=-]', c)]
+        test_chars = [c for c in test_report if re.match(r'[^\s=-]', c)]
+
+        self.assertEqual(gold_chars, test_chars,
+                         "Gold Actual: {} \nActual Actual:{}".format(gold_report, test_report))

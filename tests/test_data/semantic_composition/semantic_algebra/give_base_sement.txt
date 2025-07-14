@@ -1,0 +1,4 @@
+[ TOP: h0
+  INDEX: e1
+  RELS: < [ _give_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: i4 ] >
+  SLOTS: < ARG1: i2 ARG2: u3 ARG3: i4 > ]

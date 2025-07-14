@@ -1,0 +1,8 @@
+[ TOP: h7
+  INDEX: e8
+  RELS: < [ _eat_v_1 LBL: h7 ARG0: e8 ARG1: i9 ARG2: i10 ]
+          [ _the_q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+          [ _cookie_n_1 LBL: h4 ARG0: x5 ] >
+  EQS: < x1 eq x5 x5 eq i10 >
+  SLOTS: < ARG1: i9 >
+  HCONS: < h2 qeq h4 > ]

@@ -1,0 +1,4 @@
+[ TOP: h03
+  INDEX: x04
+  RELS: < [ _tasty_a_1 LBL: h00 ARG0: e01 ARG1: x04 ]
+          [ _cookie_n_1 LBL: h03 ARG0: x04 ] > ]

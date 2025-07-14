@@ -1,0 +1,8 @@
+[ TOP: h3
+  INDEX: e4
+  RELS: < [ _extremely_x_deg LBL: h0 ARG0: e1 ARG1: u2 ]
+          [ _tasty_a_1 LBL: h3 ARG0: e4 ARG1: u5 ] >
+  EQS: < u2 eq e4 h0 eq h3 >
+  SLOTS: < ARG1: u5 > ]
+
+

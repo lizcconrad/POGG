@@ -1,0 +1,4 @@
+[ TOP: h0
+  INDEX: i1
+  RELS: < [ card LBL: h0 ARG0: i1 ARG1: u2 CARG: "5" ] >
+  SLOTS: < ARG1: u2 > ]
