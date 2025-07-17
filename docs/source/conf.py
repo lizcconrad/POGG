@@ -30,7 +30,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.coverage',
-    'sphinx_design'
+    'sphinx_design',
+    # "sphinx.ext.autosectionlabel"
 ]
 
 # autodoc_default_options = {
@@ -50,6 +51,7 @@ sd_custom_directives = {
     }
 }
 
+# autosectionlabel_prefix_document = True
 
 templates_path = ['_templates']
 exclude_patterns = []

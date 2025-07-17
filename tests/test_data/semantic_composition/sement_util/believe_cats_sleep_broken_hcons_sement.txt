@@ -4,5 +4,5 @@
           [ udef_q LBL: h05 ARG0: x010 RSTR: h07 BODY: h08 ]
           [ _cat_n_1 LBL: h09 ARG0: x010 ]
           [ _sleep_v_1 LBL: h011 ARG0: e012 ARG1: x010 ] >
-  SLOTS: < ARG1: i02 >
+  SLOTS: < ARG1: i02 ARG2: u03 >
   HCONS: < h07 qeq h09 h04 qeq h011 > ]

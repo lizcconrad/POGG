@@ -1,0 +1,11 @@
+[
+    TOP: h9
+    INDEX: i8
+    RELS: <
+        [ _udef_q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+        [ _cookie_n_1 LBL: h4 ARG0: x5 ]
+        [ _tasty_a_1 LBL: h6 ARG0: e7 ARG1: i8 ] >
+    SLOTS: < BODY: h3 >
+    EQS: < x1 eq x5 eq i8 h4 eq h6 >
+    HCONS: < h2 qeq h6 >
+]

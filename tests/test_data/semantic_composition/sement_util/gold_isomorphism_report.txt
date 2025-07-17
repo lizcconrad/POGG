@@ -1,44 +1,102 @@
-SEMANTIC ROLE EQUIVALENCES
-================================
-OVERLAPPING
-Role Set                        Gold Var    Actual Var
-------------------------------  ----------  ------------
-['INDEX', '_believe_v_1.ARG0']  e101        e1
-['TOP', '_believe_v_1.LBL']     h105        h0
-['_believe_v_1.ARG1']           i102        i2
-['_believe_v_1.ARG2']           u103        u3
-['_believe_v_1.ARG3']           h104        h4
-['_cat_n_1.LBL']                h112        h9
-['_sleep_v_1.ARG0']             e113        e12
-['_sleep_v_1.LBL']              h115        h11
-['udef_q.BODY']                 h108        h8
-['udef_q.LBL']                  h109        h5
-['udef_q.RSTR']                 h107        h7
+--- GOLD SEMENT ---
+[ TOP: h0
+  INDEX: e1
+  RELS: < [ _believe_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: h4 ]
+          [ _the_q LBL: h5 ARG0: x10 RSTR: h7 BODY: h8 ]
+          [ _cat_n_1 LBL: h9 ARG0: x10 ]
+          [ _sleep_v_1 LBL: h11 ARG0: e12 ARG1: x10 ] >
+  HCONS: < h7 qeq h9 u3 qeq h11 >
+  SLOTS: < ARG1: i2 ARG3: h4 > ]
 
+--- ACTUAL SEMENT ---
+[ TOP: h00
+  INDEX: e01
+  RELS: < [ _believe_v_1 LBL: h00 ARG0: e01 ARG1: i02 ARG2: u03 ARG3: h04 ]
+          [ _the_q LBL: h05 ARG0: x010 RSTR: h07 BODY: h08 ]
+          [ _cat_n_1 LBL: h09 ARG0: x010 ]
+          [ _sleep_v_1 LBL: h011 ARG0: e012 ARG1: x010111 ] >
+  HCONS: < h07 qeq h09 h04 qeq h011 >
+  SLOTS: < ARG1: i02 ARG2: u03 > ]
+
+
+=====================
+=== DISCREPANCIES ===
+=====================
+
+SLOT DISCREPANCIES
+^^^^^^^^^^^^^^^^^^
+GOLD ONLY
+Slot Name          Gold Var
+-----------------  ----------
+_believe_v_1.ARG3  h4
+
+ACTUAL ONLY
+Slot Name          Actual Var
+-----------------  ------------
+_believe_v_1.ARG2  u03
+
+
+SEMANTIC ROLE EQUIVALENCE DISCREPANCIES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 GOLD ONLY
 Role Set                                             Gold Var
 ---------------------------------------------------  ----------
-['_cat_n_1.ARG0', '_sleep_v_1.ARG1', 'udef_q.ARG0']  x106
+['_cat_n_1.ARG0', '_sleep_v_1.ARG1', '_the_q.ARG0']  x10
 
 ACTUAL ONLY
 Role Set                          Actual Var
 --------------------------------  ------------
-['_cat_n_1.ARG0', 'udef_q.ARG0']  x10
-['_sleep_v_1.ARG1']               x10111
+['_cat_n_1.ARG0', '_the_q.ARG0']  x010
+['_sleep_v_1.ARG1']               x010111
 
-HANDLE CONSTRAINTS
-=====================
-OVERLAPPING
-Hi Role Set      Lo Role Set       Gold QEQ       Actual QEQ
----------------  ----------------  -------------  ------------
-['udef_q.RSTR']  ['_cat_n_1.LBL']  h107 qeq h112  h7 qeq h9
 
+HANDLE CONSTRAINT DISCREPANCIES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 GOLD ONLY
 Hi Role Set            Lo Role Set         Gold QEQ
----------------------  ------------------  -------------
-['_believe_v_1.ARG2']  ['_sleep_v_1.LBL']  u103 qeq h115
+---------------------  ------------------  ----------
+['_believe_v_1.ARG2']  ['_sleep_v_1.LBL']  u3 qeq h11
 
 ACTUAL ONLY
 Hi Role Set            Lo Role Set         Actual QEQ
 ---------------------  ------------------  ------------
-['_believe_v_1.ARG3']  ['_sleep_v_1.LBL']  h4 qeq h11
+['_believe_v_1.ARG3']  ['_sleep_v_1.LBL']  h04 qeq h011
+
+
+
+=====================
+=== CONSISTENCIES ===
+=====================
+
+SLOT CONSISTENCIES
+^^^^^^^^^^^^^^^^^^
+OVERLAPPING
+Slot Name          Gold Var    Actual Var
+-----------------  ----------  ------------
+_believe_v_1.ARG1  i2          i02
+
+SEMANTIC ROLE EQUIVALENCE CONSISTENCIES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OVERLAPPING
+Role Set                        Gold Var    Actual Var
+------------------------------  ----------  ------------
+['INDEX', '_believe_v_1.ARG0']  e1          e01
+['TOP', '_believe_v_1.LBL']     h0          h00
+['_believe_v_1.ARG1']           i2          i02
+['_believe_v_1.ARG2']           u3          u03
+['_believe_v_1.ARG3']           h4          h04
+['_cat_n_1.LBL']                h9          h09
+['_sleep_v_1.ARG0']             e12         e012
+['_sleep_v_1.LBL']              h11         h011
+['_the_q.BODY']                 h8          h08
+['_the_q.LBL']                  h5          h05
+['_the_q.RSTR']                 h7          h07
+
+HANDLE CONSTRAINT CONSISTENCIES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OVERLAPPING
+Hi Role Set      Lo Role Set       Gold QEQ    Actual QEQ
+---------------  ----------------  ----------  ------------
+['_the_q.RSTR']  ['_cat_n_1.LBL']  h7 qeq h9   h07 qeq h09
+
+

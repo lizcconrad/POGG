@@ -1,0 +1,5 @@
+[
+    TOP: h2
+    INDEX: e1
+    RELS: < [ _eat_v_1 LBL: h2 ARG0: e1 ARG1: i2  ARG2: i3 ] >
+]

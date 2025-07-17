@@ -47,7 +47,7 @@ Module Functions
 
         .. dropdown-syntax:: Example usage
 
-            Per the SEM-I, the EP (elementary predicate) for ``_give_v_1`` has up to three semantic arguments (the giver, the thing given, and who it is given to). Calling ``_get_slots(ep)`` on this EP will result in the following dictionary:
+            Per the SEM-I, the EP (elementary predicate) for ``_give_v_1`` has up to three semantic arguments (the giver, the thing given, and who it is given to). Calling :py:func:`_get_slots` on this EP will result in the following dictionary:
 
             .. code::
 
@@ -65,7 +65,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: create-base-SEMENT-parameter-table
             :widths: 20, 10, 10, 70
             :class: longtable
             :header-rows: 1
@@ -85,7 +85,7 @@ Module Functions
               -
               - ERG predicate label
             * - ``intrinsic_variable_properties``
-              - dict of ``str``
+              - dict of ``str``:``str``
               - {}
               - optional dictionary of properties of the intrinsic variable, e.g. ``{'NUM': 'sg'}``
 
@@ -93,7 +93,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: create-base-SEMENT-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -114,7 +114,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: create-CARG-SEMENT-parameter-table
             :widths: 20, 10, 10, 70
             :class: longtable
             :header-rows: 1
@@ -138,7 +138,7 @@ Module Functions
               -
               - Value of the CARG slot, e.g. a proper name for the predicate ``named``
             * - ``intrinsic_variable_properties``
-              - dict of ``str``
+              - dict of ``str``:``str``
               - {}
               - optional dictionary of properties of the intrinsic variable, e.g. ``{'NUM': 'sg'}``
 
@@ -146,7 +146,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: create-CARG-SEMENT-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -166,7 +166,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: op-non-scopal-arugment-hook-parameter-table
             :widths: 20, 10, 70
             :class: longtable
             :header-rows: 1
@@ -190,7 +190,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: op-non-scopal-argument-hook-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -246,7 +246,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: op-non-scopal-functor-hook-parameter-table
             :widths: 20, 10, 70
             :class: longtable
             :header-rows: 1
@@ -270,7 +270,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: op-non-scopal-functor-hook-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -329,96 +329,6 @@ Module Functions
                       SLOTS: < ARG1: i2 > ]
 
 
-.. py:function:: op_non_scopal_functor_hook(functor, argument, slot_label)
-
-        Perform non-scopal composition on two SEMENTs. The hook of the resulting SEMENT comes from the functor. Typically used when the argument is a complement (e.g. *give a cookie*) or preposition (*in the park*)
-
-
-        Parameters
-        ^^^^^^^^^^^
-        .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
-        .. list-table::
-            :name: TABLE-NAME
-            :widths: 20, 10, 70
-            :class: longtable
-            :header-rows: 1
-            :align: left
-            :width: 90%
-
-            * - Parameter
-              - Type
-              - Description
-            * - ``functor``
-              - ``SEMENT``
-              - SEMENT serving as the semantic functor, i.e. the one with the slot being plugged
-            * - ``argument``
-              - ``SEMENT``
-              - SEMENT serving as the semantic argument, i.e. the one plugging the slot
-            * - ``slot_label``
-              - ``str``
-              - label for the semantic argument slot in the functor that the argument is plugging (e.g. ``ARG1``)
-
-        Returns
-        ^^^^^^^^
-        .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
-        .. list-table::
-            :name: returns-table
-            :widths: 40, 70
-            :class: longtable
-            :header-rows: 1
-            :align: left
-            :width: 90%
-
-            * - Return Type
-              - Description
-            * - ``SEMENT``
-              - newly created SEMENT resulting from composition
-
-        .. dropdown-syntax:: Example usage
-
-            Example of performing non-scopal composition with SEMENTs for *eat* and *a cookie*. Notice that the ``TOP`` and ``INDEX`` match those from the original *eat* sement.
-
-            .. code::
-
-                eat = sem_algebra.create_base_SEMENT(pogg_config, "_eat_v_1")
-                a = sem_algebra.create_base_SEMENT(pogg_config, "_a_q")
-                cookie = sem_algebra.create_base_SEMENT(pogg_config, "_cookie_n_1")
-
-                # compose "a cookie" because arguments of verbs must be quantified
-                a_cookie = sem_algebra.op_scopal_quantifier(a, cookie)
-
-                # print the original SEMENTs
-                print(sementcodecs.encode(eat, indent=True))
-                print(sementcodecs.encode(a_cookie, indent=True))
-
-                >>> [ TOP: h32
-                      INDEX: e29
-                      RELS: < [ _eat_v_1 LBL: h32 ARG0: e29 ARG1: i30 ARG2: i31 ] >
-                      SLOTS: < ARG1: i30 ARG2: i31 > ]
-                >>> [ TOP: h37
-                      INDEX: x33
-                      RELS: < [ _a_q LBL: h36 ARG0: x33 RSTR: h34 BODY: h35 ]
-                              [ _cookie_n_1 LBL: h39 ARG0: x38 ] >
-                      HCONS: < h34 qeq h39 >
-                      EQS: < x33 eq x38 >
-                      SLOTS: < BODY: h35 > ]
-
-                # perform composition
-                # plug ARG2 since that's the slot associated with the object of the verb
-                eat_a_cookie = sem_algebra.op_non_scopal_functor_hook(eat, a_cookie, "ARG2")
-
-                # print result
-                print(sementcodecs.encode(eat_a_cookie, indent=True))
-
-                >>> [ TOP: h32
-                      INDEX: e29
-                      RELS: < [ _eat_v_1 LBL: h32 ARG0: e29 ARG1: i30 ARG2: i31 ]
-                              [ _a_q LBL: h36 ARG0: x33 RSTR: h34 BODY: h35 ]
-                              [ _cookie_n_1 LBL: h39 ARG0: x38 ] >
-                      HCONS: < h34 qeq h39 >
-                      EQS: < x33 eq x38 h32 eq h37 i31 eq x33 >
-                      SLOTS: < ARG1: i30 > ]
-
 .. py:function:: op_scopal_argument_index(functor, argument, slot_label)
 
         Perform scopal composition where the ``INDEX`` comes from the argument, but the ``TOP`` comes from the functor. Used when the argument is a scopal modifier (e.g. *probably sleeps*).
@@ -427,7 +337,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: op-scopal-argument-index-parameter-table
             :widths: 20, 10, 70
             :class: longtable
             :header-rows: 1
@@ -451,7 +361,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: op-scopal-argument-index-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -506,7 +416,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: op-scopal-functor-index-parameter-table
             :widths: 20, 10, 70
             :class: longtable
             :header-rows: 1
@@ -530,7 +440,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: op-scopal-functor-index-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -598,7 +508,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: op-scopal-quantifier-parameter-table
             :widths: 20, 10, 70
             :class: longtable
             :header-rows: 1
@@ -619,7 +529,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: op-scopal-quantifier-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -671,3 +581,99 @@ Module Functions
                       HCONS: < h2 qeq h7 >
                       EQS: < x1 eq x6 >
                       SLOTS: < BODY: h3 > ]
+
+
+.. py:function:: prepare_for_generation(pogg_config, sement)
+
+        Prepare the given SEMENT for generation. In order to perform generationn, the ERG requires an MRS, not a SEMENT. The differences between an MRS and a SEMENT are described on the :doc:`Semantic Structures page </education/mrs>`.
+
+        Additionally, the MRS must fulfill certain requirements. First, ERG requires that the ``INDEX`` be an event type. Second, there must be a GTOP handle which is QEQ to what was the final LTOP during composition.
+
+        In order to modify a SEMENT into a suitable MRS, the following steps must be taken:
+
+        #. Check if the ``INDEX`` is of type ``e``
+
+           * If not:
+
+              * check if given SEMENT is quantified, and wrap in generic quantifier if not
+
+              * wrap in ``unknown`` event
+
+        #. Create a new GTOP handle and set it to be QEQ to the SEMENT's previous ``TOP``
+        #. Overwrite all ``EQS`` to one representative value
+        #. Constrain all handles in handle constraints to be of type ``h``
+
+            * sometimes the scopal argument's slot value starts out as type ``u`` but the ERG won't generate if both members of a handle constraint are not type ``h``
+
+        Parameters
+        ^^^^^^^^^^^
+        .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
+        .. list-table::
+            :name: prepare-for-generation-parameter-table
+            :widths: 20, 10, 70
+            :class: longtable
+            :header-rows: 1
+            :align: left
+            :width: 90%
+
+            * - Parameter
+              - Type
+              - Description
+            * - ``pogg_config``
+              - ``POGGConfig``
+              - POGGConfig object that contains information about the SEMI and variable labeler
+            * - ``sement``
+              - ``SEMENT``
+              - SEMENT to prepare to be sent to the ERG for generation
+
+        Returns
+        ^^^^^^^^
+        .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
+        .. list-table::
+            :name: prepare-for-generation-returns-table
+            :widths: 40, 70
+            :class: longtable
+            :header-rows: 1
+            :align: left
+            :width: 90%
+
+            * - Return Type
+              - Description
+            * - ``SEMENT``
+              - the prepared SEMENT
+
+        .. note::
+            The return type is still a SEMENT, but once the above changes have been made it can  be encoded to an MRS string with no loss of information. The biggest differences between an MRS and a SEMENT are the presence of the ``SLOTS`` and ``EQS`` lists in a SEMENT. This function involves collapsing all the ``EQS`` to be represented by one value, so the ``EQS`` list is empty after this operation. As far as ``SLOTS``, an MRS doesn't keep track of a list of unplugged slots, and they can be worked out by looking at the structure to see which EPs have semantic arguments whose variable value is not identified with anything else. Therefore when encoding the SEMENT resulting from this function into an MRS the ``EQS`` list is already empty and can be dropped, and the ``SLOTS`` list is unnecessary and may also be dropped.
+
+        .. dropdown-syntax:: Example usage
+
+            Example of the result of applying :py:func:`prepare_for_generation` to a SEMENT for *tasty cookie*.
+
+            In order to generation sentence fragments, the noun phrase must be quantified, and be "wrapped" in a generic ``unknown`` EP whose ``ARG0`` is of type ``e`` to meet the generation requirements for the ERG. The ``TOP`` handle must also be switched to a GTOP (global top) that is QEQ to the final ``TOP`` (also called LTOP for local top) that resulted from composition.
+
+            Also, notice that the ``EQS`` have all been collapsed. In the original SEMENT, there is an entry in the ``EQS`` list stating that ``u2 eq x4`` which represents the fact that the ``ARG1`` of ``_tasty_a_1`` is identified with the ``ARG0`` of ``_cookie_n_1``. In the result after calling ``prepare_for_generation`` notice that both of these slots are filled by the same value: ``x4``.
+
+            .. code::
+
+                tasty_sement = sem_algebra.create_base_SEMENT(pogg_config, "_tasty_a_1")
+                cookie_sement = sem_algebra.create_base_SEMENT(pogg_config, "_cookie_n_1")
+                tasty_cookie_sement = sem_algebra.op_non_scopal_argument_hook(tasty_sement, cookie_sement, "ARG1")
+                print(sementcodecs.encode(tasty_cookie_sement, indent=True))
+
+                >>> [ TOP: h5
+                      INDEX: x4
+                      RELS: < [ _tasty_a_1 LBL: h3 ARG0: e1 ARG1: u2 ]
+                              [ _cookie_n_1 LBL: h5 ARG0: x4 ] >
+                      EQS: < h3 eq h5 u2 eq x4 > ]
+
+                # prepare for generation
+                prepared_sement = sem_algebra.prepare_for_generation(pogg_config, tasty_cookie_sement)
+                print(sementcodecs.encode(prepared_sement, indent=True))
+
+                >>> [ TOP: h14
+                      INDEX: e11
+                      RELS: < [ unknown LBL: h10 ARG: x4 ARG0: e11 ]
+                              [ def_udef_a_q LBL: h9 ARG0: x4 RSTR: h7 BODY: h8 ]
+                              [ _tasty_a_1 LBL: h3 ARG0: e1 ARG1: x4 ]
+                              [ _cookie_n_1 LBL: h3 ARG0: x4 ] >
+                      HCONS: < h7 qeq h3 h14 qeq h10 > ]

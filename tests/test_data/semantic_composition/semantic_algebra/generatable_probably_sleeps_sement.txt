@@ -1,0 +1,7 @@
+[ TOP: h7
+  INDEX: e4
+  RELS: <
+    [ _probable_a_1 LBL: h0 ARG0: e1 ARG1: h6 ]
+    [ _sleep_v_1 LBL: h3 ARG0: e4 ARG1: i5 ] >
+  HCONS: <  h6 qeq h3 h7 qeq h0 >
+]

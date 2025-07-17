@@ -10,11 +10,15 @@ Module Functions
 
         [FUNCTION DESCRIPTION]
 
+        !!! CHANGE THE TABLE NAMES !!!
+        fxn-name-paramter-table
+        fxn-name-returns-table
+
         Parameters
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: parameter-table
             :widths: 20, 10, 10, 70
             :class: longtable
             :header-rows: 1
@@ -43,7 +47,7 @@ Module Functions
 
             * - Return Type
               - Description
-            * - ...
+            * - ``...``
               - ...
 
 

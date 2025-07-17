@@ -2,7 +2,41 @@
 from copy import deepcopy
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
+import pogg.my_delphin.sementcodecs as sementcodecs
 import tabulate
+
+
+def duplicate_sement(sement):
+    """
+    Create a duplicate of the SEMENT to prevent the passed in object from being modified during certain operations.
+    Just using "deepcopy" doesn't work due to some unexpected behavior with pydelphin HCons objects.
+
+    Args:
+         sement (SEMENT): SEMENT to be duplicated
+
+    Returns:
+        SEMENT: duplicated SEMENT
+    """
+
+    # top and index can be copied with = since strings aren't assigned by reference
+    new_top = sement.top
+    new_index = sement.index
+
+    # make copies of everything except hcons
+    new_rels = sement.rels.copy()
+    new_slots = sement.slots.copy()
+    new_eqs = sement.eqs.copy()
+    new_variables = sement.variables.copy()
+
+    # TODO: ignoring lnk, surface, and identifier for now
+
+    # for each element in hcons, add to list
+    new_hcons = [h for h in sement.hcons]
+    # for each element in icons, add to list
+    new_icons = [i for i in sement.icons]
+
+    return SEMENT(new_top, new_index, new_rels, new_slots, new_eqs, new_hcons, new_icons, new_variables, None, None, None)
+
 
 def group_equalities(equalities):
     """
@@ -121,6 +155,9 @@ def overwrite_eqs(sement):
     Returns:
         SEMENT: new SEMENT with resolved variable equalities (i.e. if x1=x2 then all instances of x2 are overwritten to be x1)
     """
+    # if no eqs, return sement as is
+    if sement.eqs is None or len(sement.eqs) == 0:
+        return sement
 
     # will be progressively collecting a new list of EPs, HCONS, and EQs, so start with those from the given SEMENT
     current_SEMENT = sement
@@ -170,21 +207,18 @@ def overwrite_eqs(sement):
         # check the hcons...
         new_hcons = []
         for hcon in current_hcons:
-            # is there any chance that the hi of an hcon will be one member of an eq
-            # and the lo could be another member of the eq? so both need to be checked/changed?
-            # idk but i'm scared so
-
-            # hcon.hi should never be a memeber of an eq, so this condition is not necessary
-            # if hcon.hi in eq:
-            #     new_hi = chosen_var
-            # else:
-            #     new_hi = hcon.hi
+            # normally, hcon.hi should never be a memeber of an eq
+            # but sometimes hcon.hi is of type u and must be constrained down to h so an "artificial" eq is added
+            if hcon.hi in eq:
+                new_hi = chosen_var
+            else:
+                new_hi = hcon.hi
 
             if hcon.lo in eq:
                 new_lo = chosen_var
             else:
                 new_lo = hcon.lo
-            new_hcons.append(mrs.HCons(hcon.hi, 'qeq', new_lo))
+            new_hcons.append(mrs.HCons(new_hi, 'qeq', new_lo))
 
         current_hcons = new_hcons
 
@@ -207,6 +241,31 @@ def overwrite_eqs(sement):
     # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
     return SEMENT(current_top, current_index, current_eps, current_SEMENT.slots, None, current_hcons, None, current_variables)
 
+
+def check_if_quantified(check_sement):
+    """
+    Check if the given SEMENT is quantified
+
+    Args:
+        check_sement (SEMENT): SEMENT to be checked
+
+    Returns:
+        boolean: whether the SEMENT is quantified
+    """
+    # if the INDEX (or something eq to INDEX) is not the ARG0 of something with RSTR, gg
+    index = check_sement.index
+    index_set = set()
+    index_set.add(index)
+    # go through eqs to find variables eq to index
+    for eq in check_sement.eqs:
+        if index in eq:
+            for elem in eq:
+                index_set.add(elem)
+
+    for rel in check_sement.rels:
+        if rel.args['ARG0'] in index_set and 'RSTR' in rel.args:
+            return True
+    return False
 
 
 # per delphinqa communication
@@ -333,6 +392,97 @@ def create_hcons_list(sement):
         hcons_list.append(hcons_entry)
     return hcons_list
 
+def find_slot_overlaps(gold_sement, actual_sement):
+    """
+    Produces three lists: overlap_slots, gold_only_slots, and actual_only_slots. The goal is to compare slots lists across
+    two SEMENTs to detect differences when isomorphism checks fail.
+
+    Each list contains dictionaries that detail the slots that remain.
+    e.g. {
+        "slot": {"_cozy_a_1.ARG1"}
+        "gold_var": 'x1',
+        "actual_var": 'x2'
+    }
+
+    If two SEMENts are isomorphic, the gold_only_slots and actual_only_slots lists will be empty, but when the SEMENTs are
+    not isomorphic, the sets of remaining slots will not match so these lists will help pinpoint where
+    the differences lie.
+
+    NOTE: Here "slots" means specifically members of the slots list of the SEMENT object, not unfilled semantic roles.
+    Because during any composition operation the slots from the argument SEMENT are dropped, these slots will never be
+    filled as they are no longer accessible in the slots list.
+    """
+    # throw exception if EQs present, only SEMENTs that have had EQs overwritten already should go through this function
+    if (gold_sement.eqs != None and len(gold_sement.eqs) > 0):
+        raise ValueError("Gold SEMENT has uncollappsed EQs: {}, aborting".format(gold_sement.eqs))
+    if (actual_sement.eqs != None and len(actual_sement.eqs) > 0):
+        raise ValueError("Actual SEMENT has uncollappsed EQs: {}, aborting".format(actual_sement.eqs))
+
+    overlap_slots = []
+    gold_only_slots = []
+    actual_only_slots = []
+
+    # make the variable_roles dicts
+    gold_variable_roles = create_variable_roles_dict(gold_sement)
+    actual_variable_roles = create_variable_roles_dict(actual_sement)
+
+    # keep track of slot values in actual_sement.slots that match a slot in gold
+    # i.e. if we find _cozy_a_1.ARG1 in both, store the value (e.g. x1) from actual_sement.slots
+    # then at the end slots whose value is found in this list will NOT be added to the actual_only_slots list
+    actual_slot_values_matching_overlap = []
+
+    for gold_slot_name in gold_sement.slots:
+        # get the full slot name, i.e. _cozy_a_1.ARG1 rather than just ARG1
+        gold_slot_value = gold_sement.slots[gold_slot_name]
+        # slots shouldn't be identified with anything so there will only ever be one item in the roles set
+        gold_full_slot_name = gold_variable_roles[gold_slot_value][0]
+
+        found_overlap = False
+        for actual_slot_name in actual_sement.slots:
+            # get the full slot name, i.e. _cozy_a_1.ARG1 rather than just ARG1
+            actual_slot_value = actual_sement.slots[actual_slot_name]
+            # slots shouldn't be identified with anything so there will only ever be one item in the roles set
+            actual_full_slot_name = actual_variable_roles[actual_slot_value][0]
+
+            if actual_full_slot_name == gold_full_slot_name:
+                overlap_slots.append({
+                    "slot": gold_full_slot_name,
+                    "gold_var": gold_slot_value,
+                    "actual_var": actual_slot_value,
+                })
+                found_overlap = True
+                # add actual_slot_value to overlap list to help build actual_only_slots later
+                actual_slot_values_matching_overlap.append(actual_slot_value)
+                break
+
+        if not found_overlap:
+            gold_only_slots.append({
+                "slot": gold_full_slot_name,
+                "gold_var": gold_slot_value
+            })
+
+    # go through actual_sement slots list add all remaining slots to actual_only_slots
+    for slot in actual_sement.slots:
+        actual_slot_value = actual_sement.slots[slot]
+        full_actual_slot_name = actual_variable_roles[actual_slot_value][0]
+
+        # if the value is not found in the actual_slot_values_matching_overlap, append to actual_only_slots
+        if actual_slot_value not in actual_slot_values_matching_overlap:
+            actual_only_slots.append({
+                "slot": full_actual_slot_name,
+                "actual_var": actual_slot_value,
+            })
+
+    # sort each slot list by slot name
+    sorter = lambda slot_entry: slot_entry["slot"]
+    sorted_overlap_slots = sorted(overlap_slots, key=sorter)
+    sorted_gold_slots = sorted(gold_only_slots, key=sorter)
+    sorted_actual_slots = sorted(actual_only_slots, key=sorter)
+
+    return sorted_overlap_slots, sorted_gold_slots, sorted_actual_slots
+
+
+
 def find_var_eq_overlaps(gold_sement, actual_sement):
     """
     Produces three lists: overlap_eqs, gold_only_eqs, and actual_only_eqs. The goal is to compare semantic role
@@ -380,30 +530,27 @@ def find_var_eq_overlaps(gold_sement, actual_sement):
         found_overlap = False
         for actual_var in actual_variable_roles:
             if actual_variable_roles[actual_var] == role_set:
-                overlap_eq = {
+                overlap_eqs.append({
                     "eq_set": role_set,
                     "gold_var": gold_var,
                     "actual_var": actual_var,
-                }
-
-                overlap_eqs.append(overlap_eq)
+                })
                 found_overlap = True
                 # delete from remaining actual_variable_roles if equivalence found
                 del actual_variable_roles[actual_var]
                 break
+
         if not found_overlap:
-            gold_eq = {
+            gold_eqs.append({
                 "eq_set": role_set,
                 "gold_var": gold_var
-            }
-            gold_eqs.append(gold_eq)
+            })
 
     for actual_var in actual_variable_roles:
-        actual_eq = {
+        actual_eqs.append({
             "eq_set": actual_variable_roles[actual_var],
             "actual_var": actual_var,
-        }
-        actual_eqs.append(actual_eq)
+        })
 
     # sort each eq_list
     # sort first by length of the eq_set then alphabetically by first item in eq_set
@@ -417,8 +564,8 @@ def find_var_eq_overlaps(gold_sement, actual_sement):
 
 def find_hcons_overlaps(gold_sement, actual_sement):
     """
-    Produces three lists: overlap_hcons, gold_only_hcons, and actual_only_hcons. The goal is to compare semantic role
-    equivalencies across two SEMENTs to detect differences when isomorphism checks fail.
+    Produces three lists: overlap_hcons, gold_only_hcons, and actual_only_hcons. The goal is to compare handle constraints
+     across two SEMENTs to detect differences when isomorphism checks fail.
 
     Each list contains dictionaries that detail which handle constraints are present in which SEMENT.
     e.g. {
@@ -430,7 +577,7 @@ def find_hcons_overlaps(gold_sement, actual_sement):
         "lo_actual_var": "h01",
     }
 
-    If two SEMENts are isomorphic, the gold_only_hcons and actual_only_hcons lists will be empty, but when the SEMENTs are
+    If two SEMENTs are isomorphic, the gold_only_hcons and actual_only_hcons lists will be empty, but when the SEMENTs are
     not isomorphic, the sets of handle constraints may not match so these lists will help pinpoint where any differences lie.
 
     Args:
@@ -467,7 +614,7 @@ def find_hcons_overlaps(gold_sement, actual_sement):
             actual_lo = actual_entry["lo_role_set"]
 
             if gold_hi == actual_hi and gold_lo == actual_lo:
-                overlap_hcon = {
+                overlap_hcons.append({
                     "hi_role_set": gold_hi,
                     "lo_role_set": gold_lo,
                     "gold_hi_var": gold_entry["hi_var"],
@@ -475,32 +622,29 @@ def find_hcons_overlaps(gold_sement, actual_sement):
                     "actual_hi_var": actual_entry["hi_var"],
                     "actual_lo_var": actual_entry["lo_var"],
 
-                }
-                overlap_hcons.append(overlap_hcon)
+                })
 
                 found_overlap = True
                 to_remove = actual_entry
                 break
 
         if not found_overlap:
-            gold_hcon = {
+            gold_hcons.append({
                 "hi_role_set": gold_hi,
                 "lo_role_set": gold_lo,
                 "gold_hi_var": gold_entry["hi_var"],
                 "gold_lo_var": gold_entry["lo_var"],
-            }
-            gold_hcons.append(gold_hcon)
+            })
         else:
             actual_hcons_list.remove(to_remove)
 
     for actual_entry in actual_hcons_list:
-        actual_hcon = {
+        actual_hcons.append({
             "hi_role_set": actual_entry["hi_role_set"],
             "lo_role_set": actual_entry["lo_role_set"],
             "actual_hi_var": actual_entry["hi_var"],
             "actual_lo_var": actual_entry["lo_var"],
-        }
-        actual_hcons.append(actual_hcon)
+        })
 
     # sort each eq_list
     # sort first by length of the hi_role_set, then lo_role_set, then then alphabetically by first item in hi_role_set
@@ -511,6 +655,50 @@ def find_hcons_overlaps(gold_sement, actual_sement):
     sorted_actual_hcons = sorted(actual_hcons, key=sorter)
 
     return sorted_overlap_hcons, sorted_gold_hcons, sorted_actual_hcons
+
+
+def _build_overlap_slots_table(overlap_slots):
+    """
+    Make a table that displays which slots are present in two SEMENTs
+
+    Args:
+        overlap_eqs (list): list of slots present in two SEMENTs
+
+    Returns:
+        str: table representation of overlapping slots
+    """
+
+    overlap_slot_table = []
+    overlap_slot_table_headers = ["Slot Name", "Gold Var", "Actual Var"]
+    for overlap_slot in overlap_slots:
+        overlap_slot_table.append([overlap_slot["slot"], overlap_slot["gold_var"], overlap_slot["actual_var"]])
+
+    return tabulate.tabulate(overlap_slot_table, overlap_slot_table_headers)
+
+def _build_nonoverlap_slots_table(nonoverlap_slots, table_type):
+    """
+    Make a table that displays which slots are only present in one SEMENT
+
+    Args:
+        nonoverlap_slots (list): list of slots present in one SEMENT
+        table_type (str): type of table, either "gold" or "actual"
+
+    Returns:
+        str: table representation of nonoverlapping slots
+    """
+    if table_type.lower() == "gold":
+        type_header = "Gold Var"
+        type_key = "gold_var"
+    else:
+        type_header = "Actual Var"
+        type_key = "actual_var"
+
+    # make table for overlap
+    nonoverlap_slots_table = []
+    nonoverlap_slots_table_headers = ["Slot Name", type_header]
+    for nonoverlap_slots in nonoverlap_slots:
+        nonoverlap_slots_table.append([nonoverlap_slots["slot"], nonoverlap_slots[type_key]])
+    return tabulate.tabulate(nonoverlap_slots_table, nonoverlap_slots_table_headers)
 
 
 def _build_overlap_eqs_table(overlap_eqs):
@@ -531,14 +719,13 @@ def _build_overlap_eqs_table(overlap_eqs):
 
     return tabulate.tabulate(overlap_eq_table, overlap_eq_table_headers)
 
-
 def _build_nonoverlap_eqs_table(nonoverlap_eqs, table_type):
     """
     Make a table that displays which semantic role equivalence sets are only present in one SEMENT
 
     Args:
         nonoverlap_eqs (list): list of semantic role equivalencies present in one SEMENT
-        table_type (str): type of table, either Gold or Actual
+        table_type (str): type of table, either "gold" or "actual"
 
     Returns:
         str: table representation of nonoverlapping semantic role equivalencies
@@ -577,7 +764,6 @@ def _build_overlap_hcons_table(overlap_hcons):
         actual_qeq = "{} qeq {}".format(overlap_hcon["actual_hi_var"], overlap_hcon["actual_lo_var"])
         overlap_hcons_table.append([hi_role_set, lo_role_set, gold_qeq, actual_qeq])
     return tabulate.tabulate(overlap_hcons_table, overlap_hcons_table_headers)
-
 
 def _build_nonoverlap_hcons_table(nonoverlap_hcons, table_type):
     """
@@ -629,29 +815,63 @@ def build_isomorphism_report(gold_sement, actual_sement):
 
     report = ""
 
+    overlap_slots, gold_slots, actual_slots = find_slot_overlaps(gold_sement_collapsed, actual_sement_collapsed)
     overlap_eqs, gold_eqs, actual_eqs = find_var_eq_overlaps(gold_sement_collapsed, actual_sement_collapsed)
     overlap_hcons, gold_hcons, actual_hcons = find_hcons_overlaps(gold_sement_collapsed, actual_sement_collapsed)
 
-    report += "SEMANTIC ROLE EQUIVALENCES\n"
-    report += "================================\n"
-    report += "OVERLAPPING\n"
-    report += "{}\n\n".format(_build_overlap_eqs_table(overlap_eqs))
-    report += "GOLD ONLY\n"
-    report += "{}\n\n".format(_build_nonoverlap_eqs_table(gold_eqs, "gold"))
-    report += "ACTUAL ONLY\n"
-    report += "{}\n\n\n".format(_build_nonoverlap_eqs_table(actual_eqs, "actual"))
+    report += "--- GOLD SEMENT ---\n{}\n\n".format(sementcodecs.encode(gold_sement_collapsed, indent=True))
+    report += "--- ACTUAL SEMENT ---\n{}\n".format(sementcodecs.encode(actual_sement_collapsed, indent=True))
 
-    report += "HANDLE CONSTRAINTS \n"
-    report += "=====================\n"
-    report += "OVERLAPPING\n"
-    report += "{}\n\n".format(_build_overlap_hcons_table(overlap_hcons))
-    report += "GOLD ONLY\n"
-    report += "{}\n\n".format(_build_nonoverlap_hcons_table(gold_hcons, "gold"))
-    report += "ACTUAL ONLY\n"
-    report += "{}\n\n".format(_build_nonoverlap_hcons_table(actual_hcons, "actual"))
+    report += "\n\n=====================\n"
+    report += "=== DISCREPANCIES ===\n"
+    report += "=====================\n\n"
+
+    if len(gold_slots) > 0 or len(actual_slots) > 0:
+        report += "SLOT DISCREPANCIES\n"
+        report += "^^^^^^^^^^^^^^^^^^\n"
+        report += "GOLD ONLY\n"
+        report += "{}\n\n".format(_build_nonoverlap_slots_table(gold_slots, "gold"))
+        report += "ACTUAL ONLY\n"
+        report += "{}\n\n\n".format(_build_nonoverlap_slots_table(actual_slots, "actual"))
+
+    if len(gold_eqs) > 0 or len(actual_eqs) > 0:
+        report += "SEMANTIC ROLE EQUIVALENCE DISCREPANCIES\n"
+        report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
+        report += "GOLD ONLY\n"
+        report += "{}\n\n".format(_build_nonoverlap_eqs_table(gold_eqs, "gold"))
+        report += "ACTUAL ONLY\n"
+        report += "{}\n\n\n".format(_build_nonoverlap_eqs_table(actual_eqs, "actual"))
+
+    if len(gold_hcons) > 0 or len(actual_hcons) > 0:
+        report += "HANDLE CONSTRAINT DISCREPANCIES\n"
+        report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
+        report += "GOLD ONLY\n"
+        report += "{}\n\n".format(_build_nonoverlap_hcons_table(gold_hcons, "gold"))
+        report += "ACTUAL ONLY\n"
+        report += "{}\n\n".format(_build_nonoverlap_hcons_table(actual_hcons, "actual"))
+
+
+    report += "\n\n=====================\n"
+    report += "=== CONSISTENCIES ===\n"
+    report += "=====================\n\n"
+
+    if len(overlap_slots) > 0:
+        report += "SLOT CONSISTENCIES\n"
+        report += "^^^^^^^^^^^^^^^^^^\n"
+        report += "OVERLAPPING\n"
+        report += "{}\n\n".format(_build_overlap_slots_table(overlap_slots))
+
+    if len(overlap_slots) > 0:
+        report += "SEMANTIC ROLE EQUIVALENCE CONSISTENCIES\n"
+        report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
+        report += "OVERLAPPING\n"
+        report += "{}\n\n".format(_build_overlap_eqs_table(overlap_eqs))
+
+    if len(overlap_slots) > 0:
+        report += "HANDLE CONSTRAINT CONSISTENCIES\n"
+        report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
+        report += "OVERLAPPING\n"
+        report += "{}\n\n".format(_build_overlap_hcons_table(overlap_hcons))
+
 
     return report
-
-
-
-

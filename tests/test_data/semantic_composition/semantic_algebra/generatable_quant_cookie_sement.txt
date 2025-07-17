@@ -1,0 +1,9 @@
+[
+    TOP: h10
+    INDEX: e1
+    RELS: <
+        [ unknown LBL: h0 ARG0: e1 ARG: x4 ]
+        [ def_udef_a_q LBL: h3 ARG0: x4 RSTR: h5 BODY: h6 ]
+        [ _cookie_n_1 LBL: h7 ARG0: x4 ] >
+    HCONS: < h5 qeq h7 h10 qeq h0 >
+]

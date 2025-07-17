@@ -119,7 +119,7 @@ Public Classes
                 _give_v_1 : ARG0 e, ARG1 i, ARG2 u, [ ARG3 i ].
 
 
-            Providing this predicate label to ``concretize`` results in the following:
+            Providing this predicate label to py:func:`concretize` results in the following:
 
             .. code::
 

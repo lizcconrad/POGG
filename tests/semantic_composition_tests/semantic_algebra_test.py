@@ -147,3 +147,39 @@ class TestAlgebraFunctions(unittest.TestCase):
         udef_cat_sleep_sement = semantic_algebra.op_non_scopal_functor_hook(sleep_sement, udef_q_cat_sement, "ARG1")
         test_believe_cats_sleep_sement = semantic_algebra.op_scopal_functor_index(believe_sement, udef_cat_sleep_sement, "ARG2")
         self.assertSEMENTIsomorphism(gold_believe_cats_sleep_sement, test_believe_cats_sleep_sement)
+
+
+    def test_prepare_for_generation_unquant_noun(self):
+        gold_sement = self.decode_gold_sement_string("generatable_quant_cookie_sement.txt")
+
+        cookie_sement = self.decode_gold_sement_string("unquantified_cookie_sement.txt")
+        prepared_sement = semantic_algebra.prepare_for_generation(self.pogg_config, cookie_sement)
+
+        self.assertSEMENTIsomorphism(gold_sement, prepared_sement)
+
+    def test_prepare_for_generation_quant_noun(self):
+        gold_sement = self.decode_gold_sement_string("generatable_quant_cookie_sement.txt")
+
+        cookie_sement = self.decode_gold_sement_string("quantified_cookie_sement.txt")
+        prepared_sement = semantic_algebra.prepare_for_generation(self.pogg_config, cookie_sement)
+
+        self.assertSEMENTIsomorphism(gold_sement, prepared_sement)
+
+    def test_prepare_for_generation_verb(self):
+        gold_sement = self.decode_gold_sement_string("generatable_verb_sement.txt")
+
+        eat_sement = self.decode_gold_sement_string("eat_sement.txt")
+        prepared_sement = semantic_algebra.prepare_for_generation(self.pogg_config, eat_sement)
+
+        self.assertSEMENTIsomorphism(gold_sement, prepared_sement)
+
+    def test_prepare_for_generation_hi_hcon_type_constrain(self):
+        gold_sement = self.decode_gold_sement_string("generatable_probably_sleeps_sement.txt")
+
+        probably_sleeps_sement = self.decode_gold_sement_string("probably_sleeps_u_hcons_members_sement.txt")
+        prepared_sement = semantic_algebra.prepare_for_generation(self.pogg_config, probably_sleeps_sement)
+
+        self.assertSEMENTIsomorphism(gold_sement, prepared_sement)
+        for hcon in prepared_sement.hcons:
+            self.assertTrue(hcon.hi[0] == "h", "hi-handle not type h: {}".format(hcon.hi))
+            self.assertTrue(hcon.lo[0] == "h", "lo-handle not type h: {}".format(hcon.lo))

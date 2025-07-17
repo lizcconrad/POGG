@@ -1,0 +1,10 @@
+[
+    TOP: h6
+    INDEX: x1
+    RELS: <
+        [ _udef_q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+        [ _cookie_n_1 LBL: h4 ARG0: x5 ] >
+    EQS: < x1 eq x5 >
+    SLOTS: < BODY: h3 >
+    HCONS: < h2 qeq h4 >
+]

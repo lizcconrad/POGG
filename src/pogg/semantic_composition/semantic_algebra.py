@@ -1,7 +1,7 @@
 # Contains the MRS algebra
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
-from pogg.pogg_config import POGGConfig
+import pogg.semantic_composition.sement_util as sement_util
 
 
 def _get_slots(ep):
@@ -366,7 +366,63 @@ def op_scopal_quantifier(functor, argument):
     return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
 
+def prepare_for_generation(pogg_config, sement):
+    """
+    Prepare the given SEMENT for generation. This involves...
+    (1) Checking if the INDEX is of type e
+        If not...
+        (a) check if given SEMENT is quantified, and wrap in generic quantifier if not
+        (b) wrap in "unknown" event
+    (2) Creating a new GTOP handle and set it to be QEQ to the SEMENT's previous LTOP
+    (3) Overwriting all EQs to one representative value
+    (4) Constrain all hi-handles in QEQ relationships to be of type h
 
+    Args:
+        pogg_config (POGGConfig): POGGConfig object that contains information about the SEMI and variable labeler
+        sement (SEMENT): SEMENT to prepare to be sent to the ERG for generation
+    """
+
+    # duplicate sement to avoid editing the original
+    unprepared_sement = sement_util.duplicate_sement(sement)
+
+
+    if sement.index[0] != "e":
+        # check if quantified, wrap in one if not
+        if not sement_util.check_if_quantified(unprepared_sement):
+            quant_sement = create_base_SEMENT(pogg_config, "def_udef_a_q")
+            quantified_sement = op_scopal_quantifier(quant_sement, unprepared_sement)
+        else:
+            quantified_sement = sement
+
+        # wrap in "unknown" event
+        unknown_sement = create_base_SEMENT(pogg_config, "unknown")
+        e_type_sement = op_non_scopal_functor_hook(unknown_sement, quantified_sement, "ARG")
+    else:
+        e_type_sement = unprepared_sement
+
+    # wrap with GTOP
+    gtop = pogg_config.var_labeler.get_var_name("h")
+    new_hcon = mrs.HCons(gtop, "qeq", e_type_sement.top)
+
+    # change top and add hcon
+    e_type_sement.top = gtop
+    e_type_sement.hcons.append(new_hcon)
+
+    # go through all handle constraints, if any variable is not of type h, add another EQ
+    # e.g. if the hi argument in an hcon is u1 then add < u1 eq h2 >
+    # then when EQs are overwritten the most specific one, h2, is chosen
+    for hcon in e_type_sement.hcons:
+        if hcon.hi[0] != "h":
+            new_h = pogg_config.var_labeler.get_var_name("h")
+            e_type_sement.eqs.append((new_h, hcon.hi))
+            e_type_sement.variables[new_h] = {}
+        if hcon.lo[0] != "h":
+            new_h = pogg_config.var_labeler.get_var_name("h")
+            e_type_sement.eqs.append((new_h, hcon.lo))
+            e_type_sement.variables[new_h] = {}
+
+    final_sement = sement_util.overwrite_eqs(e_type_sement)
+    return final_sement
 
 
 
