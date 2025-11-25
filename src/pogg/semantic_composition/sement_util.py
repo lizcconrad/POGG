@@ -1,5 +1,9 @@
-# functions to help with constructing and comparing SEMENT structures
-from copy import deepcopy
+"""
+The `sement_util` module contains a number of functions that are useful for manipulating, comparing, and printing SEMENT structures.
+
+[See usage examples here](project:/usage_nbs/pogg/semantic_composition/sementutil_usage.ipynb)
+"""
+
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
 import pogg.my_delphin.sementcodecs as sementcodecs
@@ -8,14 +12,17 @@ import tabulate
 
 def duplicate_sement(sement):
     """
-    Create a duplicate of the SEMENT to prevent the passed in object from being modified during certain operations.
-    Just using "deepcopy" doesn't work due to some unexpected behavior with pydelphin HCons objects.
+    Create a duplicate of the SEMENT to prevent the passed in object from being modified during certain operations
 
-    Args:
-         sement (SEMENT): SEMENT to be duplicated
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ------------ |
+    | `sement` | `SEMENT` | SEMENT to be duplicated |
 
-    Returns:
-        SEMENT: duplicated SEMENT
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `SEMENT` | duplicated SEMENT |
     """
 
     # top and index can be copied with = since strings aren't assigned by reference
@@ -41,13 +48,19 @@ def duplicate_sement(sement):
 def group_equalities(equalities):
     """
     Group equalities from a list of EQs into lists as opposed to individual equalities
-    That is, if x1=x2 and x2=x3 create a set (x1, x2, x3) such that they're in an equality "group"
 
-    Args:
-        eqs (list): list of variable equalities (e.g. (x1, x2))
 
-    Returns:
-        list of sets: list of sets of equalities
+    That is, if `'x1' = 'x2'` and `'x2' = 'x3'` create a set `('x1', 'x2', 'x3')` such that they're in an equality "group"
+
+    **Parameters**
+    | Parameter | Type | Description | Example |
+    | --------- | ---- | ------------ | ------ |
+    | `equalities` | `list` | list of variable equalities | `[('x1', 'x2'), ('x2', 'x3')]` |
+
+    **Returns**
+    | Type | Description | Example |
+    | ---- | ----------- | ------- |
+    | list of sets | list of sets of equalities | `[{'x1', 'x2', 'x3'}]` |
     """
 
     """
@@ -109,21 +122,31 @@ def group_equalities(equalities):
 def get_most_specified_variable(eq_vars):
     """
     Get the most "specific" variable to serve as the representative for the EQ set
-    That is, a variable of type x is more specific than one of type i, according to the ERG hierarchy
 
-    Hierarchy:
-    u -- unspecific
-    i -- subtype of u, underspecified between e and x
-    p -- suptype of u, underspecified between h and x
-    e -- suptype of i, eventualities (e.g. intrinsic variable of a verb)
-    x -- subtype of i and p, instance (e.g. intrinsic variable of a noun)
-    h -- subtype of p, handle used for scopal composition
+    That is, a variable of type `x` is more specific than one of type `i`, according to the ERG hierarchy
 
-    Args:
-        eq_vars (list): list of variables that are equivalent
+    :::{info} ERG Variable Type Hierarchy
+    :collapsible:
+    | Type | Supertype(s) | Description |
+    |------|--------------|-------------|
+    | `u`  |              | unspecific |
+    | `i`  | `u`          | underspecified between `e` and `x` |
+    | `p`  | `u`          | underspecified between `h` and `x` |
+    | `e`  | `i`          | eventualities (e.g. intrinsic variable of a verb) |
+    | `x`  | `i`, `p`     | instance (e.g. intrinsic variable of a noun) |
+    | `h`  | `p`          | handle used for scopal composition |
+    :::
 
-    Returns:
-        str: return the most specific variable from the list
+
+    **Parameters**
+    | Parameter | Type | Description | Example |
+    | --------- | ---- | ----------- | ------- |
+    | `eq_vars` | list of 'str' | list (or set) of variables that are equivalent  | `['x1', 'x2', 'x3']` |
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | most specific variable from the list |
     """
     # this isn't going to check for incompatibilities, I'm assuming those have been handled already
     types = {
@@ -135,8 +158,11 @@ def get_most_specified_variable(eq_vars):
         'h': 2
     }
 
-    most_spec_var = eq_vars[0]
-    for var in eq_vars:
+    # convert to list in case it's a set
+    eq_vars_list = sorted(list(eq_vars))
+
+    most_spec_var = eq_vars_list[0]
+    for var in eq_vars_list:
         # type is the first char in the string
         # if the type of the current var is more specific than the already chosen one,
         # update the chosen one
@@ -149,11 +175,17 @@ def overwrite_eqs(sement):
     """
     Create a new SEMENT where any variables that are members of an EQ have been overwritten to one representative value
 
-    Args:
-        sement (SEMENT): SEMENT structure with unresolved variable equalities
+    That is, if `'x1' = 'x2'` then all instances of 'x2' are overwritten to be 'x1'
 
-    Returns:
-        SEMENT: new SEMENT with resolved variable equalities (i.e. if x1=x2 then all instances of x2 are overwritten to be x1)
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `sement` | `SEMENT` | SEMENT structure with unresolved variable equalities |
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `SEMENT` | new SEMENT with resolved variable equalities |
     """
     # if no eqs, return sement as is
     if sement.eqs is None or len(sement.eqs) == 0:
@@ -246,11 +278,24 @@ def check_if_quantified(check_sement):
     """
     Check if the given SEMENT is quantified
 
-    Args:
-        check_sement (SEMENT): SEMENT to be checked
+    :::{note}
+    :collapsible:
+    This function only makes sense to use with SEMENTS that correspond to nouns/noun phrases.
+    The ERG requires all nouns (along with potential adjuncts) to be quantified before they may serve as complements to other elements
+    like verbs or prepositions. Therefore, it is sometimes necessary to check whether a SEMENT is quantified
+    before proceeding with composition.
+    :::
 
-    Returns:
-        boolean: whether the SEMENT is quantified
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `check_sement` | `SEMENT` | SEMENT to be checked |
+
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `bool` | whether the SEMENT is quantified |
     """
     # if the INDEX (or something eq to INDEX) is not the ARG0 of something with RSTR, gg
     index = check_sement.index
@@ -272,17 +317,20 @@ def check_if_quantified(check_sement):
 def is_sement_isomorphic(s1: SEMENT, s2: SEMENT) -> bool:
     """
     Check whether two SEMENTs are isomorphic
-    i.e. The SEMENTs have the same directed graph structure, but might not be literally identical.
+
+    If two SEMENTs are isomorphic, they have the same directed graph structure, but might not be literally identical.
     For example, the EPs in the RELS list may be in different orders.
 
-    Args:
-        s1 (SEMENT): first SEMENT
-        s2 (SEMENT): second SEMENT
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `s1` | `SEMENT` | first SEMENT |
+    | `s2` | `SEMENT` | second SEMENT |
 
-    Returns:
-        bool: whether the two SEMENTs are isomorphic
-        SEMENT: the version of s1 with the EQS overwritten which was used in the actual check
-        SEMENT: the version of s2 with the EQS overwritten which was used in the actual check
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `bool` | whether the two SEMENTs are isomorphic |
     """
 
     # overwrite EQs in both SEMENTs for ease of checking isomorphism
@@ -320,19 +368,22 @@ def is_sement_isomorphic(s1: SEMENT, s2: SEMENT) -> bool:
 
 def create_variable_roles_dict(sement):
     """
-    Given a SEMENT object, create a dictionary where each key is a variable in the SEMENT
-    and the value is the set of semantic roles that variable fills
+    Create a dictionary mapping variables to the list of semantic roles the variable fills
 
-    Args:
-        sement (SEMENT): the SEMENT object
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `sement` | `SEMENT` | the SEMENT object |
 
-    Returns:
-        dict: resulting dictionary mapping variables to sets of semantic roles
+    **Returns**
+    | Type | Description | Example |
+    | ---- | ----------- | ------- |
+    | `dict` | resulting dictionary mapping variables to sets of semantic roles |  `{'x1': ['_tasty_a_1.ARG1', 'cookie_n_1.ARG0']}`
     """
 
     # throw exception if EQs present, only SEMENTs that have had EQs overwritten already should go through this function
     if sement.eqs != None and len(sement.eqs) > 0:
-        raise ValueError("SEMENT has uncollappsed EQs: {}, aborting".format(sement.eqs))
+        raise ValueError(f"SEMENT has uncollappsed EQs: {sement.eqs}, aborting")
 
     # dict of variables but for storing semantic roles
     variable_roles = {}
@@ -359,20 +410,39 @@ def create_variable_roles_dict(sement):
 
     return variable_roles
 
+
 def create_hcons_list(sement):
     """
-    Create a list of HCons entries. Each entry includes the handles that are in the HCons relationship as well as
+    Create a list of HCons entries
+
+    Each entry includes the handles that are in the HCons relationship as well as
     the semantic roles those handles occupy to enable easier comparison of existing handle constraints across SEMENTs
 
-    Args:
-        sement (SEMENT): the SEMENT object
+    :::{example} Example of an entry
+    :collapsible:
+    ```
+    {
+        "hi_role_set": ["_a_q.RSTR"],
+        "lo_role_set": ["_cookie_n_1.LBL", "_tasty_a_1.LBL"],
+        "hi_var": "h7",
+        "lo_var": "h0",
+    }
+    ```
+    :::
 
-    Returns:
-        list: a list of HCons entries
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `sement` | `SEMENT` | the SEMENT object |
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `list` | list of `HCons` entries |
     """
 
     # throw exception if EQs present, only SEMENTs that have had EQs overwritten already should go through this function
-    if sement.eqs != None and len(sement.eqs) > 0:
+    if sement.eqs is not None and len(sement.eqs) > 0:
         raise ValueError("SEMENT has uncollappsed EQs: {}, aborting".format(sement.eqs))
 
     variable_roles_dict = create_variable_roles_dict(sement)
@@ -392,25 +462,50 @@ def create_hcons_list(sement):
         hcons_list.append(hcons_entry)
     return hcons_list
 
+
 def find_slot_overlaps(gold_sement, actual_sement):
     """
-    Produces three lists: overlap_slots, gold_only_slots, and actual_only_slots. The goal is to compare slots lists across
-    two SEMENTs to detect differences when isomorphism checks fail.
+    Compare slots lists across two SEMENTs to detect differences when isomorphism checks fail
 
-    Each list contains dictionaries that detail the slots that remain.
-    e.g. {
+    Produces three lists:
+    - `overlap_slots`
+    - `gold_only_slots`
+    - `actual_only_slots`
+
+    :::{example} Example of an `overlap_slots` list
+    :collapsible:
+    ```
+    overlap_slots = [{
         "slot": {"_cozy_a_1.ARG1"}
         "gold_var": 'x1',
         "actual_var": 'x2'
-    }
+    }]
+    ```
+    :::
 
-    If two SEMENts are isomorphic, the gold_only_slots and actual_only_slots lists will be empty, but when the SEMENTs are
+    If two SEMENTs are isomorphic, the `gold_only_slots` and `actual_only_slots` lists will be empty, but when the SEMENTs are
     not isomorphic, the sets of remaining slots will not match so these lists will help pinpoint where
     the differences lie.
 
-    NOTE: Here "slots" means specifically members of the slots list of the SEMENT object, not unfilled semantic roles.
+    :::{note}
+    :collapsible:
+    Here "slots" means specifically members of the slots list of the SEMENT object, not unfilled semantic roles.
     Because during any composition operation the slots from the argument SEMENT are dropped, these slots will never be
-    filled as they are no longer accessible in the slots list.
+    filled as they are no longer accessible in the slots list
+    :::
+
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `gold_sement` | `SEMENT` | one of the SEMENTs being compared, nominally the "gold" one that the actual aims to match |
+    | `actual_sement` | `SEMENT` | one of the SEMENTs being compared, nominally the one produced by the system |
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `list` | list of overlapping semantic role identities |
+    | `list` | list of semantic role identities only present in the `gold_sement` |
+    | `list` | list of semantic role identities only present in the `actual_sement` |
     """
     # throw exception if EQs present, only SEMENTs that have had EQs overwritten already should go through this function
     if (gold_sement.eqs != None and len(gold_sement.eqs) > 0):
@@ -435,14 +530,14 @@ def find_slot_overlaps(gold_sement, actual_sement):
         # get the full slot name, i.e. _cozy_a_1.ARG1 rather than just ARG1
         gold_slot_value = gold_sement.slots[gold_slot_name]
         # slots shouldn't be identified with anything so there will only ever be one item in the roles set
-        gold_full_slot_name = gold_variable_roles[gold_slot_value][0]
+        gold_full_slot_name = gold_variable_roles[gold_slot_value]
 
         found_overlap = False
         for actual_slot_name in actual_sement.slots:
             # get the full slot name, i.e. _cozy_a_1.ARG1 rather than just ARG1
             actual_slot_value = actual_sement.slots[actual_slot_name]
             # slots shouldn't be identified with anything so there will only ever be one item in the roles set
-            actual_full_slot_name = actual_variable_roles[actual_slot_value][0]
+            actual_full_slot_name = actual_variable_roles[actual_slot_value]
 
             if actual_full_slot_name == gold_full_slot_name:
                 overlap_slots.append({
@@ -464,7 +559,7 @@ def find_slot_overlaps(gold_sement, actual_sement):
     # go through actual_sement slots list add all remaining slots to actual_only_slots
     for slot in actual_sement.slots:
         actual_slot_value = actual_sement.slots[slot]
-        full_actual_slot_name = actual_variable_roles[actual_slot_value][0]
+        full_actual_slot_name = actual_variable_roles[actual_slot_value]
 
         # if the value is not found in the actual_slot_values_matching_overlap, append to actual_only_slots
         if actual_slot_value not in actual_slot_values_matching_overlap:
@@ -482,31 +577,44 @@ def find_slot_overlaps(gold_sement, actual_sement):
     return sorted_overlap_slots, sorted_gold_slots, sorted_actual_slots
 
 
-
 def find_var_eq_overlaps(gold_sement, actual_sement):
     """
-    Produces three lists: overlap_eqs, gold_only_eqs, and actual_only_eqs. The goal is to compare semantic role
-    equivalencies across two SEMENTs to detect differences when isomorphism checks fail.
+    Compare semantic role identities across two SEMENTs to detect differences when isomorphism checks fail
 
+
+    Produces three lists:
+    - `overlap_eqs`
+    - `gold_only_eqs`
+    - `actual_only_eqs`
+
+    :::{example} Example of an `overlap_eqs` list
+    :collapsible:
     Each list contains dictionaries that detail sets of semantic roles that are filled by the same variable.
-    e.g. {
+    ```
+    overlap_eqs = [{
         "eq_set": {"_a_q.ARG0", "_cat_n_1.ARG0", "_cozy_a_1.ARG1"}
         "gold_var": 'x1',
         "actual_var": 'x2'
-    }
+    }]
+    ```
+    :::
 
-    If two SEMENts are isomorphic, the gold_only_eqs and actual_only_eqs lists will be empty, but when the SEMENTs are
-    not isomorphic, the sets of semantic role equivalencies will not match so these lists will help pinpoint where
+    If two SEMENTs are isomorphic, the `gold_only_eqs` and `actual_only_eqs` lists will be empty, but when the SEMENTs are
+    not isomorphic, the sets of semantic role identities may not match so these lists will help pinpoint where
     the differences lie.
 
-    Args:
-        gold_sement (SEMENT): one of the SEMENTs being compared, nominally the "gold" one that the actual aims to match
-        actual_sement (SEMENT): one of the SEMENTs being compared, nominally the one produced by the system
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `gold_sement` | `SEMENT` | one of the SEMENTs being compared, nominally the "gold" one that the actual aims to match |
+    | `actual_sement` | `SEMENT` | one of the SEMENTs being compared, nominally the one produced by the system |
 
-    Returns:
-        list: list of overlapping semantic role equivalencies
-        list: list of semantic role equivalencies only present in the gold_sement
-        list: list of semantic role equivalencies only present in the actual_sement
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `list` | list of overlapping semantic role identities |
+    | `list` | list of semantic role identities only present in the `gold_sement` |
+    | `list` | list of semantic role identities only present in the `actual_sement` |
     """
 
     overlap_eqs = []
@@ -562,32 +670,46 @@ def find_var_eq_overlaps(gold_sement, actual_sement):
 
     return sorted_overlap_eqs, sorted_gold_eqs, sorted_actual_eqs
 
+
 def find_hcons_overlaps(gold_sement, actual_sement):
     """
-    Produces three lists: overlap_hcons, gold_only_hcons, and actual_only_hcons. The goal is to compare handle constraints
-     across two SEMENTs to detect differences when isomorphism checks fail.
+    Compare handle constraints across two SEMENTs to detect differences when isomorphism checks fail.
 
+    Produces three lists:
+    - `overlap_hcons`
+    - `gold_only_hcons`
+    - `actual_only_hcons`
+
+    :::{example} Example of an `overlap_hcons` list
+    :collapsible:
     Each list contains dictionaries that detail which handle constraints are present in which SEMENT.
-    e.g. {
+    ```
+    overlap_hcons = [{
         "hi_role_set": {"_a_q.RSTR"},
         "lo_role_set": {"_cookie_n_1.LBL", "_tasty_a_1.LBL"},
         "hi_gold_var": "h0",
         "lo_gold_var": "h1",
         "hi_actual_var": "h00",
         "lo_actual_var": "h01",
-    }
+    }]
+    ```
+    :::
 
-    If two SEMENTs are isomorphic, the gold_only_hcons and actual_only_hcons lists will be empty, but when the SEMENTs are
+    If two SEMENTs are isomorphic, the `gold_only_hcons` and `actual_only_hcons` lists will be empty, but when the SEMENTs are
     not isomorphic, the sets of handle constraints may not match so these lists will help pinpoint where any differences lie.
 
-    Args:
-        gold_sement (SEMENT): one of the SEMENTs being compared, nominally the "gold" one that the actual aims to match
-        actual_sement (SEMENT): one of the SEMENTs being compared, nominally the one produced by the system
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `gold_sement` | `SEMENT` | one of the SEMENTs being compared, nominally the "gold" one that the actual aims to match |
+    | `actual_sement` | `SEMENT` | one of the SEMENTs being compared, nominally the one produced by the system |
 
-    Returns:
-        list: list of overlapping handle constraints
-        list: list of handle constraints only present in the gold_sement
-        list: list of handle constraints only present in the actual_sement
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `list` | list of overlapping handle constraints |
+    | `list` | list of handle constraints only present in the `gold_sement` |
+    | `list` | list of handle constraints only present in the `actual_sement` |
     """
 
     # throw exception if EQs present, only SEMENTs that have had EQs overwritten already should go through this function
@@ -661,11 +783,26 @@ def _build_overlap_slots_table(overlap_slots):
     """
     Make a table that displays which slots are present in two SEMENTs
 
-    Args:
-        overlap_eqs (list): list of slots present in two SEMENTs
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `overlap_slots` | `list` | list of slots present in two SEMENTs |
 
-    Returns:
-        str: table representation of overlapping slots
+    :::{example} Example input format
+    :collapsible:
+    ```
+    overlapping_slots = [{
+        "slot": ["_cozy_a_1.ARG1"]
+        "gold_var": 'x1',
+        "actual_var": 'x2'
+    }]
+    ```
+    :::
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | table representation of overlapping slots |
     """
 
     overlap_slot_table = []
@@ -679,12 +816,26 @@ def _build_nonoverlap_slots_table(nonoverlap_slots, table_type):
     """
     Make a table that displays which slots are only present in one SEMENT
 
-    Args:
-        nonoverlap_slots (list): list of slots present in one SEMENT
-        table_type (str): type of table, either "gold" or "actual"
+    **Parameters**
+    | Parameter | Type | Description | Example |
+    | --------- | ---- | ----------- | ------ |
+    | `nonoverlap_slots` | `list`| list of slots present in one SEMENT | |
+    | `table_type` | `str` | type of table | `"gold"` or `"actual"`|
 
-    Returns:
-        str: table representation of nonoverlapping slots
+    :::{example} Example input format
+    :collapsible:
+    ```
+    gold_only_slots = [{
+        "slot": ["_cozy_a_1.ARG1"]
+        "gold_var": 'x1',
+    }]
+    ```
+    :::
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | table representation of nonoverlapping slots |
     """
     if table_type.lower() == "gold":
         type_header = "Gold Var"
@@ -700,16 +851,31 @@ def _build_nonoverlap_slots_table(nonoverlap_slots, table_type):
         nonoverlap_slots_table.append([nonoverlap_slots["slot"], nonoverlap_slots[type_key]])
     return tabulate.tabulate(nonoverlap_slots_table, nonoverlap_slots_table_headers)
 
-
 def _build_overlap_eqs_table(overlap_eqs):
     """
-    Make a table that displays which semantic role equivalence sets are present in two SEMENTs
+    Make a table that displays which semantic role identities are present in two SEMENTs
 
-    Args:
-        overlap_eqs (list): list of semantic role equivalencies present in two SEMENTs
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `overlap_eqs` | `list` | list of semantic role identities present in two SEMENTs |
 
-    Returns:
-        str: table representation of overlapping semantic role equivalencies
+    :::{example} Example of input format
+    :collapsible:
+    Each list contains dictionaries that detail sets of semantic roles that are filled by the same variable.
+    ```
+    overlapping_eqs =[{
+        "eq_set": {"_a_q.ARG0", "_cat_n_1.ARG0", "_cozy_a_1.ARG1"}
+        "gold_var": 'x1',
+        "actual_var": 'x2'
+    }]
+    ```
+    :::
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | table representation of overlapping semantic role identities |
     """
 
     overlap_eq_table = []
@@ -721,14 +887,28 @@ def _build_overlap_eqs_table(overlap_eqs):
 
 def _build_nonoverlap_eqs_table(nonoverlap_eqs, table_type):
     """
-    Make a table that displays which semantic role equivalence sets are only present in one SEMENT
+    Make a table that displays which semantic role identities are only present in one SEMENT
 
-    Args:
-        nonoverlap_eqs (list): list of semantic role equivalencies present in one SEMENT
-        table_type (str): type of table, either "gold" or "actual"
+    **Parameters**
+    | Parameter | Type | Description | Example |
+    | --------- | ---- | ----------- | ------ |
+    | `nonoverlap_eqs` | `list`| list of semantic role identities present in one SEMENT | |
+    | `table_type` | `str` | type of table | `"gold"` or `"actual"`|
 
-    Returns:
-        str: table representation of nonoverlapping semantic role equivalencies
+    :::{example} Example of input format
+    :collapsible:
+    ```
+    gold_only_eqs = [{
+        "eq_set": {"_a_q.ARG0", "_cat_n_1.ARG0", "_cozy_a_1.ARG1"}
+        "gold_var": 'x1',
+    }]
+    ```
+    :::
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | table representation of nonoverlapping semantic role identities |
     """
     if table_type.lower() == "gold":
         type_header = "Gold Var"
@@ -748,11 +928,30 @@ def _build_overlap_hcons_table(overlap_hcons):
     """
     Make a table that displays which handle constraints are present in two SEMENTs
 
-    Args:
-        overlap_hcons (list): list of handle constraints present in two SEMENTs
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `overlap_hcons` | `list` | list of hcons present in two SEMENTs |
 
-    Returns:
-        str: table representation of overlapping handle constraints
+    :::{example} Example of input format
+    :collapsible:
+    Each list contains dictionaries that detail sets of semantic roles that are filled by the same variable.
+    ```
+    overlapping_hcons = [{
+        "hi_role_set": {"_a_q.RSTR"},
+        "lo_role_set": {"_cookie_n_1.LBL", "_tasty_a_1.LBL"},
+        "hi_gold_var": "h0",
+        "lo_gold_var": "h1",
+        "hi_actual_var": "h00",
+        "lo_actual_var": "h01",
+    }]
+    ```
+    :::
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | table representation of overlapping hcons |
     """
 
     overlap_hcons_table = []
@@ -769,12 +968,28 @@ def _build_nonoverlap_hcons_table(nonoverlap_hcons, table_type):
     """
     Make a table that displays which handle constraints are only present in one SEMENT
 
-    Args:
-        nonoverlap_hcons (list): list of handle constraints present in one SEMENT
-        table_type (str): type of table, either Gold or Actual
+    **Parameters**
+    | Parameter | Type | Description | Example |
+    | --------- | ---- | ----------- | ------ |
+    | `nonoverlap_hcons` | list`| list of handle constraints present in one SEMENT | |
+    | `table_type` | `str` | type of table | `"gold"` or `"actual"`|
 
-    Returns:
-        str: table representation of nonoverlapping handle constraints
+    :::{example} Example of input format
+    :collapsible:
+    ```
+    gold_only_hcons =[{
+        "hi_role_set": {"_a_q.RSTR"},
+        "lo_role_set": {"_cookie_n_1.LBL", "_tasty_a_1.LBL"},
+        "hi_gold_var": "h0",
+        "lo_gold_var": "h1"
+    }]
+    ```
+    :::
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | table representation of nonoverlapping handle constraints |
     """
     if table_type.lower() == "gold":
         type_header = "Gold QEQ"
@@ -798,15 +1013,127 @@ def _build_nonoverlap_hcons_table(nonoverlap_hcons, table_type):
 
 def build_isomorphism_report(gold_sement, actual_sement):
     """
-    Print a report detailing which semantic role equivalencies and handle constraints are present in two SEMENTs.
-    If two SEMENTs are not isomorphic, this can be used to pinpoint where the mismatch lies.
+    Print a report detailing the consistencies and discrepancies across two sements
 
-    Args:
-        gold_sement (SEMENT): a SEMENT, nominally the gold one
-        actual_sement (Sement): a SEMENT, nominally the one to compare to the gold
+    The report details which slots, semantic role identities, and handle constraints are present in both SEMENTs.
+    It also details things that are only present in one SEMENT, pinpointing the mismatch when isomorphism checks fail.
 
-    Returns:
-        str: the isomorphism report
+    **Parameters**
+    | Parameter | Type | Description |
+    | --------- | ---- | ----------- |
+    | `gold_sement` | `SEMENT` | a SEMENT, nominally the gold one |
+    | `actual_sement` | `SEMENT` | a SEMENT, nominally the one to compare to the gold |
+
+    **Returns**
+    | Type | Description |
+    | ---- | ----------- |
+    | `str` | the isomorphism report |
+
+    :::{example} Example report
+    :collapsible:
+    ```
+    --- GOLD SEMENT ---
+    [ TOP: h0
+      INDEX: e1
+      RELS: < [ _believe_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: h4 ]
+              [ _the_q LBL: h5 ARG0: x10 RSTR: h7 BODY: h8 ]
+              [ _cat_n_1 LBL: h9 ARG0: x10 ]
+              [ _sleep_v_1 LBL: h11 ARG0: e12 ARG1: x10 ] >
+      HCONS: < h7 qeq h9 u3 qeq h11 >
+      SLOTS: < ARG1: i2 ARG3: h4 > ]
+
+    --- ACTUAL SEMENT ---
+    [ TOP: h00
+      INDEX: e01
+      RELS: < [ _believe_v_1 LBL: h00 ARG0: e01 ARG1: i02 ARG2: u03 ARG3: h04 ]
+              [ _the_q LBL: h05 ARG0: x010 RSTR: h07 BODY: h08 ]
+              [ _cat_n_1 LBL: h09 ARG0: x010 ]
+              [ _sleep_v_1 LBL: h011 ARG0: e012 ARG1: x010111 ] >
+      HCONS: < h07 qeq h09 h04 qeq h011 >
+      SLOTS: < ARG1: i02 ARG2: u03 > ]
+
+
+    =====================
+    === DISCREPANCIES ===
+    =====================
+
+    SLOT DISCREPANCIES
+    ^^^^^^^^^^^^^^^^^^
+    GOLD ONLY
+    Slot Name              Gold Var
+    ---------------------  ----------
+    ['_believe_v_1.ARG3']  h4
+
+    ACTUAL ONLY
+    Slot Name              Actual Var
+    ---------------------  ------------
+    ['_believe_v_1.ARG2']  u03
+
+
+    SEMANTIC ROLE EQUIVALENCE DISCREPANCIES
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    GOLD ONLY
+    Role Set                                             Gold Var
+    ---------------------------------------------------  ----------
+    ['_cat_n_1.ARG0', '_sleep_v_1.ARG1', '_the_q.ARG0']  x10
+
+    ACTUAL ONLY
+    Role Set                          Actual Var
+    --------------------------------  ------------
+    ['_cat_n_1.ARG0', '_the_q.ARG0']  x010
+    ['_sleep_v_1.ARG1']               x010111
+
+
+    HANDLE CONSTRAINT DISCREPANCIES
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    GOLD ONLY
+    Hi Role Set            Lo Role Set         Gold QEQ
+    ---------------------  ------------------  ----------
+    ['_believe_v_1.ARG2']  ['_sleep_v_1.LBL']  u3 qeq h11
+
+    ACTUAL ONLY
+    Hi Role Set            Lo Role Set         Actual QEQ
+    ---------------------  ------------------  ------------
+    ['_believe_v_1.ARG3']  ['_sleep_v_1.LBL']  h04 qeq h011
+
+
+
+    =====================
+    === CONSISTENCIES ===
+    =====================
+
+    SLOT CONSISTENCIES
+    ^^^^^^^^^^^^^^^^^^
+    OVERLAPPING
+    Slot Name              Gold Var    Actual Var
+    ---------------------  ----------  ------------
+    ['_believe_v_1.ARG1']  i2          i02
+
+    SEMANTIC ROLE EQUIVALENCE CONSISTENCIES
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    OVERLAPPING
+    Role Set                        Gold Var    Actual Var
+    ------------------------------  ----------  ------------
+    ['INDEX', '_believe_v_1.ARG0']  e1          e01
+    ['TOP', '_believe_v_1.LBL']     h0          h00
+    ['_believe_v_1.ARG1']           i2          i02
+    ['_believe_v_1.ARG2']           u3          u03
+    ['_believe_v_1.ARG3']           h4          h04
+    ['_cat_n_1.LBL']                h9          h09
+    ['_sleep_v_1.ARG0']             e12         e012
+    ['_sleep_v_1.LBL']              h11         h011
+    ['_the_q.BODY']                 h8          h08
+    ['_the_q.LBL']                  h5          h05
+    ['_the_q.RSTR']                 h7          h07
+
+    HANDLE CONSTRAINT CONSISTENCIES
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    OVERLAPPING
+    Hi Role Set      Lo Role Set       Gold QEQ    Actual QEQ
+    ---------------  ----------------  ----------  ------------
+    ['_the_q.RSTR']  ['_cat_n_1.LBL']  h7 qeq h9   h07 qeq h09
+    ```
+    :::
     """
 
     # collapse EQs before starting
@@ -835,7 +1162,7 @@ def build_isomorphism_report(gold_sement, actual_sement):
         report += "{}\n\n\n".format(_build_nonoverlap_slots_table(actual_slots, "actual"))
 
     if len(gold_eqs) > 0 or len(actual_eqs) > 0:
-        report += "SEMANTIC ROLE EQUIVALENCE DISCREPANCIES\n"
+        report += "SEMANTIC ROLE IDENTITY DISCREPANCIES\n"
         report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
         report += "GOLD ONLY\n"
         report += "{}\n\n".format(_build_nonoverlap_eqs_table(gold_eqs, "gold"))
@@ -861,13 +1188,13 @@ def build_isomorphism_report(gold_sement, actual_sement):
         report += "OVERLAPPING\n"
         report += "{}\n\n".format(_build_overlap_slots_table(overlap_slots))
 
-    if len(overlap_slots) > 0:
-        report += "SEMANTIC ROLE EQUIVALENCE CONSISTENCIES\n"
+    if len(overlap_eqs) > 0:
+        report += "SEMANTIC ROLE IDENTITY CONSISTENCIES\n"
         report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
         report += "OVERLAPPING\n"
         report += "{}\n\n".format(_build_overlap_eqs_table(overlap_eqs))
 
-    if len(overlap_slots) > 0:
+    if len(overlap_hcons) > 0:
         report += "HANDLE CONSTRAINT CONSISTENCIES\n"
         report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
         report += "OVERLAPPING\n"

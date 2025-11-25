@@ -1,0 +1,15 @@
+{
+    "node_keys": {
+        "cake": {
+            "comp_fxn": ""
+        },
+        "vanilla": {
+            "comp_fxn": ""
+        }
+    },
+    "edge_keys": {
+        "flavor": {
+            "comp_fxn": ""
+        }
+    }
+}

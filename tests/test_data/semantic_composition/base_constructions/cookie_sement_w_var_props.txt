@@ -1,0 +1,3 @@
+[  TOP: h2
+    INDEX: x1 [ x NUM: sg ]
+    RELS: < [ _cookie_n_1 LBL: h2 ARG0: x1 ] > ]

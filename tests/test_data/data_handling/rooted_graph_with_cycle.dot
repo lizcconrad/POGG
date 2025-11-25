@@ -1,0 +1,12 @@
+strict digraph {
+    idCar1 [lexicon_key=idCar, node_type=entity];
+    idHouse1 [lexicon_key=idHouse];
+    red [lexicon_key=red, node_type=property];
+    small [lexicon_key=small];
+
+    idCar1 -> idHouse1 [lexicon_key=isNear, edge_type=relationship, label=isNear];
+    idCar1 -> red [lexicon_key=idColor, edge_type=property, label=idColor];
+    idCar1 -> small [lexicon_key=idSize, label=idSize];
+    red -> small
+    small -> red
+}

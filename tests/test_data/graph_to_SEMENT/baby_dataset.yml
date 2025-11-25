@@ -1,0 +1,12 @@
+# top level directory
+data_dir: "."
+
+# subdirectories
+data_chunk: "."
+graph_json_dir: "."
+graph_dot_dir: "."
+lexicon_dir: "."
+evaluation_dir: "."
+
+# other data information
+dataset_name: "baby"

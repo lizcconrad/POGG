@@ -6,49 +6,62 @@
 POGG documentation
 ==================
 
-POGG (Precision-Oriented Graphical Generator) is a python package designed to convert structured data (e.g. directed graphs or tables) into plain English text. It does this by building Minimal Recursion Semantic (MRS) structures from scratch and then sends them to the English Resource Grammar (ERG) which generates English strings for those semantic structures.
+POGG (Precision-Oriented Graphical Generator) is a python package designed to convert structured data (e.g. directed graphs or tables) into plain English text. It does this by building Minimal Recursion Semantic (MRS) structures from scratch and then sends them to the English Resource Grammar (ERG) which generates English strings for those semantic structures..
 
 API Reference
 --------------
 
 .. toctree::
    :maxdepth: 1
-   :caption: General Configuration Module
+   :caption: Configuration
 
-   pogg_config.py <pogg/pogg.pogg_config.rst>
+   Configuration Module <apidocs/pogg/pogg.pogg_config>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: PyDelphin Extensions
+
+   my_delphin <apidocs/pogg/pogg.my_delphin.my_delphin>
+   sementcodecs <apidocs/pogg/pogg.my_delphin.sementcodecs>
 
 .. toctree::
    :maxdepth: 1
    :caption: Semantic Composition Modules
 
-   sement_util.py <pogg/semantic_composition/pogg.semantic_composition.sement_util.rst>
-   semantic_algebra.py <pogg/semantic_composition/pogg.semantic_composition.semantic_algebra.rst>
-
-
-Educational Primers
---------------------
-
-The following pages provide some primers for background knowledge that is helpful to understand when using POGG.
+   sement_util <apidocs/pogg/pogg.semantic_composition.sement_util>
+   semantic_algebra <apidocs/pogg/pogg.semantic_composition.semantic_algebra>
+   base_constructions <apidocs/pogg/pogg.semantic_composition.base_constructions>
 
 .. toctree::
    :maxdepth: 1
-   :caption: Education
+   :caption: Lexicon
 
-   English Resource Grammar (ERG) <education/erg.rst>
-   Minimal Recursion Semantics (MRS) <education/mrs.rst>
+   Lexicon Builder Classes <apidocs/pogg/pogg.lexicon.lexicon_builder>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Data Handling
+
+   Graph Utilities <apidocs/pogg/pogg.data_handling.graph_util>
+   POGGDataset <apidocs/pogg/pogg.data_handling.pogg_dataset>
 
 
-------------
 
 
-Undocumented Elements
-----------------------
+Usage Examples
+---------------
 
-The following aspects of the code are not included in this documentation
+.. toctree::
+   :maxdepth: 1
+   :caption: Usage Examples
 
-* SEMENT class
-   * Extension of the PyDelphin MRS class that includes additional features (EQs list, SLOTS list), ideally this will be merged into the official PyDelphin codebase and documented accordingly at that time
-* SEMENT encoder functions
-   * Functions that encode a SEMENT object into a string serialization (to be added to PyDelphin)
-* SEMENT decoder functions
-   * Functions that decode a string of a SEMENT into a SEMENT objet (to be added to PyDelphin)
+   Configuration Module Example <usage_nbs/pogg/pogg_config_usage>
+
+   SEMENT class Examples <usage_nbs/pogg/my_delphin/my_delphin_usage>
+   sementcodecs Examples <usage_nbs/pogg/my_delphin/sementcodecs_usage>
+
+   POGGDataset Examples <usage_nbs/pogg/data_handling/pogg_dataset_usage>
+   Graph Util Examples <usage_nbs/pogg/data_handling/graph_util_usage>
+
+   sementutil Examples <usage_nbs/pogg/semantic_composition/sementutil_usage>
+   SemanticAlgebra class Examples <usage_nbs/pogg/semantic_composition/SemanticAlgebra_usage>

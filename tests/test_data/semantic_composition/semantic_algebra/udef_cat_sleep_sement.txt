@@ -1,0 +1,12 @@
+[
+    TOP: h117
+    INDEX: e118
+    RELS: <
+        [ udef_q LBL: h110 ARG0: x111 RSTR: h112 BODY: h113 ]
+        [ _cat_n_1 LBL: h114 ARG0: x115 ]
+        [ _sleep_v_1 LBL: h117 ARG0: e118 ARG1: x119 ]
+    >
+    EQS: < x111 eq x115 x111 eq x119 >
+    SLOTS: < BODY: h113 >
+    HCONS: < h112 qeq h114 >
+]

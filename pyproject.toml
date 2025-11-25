@@ -25,11 +25,23 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "networkx>=3.4.2",
+  "great_tables",
+  "latextable",
+  "networkx>=3.5",
+  "pandas",
+  "prettytable",
+  "pydot",
   "pydelphin>=1.9.1",
   "pyyaml>=6.0.2",
-  "tabulate>=0.9.0"
+  "tabulate>=0.9.0",
+  "texttable"
 ]
+
+[project.optional-dependencies]
+data_conversion = [
+  "swiplserver"
+]
+
 #[tool.hatch.envs.codev]
 #pre-install-commands = [
 #  "pip install -e ../pydelphin"
@@ -57,6 +69,9 @@ check = "mypy --install-types --non-interactive {args:src/pogg tests}"
 [tool.hatch.envs.default]
 type = "virtual"
 path = "/Users/lizcconrad/.venvs/pogg_default"
+features = [
+  "data_conversion"
+]
 
 # docs environment
 # inherits from default by default
@@ -66,8 +81,15 @@ path = "/Users/lizcconrad/.venvs/pogg_docs"
 dependencies = [
   "sphinx",
   "sphinx-rtd-theme",
+  "sphinx-book-theme",
   "sphinx-autobuild",
-  "sphinx-design"
+  "sphinx-design",
+  "myst-nb",
+  "sphinx-autodoc2",
+  "mystmd",
+  "jupyterlab",
+  "jupyterlab_myst",
+  "sphinx-togglebutton"
 ]
 [tool.hatch.envs.docs.scripts]
 build = "make html"
@@ -76,7 +98,7 @@ cleanbuild = "make clean & make html"
 autobuild = "sphinx-autobuild source build/html"
 
 # test environment
-# inheits from default by default
+# inherits from default by default
 [tool.hatch.envs.tests]
 type = "virtual"
 path = "/Users/lizcconrad/.venvs/pogg_tests"
@@ -89,10 +111,12 @@ dependencies = [
   "pytest-randomly~=3.15",
   "pytest-rerunfailures~=14.0",
   "pytest-xdist[psutil]~=3.5",
+  "pytest-cases"
 ]
-[tool.hatch.envs.tests.env-vars]
-TEST_WORKING_DIR = "/Users/lizcconrad/Documents/PhD/POGG/pogg/tests"
 
+features = [
+  "data_conversion"
+]
 
 [tool.coverage.run]
 source_pkgs = ["pogg", "tests"]

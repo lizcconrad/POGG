@@ -1,0 +1,7 @@
+[
+    TOP: h020
+    INDEX: x021
+    RELS: <
+        [ _vanilla_n_1 LBL: h020 ARG0: x021 ]
+    >
+]

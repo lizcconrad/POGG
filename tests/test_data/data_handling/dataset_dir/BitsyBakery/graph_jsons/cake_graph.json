@@ -1,0 +1,10 @@
+{
+    "nodes": {
+        "cake": {
+            "lexicon_key": "cake",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        }
+    }
+}

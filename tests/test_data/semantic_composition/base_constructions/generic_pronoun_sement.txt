@@ -1,0 +1,7 @@
+[ TOP: h23
+  INDEX: x19
+  RELS: < [ pronoun_q LBL: h22 ARG0: x19 RSTR: h20 BODY: h21 ]
+          [ pron LBL: h18 ARG0: x17 ] >
+  HCONS: < h20 qeq h18 >
+  EQS: < x19 eq x17 >
+  SLOTS: < BODY: h21 > ]

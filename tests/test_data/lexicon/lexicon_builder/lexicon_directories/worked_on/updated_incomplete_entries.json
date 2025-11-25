@@ -1,0 +1,32 @@
+{
+    "node_keys": {
+        "EXPANDED_cookie": {
+            "comp_fxn": "noun",
+            "predicate": "",
+            "intrinsic_variable_properties": {}
+        },
+        "NO_CHANGE_candy": {
+            "comp_fxn": ""
+        },
+        "FIXED_cupcake": {
+            "comp_fxn": "noun",
+            "predicate": "",
+            "intrinsic_variable_properties": {}
+        }
+    },
+    "edge_keys": {
+        "EXPANDED_color": {
+            "comp_fxn": "adjective",
+            "predicate": "",
+            "intrinsic_variable_properties": {}
+        },
+        "NO_CHANGE_scent": {
+            "comp_fxn": ""
+        },
+        "FIXED_texture": {
+            "comp_fxn": "adjective",
+            "predicate": "",
+            "intrinsic_variable_properties": {}
+        }
+    }
+}

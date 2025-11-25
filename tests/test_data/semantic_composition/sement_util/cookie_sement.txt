@@ -1,0 +1,7 @@
+[ TOP: h1
+    INDEX: x2
+    RELS: <
+        [
+         _cookie_n_1 LBL: h1 ARG0: x2 ]
+    >
+]

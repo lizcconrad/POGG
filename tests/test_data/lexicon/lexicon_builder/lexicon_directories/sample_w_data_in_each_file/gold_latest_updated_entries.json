@@ -1,0 +1,42 @@
+{
+    "node_keys": {
+        "candy": {
+            "comp_fxn": "noun"
+        },
+        "cookie": {
+            "comp_fxn": "noun",
+            "predicate": "_cookie_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "bread": {
+            "comp_fxn": "noun",
+            "predicate": "_bread_n_1",
+            "intrinsic_variable_properties": {},
+            "failure_msg": "nuh uh!"
+        },
+        "cheese": {
+            "comp_fxn": "nouny",
+            "failure_msg": "never nohow..."
+        }
+    },
+    "edge_keys": {
+        "occasion": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": "parent",
+            "non_head_noun_sement": "child"
+        },
+        "scent": {
+            "comp_fxn": ""
+        },
+        "filling": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": "parent",
+            "non_head_noun_sement": "child",
+            "failure_msg": "oopsies!"
+        },
+        "color": {
+            "comp_fxn": "imaginary",
+            "failure_msg": "errrrm..."
+        }
+    }
+}

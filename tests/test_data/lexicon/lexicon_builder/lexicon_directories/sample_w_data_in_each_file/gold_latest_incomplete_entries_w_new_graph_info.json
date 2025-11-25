@@ -1,0 +1,28 @@
+{
+    "node_keys": {
+        "cookie": {
+            "comp_fxn": "noun",
+            "predicate": "_cookie_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "candy": {
+            "comp_fxn": "noun"
+        },
+        "EXTRA_cookie": {
+            "comp_fxn": ""
+        }
+    },
+    "edge_keys": {
+        "occasion": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": "parent",
+            "non_head_noun_sement": "child"
+        },
+        "scent": {
+            "comp_fxn": ""
+        },
+        "EXTRA_flavor": {
+            "comp_fxn": ""
+        }
+    }
+}

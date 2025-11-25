@@ -1,7 +1,10 @@
 """
 Serialization functions for the SEMENT format.
-Code directly taken from pydelphin with small changes to account for the additional EQ and SLOT features of a SEMENT
-Ideally will be merged with pydelphin and maybe some redundancy can be eliminated, but for now just copied 
+Code directly taken from pydelphin with small changes to account for the additional EQ and SLOT features of a SEMENT.
+
+Ideally will be merged with pydelphin and maybe some redundancy can be eliminated, but for now just copied.
+
+[See usage examples here.](project:/usage_nbs/pogg/my_delphin/sementcodecs_usage.ipynb)
 """
 
 import re
@@ -69,10 +72,8 @@ def dump(ms, destination, properties=True, lnk=True,
         destination: filename or file object where data will be written
         properties: if `False`, suppress morphosemantic properties
         lnk: if `False`, suppress surface alignments and strings
-        indent (bool, int): if `True` or an integer value, add
-            newlines and indentation
-        encoding (str): if *destination* is a filename, write to the
-            file with the given encoding; otherwise it is ignored
+        indent (bool, int): if `True` or an integer value, add newlines and indentation
+        encoding (str): if *destination* is a filename, write to the file with the given encoding; otherwise it is ignored
     """
     text = dumps(ms, properties=properties, lnk=lnk, indent=indent)
     if hasattr(destination, 'write'):
@@ -91,8 +92,7 @@ def dumps(ms, properties=True, lnk=True, indent=False):
         ms: an iterator of MRS objects to serialize
         properties: if `False`, suppress variable properties
         lnk: if `False`, suppress surface alignments and strings
-        indent (bool, int): if `True` or an integer value, add
-            newlines and indentation
+        indent (bool, int): if `True` or an integer value, add newlines and indentation
     Returns:
         a SEMENT string representation of a corpus of MRS objects
     """
@@ -115,8 +115,7 @@ def encode(m, properties=True, lnk=True, indent=False):
         m: an MRS object
         properties (bool): if `False`, suppress variable properties
         lnk: if `False`, suppress surface alignments and strings
-        indent (bool, int): if `True` or an integer value, add
-            newlines and indentation
+        indent (bool, int): if `True` or an integer value, add newlines and indentation
     Returns:
         a SEMENT-serialization of the MRS object
     """

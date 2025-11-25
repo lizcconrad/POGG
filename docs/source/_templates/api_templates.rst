@@ -18,7 +18,7 @@ Module Functions
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: parameter-table
+            :name: fxn-parameters-table
             :widths: 20, 10, 10, 70
             :class: longtable
             :header-rows: 1
@@ -38,7 +38,7 @@ Module Functions
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: returns-table
+            :name: fxn-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1
@@ -67,12 +67,16 @@ Public Classes OR Private Classes
 
     [CLASS DESCRIPTION, i.e. the summary from the docstring]
 
+        !!! CHANGE THE TABLE NAMES !!!
+        class-parameters-table
+        class-attributes-table
+
 
     Parameters
     ^^^^^^^^^^^
     .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
     .. list-table::
-        :name: TABLE-NAME
+        :name: class-parameters-table
         :widths: 20, 10, 10, 70
         :class: longtable
         :header-rows: 1
@@ -83,8 +87,8 @@ Public Classes OR Private Classes
           - Type
           - Default (take out if necessary)
           - Description
-        * - ...
-          - ...
+        * - ``...``
+          - ``...``
           - ...
           - ...
 
@@ -93,31 +97,34 @@ Public Classes OR Private Classes
     ^^^^^^^^^^^^^^^^^^^^
     .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
     .. list-table::
-        :name: TABLE-NAME
+        :name: class-attributes-table
         :widths: 20, 30, 70
         :class: longtable
         :header-rows: 1
         :align: left
         :width: 90%
 
-         * - Attribute
+        * - Attribute
           - Type
           - Description
-        * - ...
+        * - ``...``
+          - ``...``
           - ...
-          - ...
+
 
     Instance Methods
     ^^^^^^^^^^^^^^^^^
     .. py:function:: [FUNCTION SIGNATURE]
 
-        ...
+        !!! CHANGE TABLE NAMES !!!
+        fxn-parameters-table
+        fxn-returns-table
 
         Parameters
         ^^^^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: fxn-parameters-table
             :widths: 20, 30, 70
             :class: longtable
             :header-rows: 1
@@ -135,7 +142,7 @@ Public Classes OR Private Classes
         ^^^^^^^^
         .. tabularcolumns:: p{0.132\linewidth}p{0.198\linewidth}p{0.330\linewidth}
         .. list-table::
-            :name: TABLE-NAME
+            :name: fxn-returns-table
             :widths: 40, 70
             :class: longtable
             :header-rows: 1

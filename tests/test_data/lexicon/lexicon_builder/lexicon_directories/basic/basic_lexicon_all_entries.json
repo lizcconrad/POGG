@@ -1,0 +1,24 @@
+{
+    "node_keys": {
+        "birthdayCandle": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": {
+                "comp_fxn": "noun",
+                "predicate": "_candle_n_1",
+                "intrinsic_variable_properties": {}
+            },
+            "non_head_noun_sement": {
+                "comp_fxn": "noun",
+                "predicate": "_birthday_n_1",
+                "intrinsic_variable_properties": {}
+            }
+        }
+    },
+    "edge_keys": {
+        "flavor": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": "parent",
+            "non_head_noun_sement": "child"
+        }
+    }
+}

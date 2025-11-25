@@ -26,17 +26,17 @@
 SLOT DISCREPANCIES
 ^^^^^^^^^^^^^^^^^^
 GOLD ONLY
-Slot Name          Gold Var
------------------  ----------
-_believe_v_1.ARG3  h4
+Slot Name              Gold Var
+---------------------  ----------
+['_believe_v_1.ARG3']  h4
 
 ACTUAL ONLY
-Slot Name          Actual Var
------------------  ------------
-_believe_v_1.ARG2  u03
+Slot Name              Actual Var
+---------------------  ------------
+['_believe_v_1.ARG2']  u03
 
 
-SEMANTIC ROLE EQUIVALENCE DISCREPANCIES
+SEMANTIC ROLE IDENTITY DISCREPANCIES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 GOLD ONLY
 Role Set                                             Gold Var
@@ -71,11 +71,11 @@ Hi Role Set            Lo Role Set         Actual QEQ
 SLOT CONSISTENCIES
 ^^^^^^^^^^^^^^^^^^
 OVERLAPPING
-Slot Name          Gold Var    Actual Var
------------------  ----------  ------------
-_believe_v_1.ARG1  i2          i02
+Slot Name              Gold Var    Actual Var
+---------------------  ----------  ------------
+['_believe_v_1.ARG1']  i2          i02
 
-SEMANTIC ROLE EQUIVALENCE CONSISTENCIES
+SEMANTIC ROLE IDENTITY CONSISTENCIES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 OVERLAPPING
 Role Set                        Gold Var    Actual Var
@@ -98,5 +98,3 @@ OVERLAPPING
 Hi Role Set      Lo Role Set       Gold QEQ    Actual QEQ
 ---------------  ----------------  ----------  ------------
 ['_the_q.RSTR']  ['_cat_n_1.LBL']  h7 qeq h9   h07 qeq h09
-
-

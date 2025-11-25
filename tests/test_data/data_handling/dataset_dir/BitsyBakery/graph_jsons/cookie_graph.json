@@ -1,0 +1,10 @@
+{
+    "nodes": {
+        "cookie": {
+            "lexicon_key": "cookie",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        }
+    }
+}

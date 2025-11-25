@@ -1,0 +1,16 @@
+# top level directory
+data_dir: "./test_data/data_handling/dataset_dir"
+
+# subdirectories
+data_chunk: "BitsyBakery"
+graph_json_dir: "graph_jsons"
+graph_dot_dir: "dot"
+lexicon_dir: "lexicon"
+evaluation_dir: "evaluation"
+
+# other data information
+dataset_name: "BitsyBakery"
+
+
+# dummy key just used to test the directory creation function
+dummy_dir: "dummy_dir"

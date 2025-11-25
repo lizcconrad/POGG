@@ -11,6 +11,8 @@
 #
 import os
 import sys
+from datetime import date
+# from sphinx.application import Sphinx
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -18,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'POGG'
-copyright = '2025, Elizabeth C. Conrad'
+copyright = f"{date.today().year}, Elizabeth C. Conrad"
 author = 'Elizabeth C. Conrad'
 release = '0.0.1'
 
@@ -27,16 +29,36 @@ release = '0.0.1'
 
 extensions = [
     # 'autoclasstoc',
-    'sphinx.ext.autodoc',
+    # 'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.coverage',
     'sphinx_design',
-    # "sphinx.ext.autosectionlabel"
+    'myst_nb',
+    'autodoc2',
+    'sphinx_togglebutton',
+    'sphinx_immaterial'
 ]
-
-# autodoc_default_options = {
-#     'member-order': 'groupwise'
-# }
+autodoc2_packages = [
+    "../../src/pogg",
+]
+autodoc2_render_plugin = "myst"
+myst_enable_extensions = [
+    "amsmath",
+    "attrs_inline",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "substitution",
+    "tasklist",
+]
+togglebutton_hint = ""
+togglebutton_hint_hide = ""
 
 # coverage options ???
 coverage_modules = ["pogg"]
@@ -54,15 +76,17 @@ sd_custom_directives = {
 # autosectionlabel_prefix_document = True
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+# html_theme = 'sphinx_book_theme'
+html_theme = 'sphinx_immaterial'
 html_static_path = ['_static']
+
 
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)

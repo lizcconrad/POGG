@@ -1,0 +1,4 @@
+Slot Name              Gold Var    Actual Var
+---------------------  ----------  ------------
+['slot1']              x1          x01
+['slot2']              x2          x02

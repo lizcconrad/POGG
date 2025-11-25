@@ -1,0 +1,9 @@
+{
+    "node_keys": {
+        "cake": {
+            "predicate": "_cake_n_1",
+            "intrinsic_variable_properties": { "NUM": "sg" }
+        }
+    },
+    "edge_keys": {}
+}

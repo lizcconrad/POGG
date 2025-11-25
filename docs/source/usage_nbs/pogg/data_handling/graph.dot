@@ -1,0 +1,5 @@
+strict digraph {
+idCar1 [node_type=entity, root=root, lexicon_key=idCar];
+red [node_type=property, lexicon_key=red];
+idCar1 -> red [label=idColor, edge_type=property, lexicon_key=idColor];
+}
