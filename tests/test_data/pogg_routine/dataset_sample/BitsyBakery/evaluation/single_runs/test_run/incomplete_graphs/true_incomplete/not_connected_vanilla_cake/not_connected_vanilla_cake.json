@@ -1,0 +1,17 @@
+{
+    "nodes": {
+        "cake": {
+            "lexicon_key": "cake",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        },
+        "vanilla": {
+            "lexicon_key": "vanilla",
+            "node_properties": {
+                "node_type": "property"
+            }
+        }
+    },
+    "edges": []
+}

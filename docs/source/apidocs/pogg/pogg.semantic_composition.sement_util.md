@@ -9,210 +9,249 @@
 
 ## Module Contents
 
-### Functions
+### Classes
 
 ````{list-table}
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`duplicate_sement <pogg.semantic_composition.sement_util.duplicate_sement>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.duplicate_sement
-    :summary:
-    ```
-* - {py:obj}`group_equalities <pogg.semantic_composition.sement_util.group_equalities>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.group_equalities
-    :summary:
-    ```
-* - {py:obj}`get_most_specified_variable <pogg.semantic_composition.sement_util.get_most_specified_variable>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.get_most_specified_variable
-    :summary:
-    ```
-* - {py:obj}`overwrite_eqs <pogg.semantic_composition.sement_util.overwrite_eqs>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.overwrite_eqs
-    :summary:
-    ```
-* - {py:obj}`check_if_quantified <pogg.semantic_composition.sement_util.check_if_quantified>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.check_if_quantified
-    :summary:
-    ```
-* - {py:obj}`is_sement_isomorphic <pogg.semantic_composition.sement_util.is_sement_isomorphic>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.is_sement_isomorphic
-    :summary:
-    ```
-* - {py:obj}`create_variable_roles_dict <pogg.semantic_composition.sement_util.create_variable_roles_dict>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.create_variable_roles_dict
-    :summary:
-    ```
-* - {py:obj}`create_hcons_list <pogg.semantic_composition.sement_util.create_hcons_list>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.create_hcons_list
-    :summary:
-    ```
-* - {py:obj}`find_slot_overlaps <pogg.semantic_composition.sement_util.find_slot_overlaps>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.find_slot_overlaps
-    :summary:
-    ```
-* - {py:obj}`find_var_eq_overlaps <pogg.semantic_composition.sement_util.find_var_eq_overlaps>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.find_var_eq_overlaps
-    :summary:
-    ```
-* - {py:obj}`find_hcons_overlaps <pogg.semantic_composition.sement_util.find_hcons_overlaps>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.find_hcons_overlaps
-    :summary:
-    ```
-* - {py:obj}`_build_overlap_slots_table <pogg.semantic_composition.sement_util._build_overlap_slots_table>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_overlap_slots_table
-    :summary:
-    ```
-* - {py:obj}`_build_nonoverlap_slots_table <pogg.semantic_composition.sement_util._build_nonoverlap_slots_table>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_nonoverlap_slots_table
-    :summary:
-    ```
-* - {py:obj}`_build_overlap_eqs_table <pogg.semantic_composition.sement_util._build_overlap_eqs_table>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_overlap_eqs_table
-    :summary:
-    ```
-* - {py:obj}`_build_nonoverlap_eqs_table <pogg.semantic_composition.sement_util._build_nonoverlap_eqs_table>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_nonoverlap_eqs_table
-    :summary:
-    ```
-* - {py:obj}`_build_overlap_hcons_table <pogg.semantic_composition.sement_util._build_overlap_hcons_table>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_overlap_hcons_table
-    :summary:
-    ```
-* - {py:obj}`_build_nonoverlap_hcons_table <pogg.semantic_composition.sement_util._build_nonoverlap_hcons_table>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_nonoverlap_hcons_table
-    :summary:
-    ```
-* - {py:obj}`build_isomorphism_report <pogg.semantic_composition.sement_util.build_isomorphism_report>`
-  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.build_isomorphism_report
+* - {py:obj}`POGGSEMENTUtil <pogg.semantic_composition.sement_util.POGGSEMENTUtil>`
+  - ```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil
     :summary:
     ```
 ````
 
 ### API
 
-````{py:function} duplicate_sement(sement)
-:canonical: pogg.semantic_composition.sement_util.duplicate_sement
+`````{py:class} POGGSEMENTUtil
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.duplicate_sement
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil
 ```
+
+````{py:method} add_intrinsic_variable_property(sement, property_name, property_value)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.add_intrinsic_variable_property
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.add_intrinsic_variable_property
+```
+
 ````
 
-````{py:function} group_equalities(equalities)
-:canonical: pogg.semantic_composition.sement_util.group_equalities
+````{py:method} get_key_rel(sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.get_key_rel
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.group_equalities
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.get_key_rel
 ```
+
 ````
 
-````{py:function} get_most_specified_variable(eq_vars)
-:canonical: pogg.semantic_composition.sement_util.get_most_specified_variable
+````{py:method} duplicate_sement(sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.duplicate_sement
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.get_most_specified_variable
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.duplicate_sement
 ```
+
 ````
 
-````{py:function} overwrite_eqs(sement)
-:canonical: pogg.semantic_composition.sement_util.overwrite_eqs
+````{py:method} group_equalities(equalities)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.group_equalities
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.overwrite_eqs
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.group_equalities
 ```
+
 ````
 
-````{py:function} check_if_quantified(check_sement)
-:canonical: pogg.semantic_composition.sement_util.check_if_quantified
+````{py:method} get_most_specified_variable(eq_vars)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.get_most_specified_variable
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.check_if_quantified
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.get_most_specified_variable
 ```
+
 ````
 
-````{py:function} is_sement_isomorphic(s1: pogg.my_delphin.my_delphin.SEMENT, s2: pogg.my_delphin.my_delphin.SEMENT) -> bool
-:canonical: pogg.semantic_composition.sement_util.is_sement_isomorphic
+````{py:method} overwrite_eqs(sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.overwrite_eqs
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.is_sement_isomorphic
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.overwrite_eqs
 ```
+
 ````
 
-````{py:function} create_variable_roles_dict(sement)
-:canonical: pogg.semantic_composition.sement_util.create_variable_roles_dict
+````{py:method} check_if_quantified(check_sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.check_if_quantified
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.create_variable_roles_dict
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.check_if_quantified
 ```
+
 ````
 
-````{py:function} create_hcons_list(sement)
-:canonical: pogg.semantic_composition.sement_util.create_hcons_list
+````{py:method} is_sement_isomorphic(s1: pogg.my_delphin.my_delphin.SEMENT, s2: pogg.my_delphin.my_delphin.SEMENT) -> bool
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.is_sement_isomorphic
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.create_hcons_list
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.is_sement_isomorphic
 ```
+
 ````
 
-````{py:function} find_slot_overlaps(gold_sement, actual_sement)
-:canonical: pogg.semantic_composition.sement_util.find_slot_overlaps
+````{py:method} create_variable_roles_dict(sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.create_variable_roles_dict
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.find_slot_overlaps
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.create_variable_roles_dict
 ```
+
 ````
 
-````{py:function} find_var_eq_overlaps(gold_sement, actual_sement)
-:canonical: pogg.semantic_composition.sement_util.find_var_eq_overlaps
+````{py:method} create_hcons_list(sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.create_hcons_list
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.find_var_eq_overlaps
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.create_hcons_list
 ```
+
 ````
 
-````{py:function} find_hcons_overlaps(gold_sement, actual_sement)
-:canonical: pogg.semantic_composition.sement_util.find_hcons_overlaps
+````{py:method} create_icons_list(sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.create_icons_list
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.find_hcons_overlaps
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.create_icons_list
 ```
+
 ````
 
-````{py:function} _build_overlap_slots_table(overlap_slots)
-:canonical: pogg.semantic_composition.sement_util._build_overlap_slots_table
+````{py:method} find_slot_overlaps(gold_sement, actual_sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_slot_overlaps
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_overlap_slots_table
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_slot_overlaps
 ```
+
 ````
 
-````{py:function} _build_nonoverlap_slots_table(nonoverlap_slots, table_type)
-:canonical: pogg.semantic_composition.sement_util._build_nonoverlap_slots_table
+````{py:method} find_var_eq_overlaps(gold_sement, actual_sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_var_eq_overlaps
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_nonoverlap_slots_table
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_var_eq_overlaps
 ```
+
 ````
 
-````{py:function} _build_overlap_eqs_table(overlap_eqs)
-:canonical: pogg.semantic_composition.sement_util._build_overlap_eqs_table
+````{py:method} find_hcons_overlaps(gold_sement, actual_sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_hcons_overlaps
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_overlap_eqs_table
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_hcons_overlaps
 ```
+
 ````
 
-````{py:function} _build_nonoverlap_eqs_table(nonoverlap_eqs, table_type)
-:canonical: pogg.semantic_composition.sement_util._build_nonoverlap_eqs_table
+````{py:method} find_icons_overlaps(gold_sement, actual_sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_icons_overlaps
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_nonoverlap_eqs_table
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.find_icons_overlaps
 ```
+
 ````
 
-````{py:function} _build_overlap_hcons_table(overlap_hcons)
-:canonical: pogg.semantic_composition.sement_util._build_overlap_hcons_table
+````{py:method} _build_overlap_slots_table(overlap_slots)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_slots_table
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_overlap_hcons_table
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_slots_table
 ```
+
 ````
 
-````{py:function} _build_nonoverlap_hcons_table(nonoverlap_hcons, table_type)
-:canonical: pogg.semantic_composition.sement_util._build_nonoverlap_hcons_table
+````{py:method} _build_nonoverlap_slots_table(nonoverlap_slots, table_type)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_slots_table
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util._build_nonoverlap_hcons_table
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_slots_table
 ```
+
 ````
 
-````{py:function} build_isomorphism_report(gold_sement, actual_sement)
-:canonical: pogg.semantic_composition.sement_util.build_isomorphism_report
+````{py:method} _build_overlap_eqs_table(overlap_eqs)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_eqs_table
+:staticmethod:
 
-```{autodoc2-docstring} pogg.semantic_composition.sement_util.build_isomorphism_report
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_eqs_table
 ```
+
 ````
+
+````{py:method} _build_overlap_eqs_prop_diff_table(overlap_eqs_prop_diff)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_eqs_prop_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_eqs_prop_diff_table
+```
+
+````
+
+````{py:method} _build_nonoverlap_eqs_table(nonoverlap_eqs, table_type)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_eqs_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_eqs_table
+```
+
+````
+
+````{py:method} _build_overlap_hcons_table(overlap_hcons)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_hcons_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_hcons_table
+```
+
+````
+
+````{py:method} _build_nonoverlap_hcons_table(nonoverlap_hcons, table_type)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_hcons_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_hcons_table
+```
+
+````
+
+````{py:method} _build_overlap_icons_table(overlap_icons)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_icons_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_overlap_icons_table
+```
+
+````
+
+````{py:method} _build_nonoverlap_icons_table(nonoverlap_icons, table_type)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_icons_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil._build_nonoverlap_icons_table
+```
+
+````
+
+````{py:method} build_isomorphism_report(gold_sement, actual_sement)
+:canonical: pogg.semantic_composition.sement_util.POGGSEMENTUtil.build_isomorphism_report
+:staticmethod:
+
+```{autodoc2-docstring} pogg.semantic_composition.sement_util.POGGSEMENTUtil.build_isomorphism_report
+```
+
+````
+
+`````

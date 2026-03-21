@@ -1,0 +1,24 @@
+{
+    "graph_name": "erg_no_results",
+    "sem_comp_fxns_used": [
+        "adjective"
+    ],
+    "node_count": 1,
+    "nodes_covered": 1,
+    "nodes_included": 1,
+    "node_coverage": 1.0,
+    "node_inclusion": 1.0,
+    "edge_count": 0,
+    "edges_covered": 0,
+    "edges_included": 0,
+    "edge_coverage": 0,
+    "edge_inclusion": 0,
+    "gold_outputs": [],
+    "generated_gold_outputs": [],
+    "gold_output_generation_coverage": 0,
+    "generation_comment": null,
+    "generated_SEMENT_string": "[ TOP: h75\n  INDEX: e72\n  RELS: < [ _cool_a_1 LBL: h75 ARG0: e72 ARG1: u73 ARG2: i74 ] >\n  SLOTS: < ARG1: u73 ARG2: i74 > ]",
+    "collapsed_SEMENT_string": "[ TOP: h75\n  INDEX: e72\n  RELS: < [ _cool_a_1 LBL: h75 ARG0: e72 ARG1: u73 ARG2: i74 ] >\n  SLOTS: < ARG1: u73 ARG2: i74 > ]",
+    "prepped_SEMENT_string": "[ TOP: h76\n  INDEX: e72\n  RELS: < [ _cool_a_1 LBL: h75 ARG0: e72 ARG1: u73 ARG2: i74 ] >\n  HCONS: < h76 qeq h75 >\n  SLOTS: < ARG1: u73 ARG2: i74 > ]",
+    "generated_results": []
+}

@@ -119,7 +119,7 @@
 ```{autodoc2-docstring} pogg.pogg_config.POGGConfig.__init__
 ```
 
-````{py:method} concretize(predicate)
+````{py:method} concretize(predicate, manual_synopsis=None)
 :canonical: pogg.pogg_config.POGGConfig.concretize
 
 ```{autodoc2-docstring} pogg.pogg_config.POGGConfig.concretize

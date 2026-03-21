@@ -1,0 +1,27 @@
+{
+    "nodes": {
+        "cake": {
+            "lexicon_key": "cake",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        },
+        "vanilla": {
+            "lexicon_key": "vanilla",
+            "node_properties": {
+                "node_type": "property"
+            }
+        }
+    },
+    "edges": [
+        {
+            "edge_name": "flavor",
+            "parent_node": "cake",
+            "child_node": "vanilla",
+            "lexicon_key": "flavor",
+            "edge_properties": {
+                "edge_type": "property"
+            }
+        }
+    ]
+}

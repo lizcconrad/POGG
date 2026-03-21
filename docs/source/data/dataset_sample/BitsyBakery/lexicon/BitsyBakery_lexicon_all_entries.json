@@ -1,0 +1,64 @@
+{
+    "node_keys": {
+        "cake": {
+            "comp_fxn": "noun",
+            "predicate": "_cake_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "cakeBatter": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": {
+                "comp_fxn": "noun",
+                "predicate": "_batter_n_1",
+                "intrinsic_variable_properties": {}
+            },
+            "non_head_noun_sement": {
+                "comp_fxn": "noun",
+                "predicate": "_cake_n_1",
+                "intrinsic_variable_properties": {}
+            }
+        },
+        "candle": {
+            "comp_fxn": "noun",
+            "predicate": "_candle_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "chocolate": {
+            "comp_fxn": "noun",
+            "predicate": "_chocolate_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "frosting": {
+            "comp_fxn": "noun",
+            "predicate": "_frosting_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "sprinkles": {
+            "comp_fxn": "noun",
+            "predicate": "_sprinkle_n_of",
+            "intrinsic_variable_properties": {
+                "NUM": "pl"
+            }
+        },
+        "strawberry": {
+            "comp_fxn": "noun",
+            "predicate": "_strawberry_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "vanilla": {
+            "comp_fxn": "noun",
+            "predicate": "_vanilla_n_1",
+            "intrinsic_variable_properties": {}
+        }
+    },
+    "edge_keys": {
+        "decorated_with": {
+            "comp_fxn": ""
+        },
+        "flavor": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": "parent",
+            "non_head_noun_sement": "child"
+        }
+    }
+}

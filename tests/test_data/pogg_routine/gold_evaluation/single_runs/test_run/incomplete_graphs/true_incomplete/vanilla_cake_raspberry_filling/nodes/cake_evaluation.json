@@ -1,0 +1,15 @@
+{
+    "node_name": "cake",
+    "node_props": {
+        "node_type": "entity",
+        "lexicon_key": "cake"
+    },
+    "generated_SEMENT_string": "[ TOP: h24\n  INDEX: x23\n  RELS: < [ _cake_n_1 LBL: h24 ARG0: x23 ] > ]",
+    "sem_comp_fxns_used": [
+        "noun"
+    ],
+    "node_covered": true,
+    "node_included": true,
+    "generation_comment": null,
+    "inclusion_comment": null
+}

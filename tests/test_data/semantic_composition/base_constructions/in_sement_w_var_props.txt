@@ -1,4 +1,0 @@
-[ TOP: h6
-  INDEX: e3 [ MOOD: indicative ]
-  RELS: < [ _in_p_loc LBL: h6 ARG0: e3 ARG1: u4 ARG2: u5 ] >
-  SLOTS: < ARG1: u4 ARG2: u5 > ]

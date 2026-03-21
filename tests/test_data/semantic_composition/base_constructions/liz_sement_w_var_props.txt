@@ -1,3 +1,0 @@
-[ TOP: h12
-  INDEX: x11 [ PERS: 3 ]
-  RELS: < [ named LBL: h12 ARG0: x11 CARG: "Liz" ] > ]

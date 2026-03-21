@@ -1,0 +1,22 @@
+{
+    "graph_name": "cycle",
+    "sem_comp_fxns_used": [],
+    "node_count": 1,
+    "nodes_covered": 0,
+    "nodes_included": 0,
+    "node_coverage": 0.0,
+    "node_inclusion": 0.0,
+    "edge_count": 1,
+    "edges_covered": 0,
+    "edges_included": 0,
+    "edge_coverage": 0.0,
+    "edge_inclusion": 0.0,
+    "gold_outputs": [],
+    "generated_gold_outputs": [],
+    "gold_output_generation_coverage": 0,
+    "generation_comment": "Cycle found in graph, skipping",
+    "generated_SEMENT_string": null,
+    "collapsed_SEMENT_string": null,
+    "prepped_SEMENT_string": null,
+    "generated_results": []
+}

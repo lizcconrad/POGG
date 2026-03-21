@@ -1,0 +1,18 @@
+{
+    "edge_name": "flavor",
+    "edge_props": {
+        "label": "flavor",
+        "edge_type": "property",
+        "lexicon_key": "flavor"
+    },
+    "parent_node_name": "cake",
+    "child_node_name": "vanilla",
+    "generated_SEMENT_string": "[ TOP: h51\n  INDEX: x50\n  RELS: < [ compound LBL: h62 ARG0: e59 [ e PROG: - ] ARG1: u60 ARG2: u61 ]\n          [ udef_q LBL: h57 ARG0: x54 RSTR: h55 BODY: h56 ]\n          [ _vanilla_n_1 LBL: h53 ARG0: x52 ]\n          [ _cake_n_1 LBL: h51 ARG0: x50 ] >\n  HCONS: < h55 qeq h53 >\n  EQS: < x54 eq x52 h62 eq h58 u61 eq x54 h62 eq h51 u60 eq x50 > ]",
+    "sem_comp_fxns_used": [
+        "compound_noun"
+    ],
+    "edge_covered": true,
+    "edge_included": true,
+    "generation_comment": null,
+    "inclusion_comment": null
+}

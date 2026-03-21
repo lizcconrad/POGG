@@ -1,0 +1,144 @@
+GRAPH NAME: vanilla_cake
+
++-----------------------------------------+
+|            EVALUATION METRICS           |
++---------------------------------+-------+
+| Metric                          | Value |
++---------------------------------+-------+
+| Generated Text Results          | 12    |
+| Generated Gold Results          | 1     |
+| Generated Gold Results Coverage | 0.5   |
++---------------------------------+-------+
+| Node Count                      | 2     |
+| Nodes Covered                   | 2     |
+| Nodes Included                  | 2     |
++---------------------------------+-------+
+| Node Coverage                   | 1.0   |
+| Node Inclusion                  | 1.0   |
++---------------------------------+-------+
+| Edge Count                      | 1     |
+| Edges Covered                   | 1     |
+| Edges Included                  | 1     |
++---------------------------------+-------+
+| Edge Coverage                   | 1.0   |
+| Edge Inclusion                  | 1.0   |
++---------------------------------+-------+
+
++--------------------------------+
+|          GOLD OUTPUTS          |
++-------------------+------------+
+| Gold Output       | Generated? |
++-------------------+------------+
+| the vanilla cake  | False      |
+|                   |            |
+| the vanilla cakes | True       |
++-------------------+------------+
+
++-------------------------------------------------------------------------------+
+|                                  NODE METRICS                                 |
++---------+--------------+---------------+------------------+-------------------+
+| Node    | Node Covered | Node Included | Coverage Comment | Inclusion Comment |
++---------+--------------+---------------+------------------+-------------------+
+| cake    | True         | True          | Covered          | Included          |
+| vanilla | True         | True          | Covered          | Included          |
++---------+--------------+---------------+------------------+-------------------+
+
++-------------------------------------------------------------------------------------------------+
+|                                           EDGE METRICS                                          |
++--------+--------+---------+--------------+---------------+------------------+-------------------+
+| Edge   | Parent | Child   | Edge Covered | Edge Included | Coverage Comment | Inclusion Comment |
++--------+--------+---------+--------------+---------------+------------------+-------------------+
+| flavor | cake   | vanilla | True         | True          | Covered          | Included          |
++--------+--------+---------+--------------+---------------+------------------+-------------------+
+
++---------------------------------------------------------------------------------------------+
+|                                      GENERATED SEMENTS                                      |
++---------------+-----------------------------------------------------------------------------+
+| Version       | SEMENT                                                                      |
++---------------+-----------------------------------------------------------------------------+
+| Original      | [ TOP: h2                                                                   |
+|               |   INDEX: x1                                                                 |
+|               |   RELS: < [ compound LBL: h13 ARG0: e10 [ e PROG: - ] ARG1: u11 ARG2: u12 ] |
+|               |           [ udef_q LBL: h8 ARG0: x5 RSTR: h6 BODY: h7 ]                     |
+|               |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                                 |
+|               |           [ _cake_n_1 LBL: h2 ARG0: x1 ] >                                  |
+|               |   HCONS: < h6 qeq h4 >                                                      |
+|               |   EQS: < x5 eq x3 h13 eq h9 u12 eq x5 h13 eq h2 u11 eq x1 > ]               |
++---------------+-----------------------------------------------------------------------------+
+| EQs Collapsed | [ TOP: h13                                                                  |
+|               |   INDEX: x1                                                                 |
+|               |   RELS: < [ compound LBL: h13 ARG0: e10 [ e PROG: - ] ARG1: x1 ARG2: x3 ]   |
+|               |           [ udef_q LBL: h8 ARG0: x3 RSTR: h6 BODY: h7 ]                     |
+|               |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                                 |
+|               |           [ _cake_n_1 LBL: h13 ARG0: x1 ] >                                 |
+|               |   HCONS: < h6 qeq h4 > ]                                                    |
++---------------+-----------------------------------------------------------------------------+
+| Prepped       | [ TOP: h22                                                                  |
+|               |   INDEX: e19                                                                |
+|               |   RELS: < [ unknown LBL: h18 ARG: x1 ARG0: e19 ]                            |
+|               |           [ def_udef_a_q LBL: h17 ARG0: x1 RSTR: h15 BODY: h16 ]            |
+|               |           [ compound LBL: h13 ARG0: e10 [ e PROG: - ] ARG1: x1 ARG2: x3 ]   |
+|               |           [ udef_q LBL: h8 ARG0: x3 RSTR: h6 BODY: h7 ]                     |
+|               |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                                 |
+|               |           [ _cake_n_1 LBL: h13 ARG0: x1 ] >                                 |
+|               |   HCONS: < h6 qeq h4 h15 qeq h13 h22 qeq h18 > ]                            |
++---------------+-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------+
+|                        NODE SEMENTS                       |
++---------+-------------------------------------------------+
+| Node    | Generated SEMENT                                |
++---------+-------------------------------------------------+
+| cake    | [ TOP: h2                                       |
+|         |   INDEX: x1                                     |
+|         |   RELS: < [ _cake_n_1 LBL: h2 ARG0: x1 ] > ]    |
++---------+-------------------------------------------------+
+| vanilla | [ TOP: h4                                       |
+|         |   INDEX: x3                                     |
+|         |   RELS: < [ _vanilla_n_1 LBL: h4 ARG0: x3 ] > ] |
++---------+-------------------------------------------------+
+
++---------------------------------------------------------------------------------------------------------+
+|                                               EDGE SEMENTS                                              |
++--------+--------+---------+-----------------------------------------------------------------------------+
+| Edge   | Parent | Child   | Generated SEMENT                                                            |
++--------+--------+---------+-----------------------------------------------------------------------------+
+| flavor | cake   | vanilla | [ TOP: h2                                                                   |
+|        |        |         |   INDEX: x1                                                                 |
+|        |        |         |   RELS: < [ compound LBL: h13 ARG0: e10 [ e PROG: - ] ARG1: u11 ARG2: u12 ] |
+|        |        |         |           [ udef_q LBL: h8 ARG0: x5 RSTR: h6 BODY: h7 ]                     |
+|        |        |         |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                                 |
+|        |        |         |           [ _cake_n_1 LBL: h2 ARG0: x1 ] >                                  |
+|        |        |         |   HCONS: < h6 qeq h4 >                                                      |
+|        |        |         |   EQS: < x5 eq x3 h13 eq h9 u12 eq x5 h13 eq h2 u11 eq x1 > ]               |
++--------+--------+---------+-----------------------------------------------------------------------------+
+
++-------------------------+
+|  GENERATED ENGLISH TEXT |
++----+--------------------+
+| #  | Generated Text     |
++----+--------------------+
+| 1  | A vanilla cake     |
+| 2  | A vanilla cake.    |
+| 3  | The vanilla cake   |
+| 4  | The vanilla cake.  |
+| 5  | The vanilla cakes  |
+| 6  | The vanilla cakes. |
+| 7  | Vanilla cake       |
+| 8  | Vanilla cake       |
+| 9  | Vanilla cake.      |
+| 10 | Vanilla cake.      |
+| 11 | Vanilla cakes      |
+| 12 | Vanilla cakes.     |
++----+--------------------+
+
+
+[ TOP: h22
+  INDEX: e19
+  RELS: < [ unknown LBL: h18 ARG: x1 ARG0: e19 ]
+          [ def_udef_a_q LBL: h17 ARG0: x1 RSTR: h15 BODY: h16 ]
+          [ compound LBL: h13 ARG0: e10 [ e PROG: - ] ARG1: x1 ARG2: x3 ]
+          [ udef_q LBL: h8 ARG0: x3 RSTR: h6 BODY: h7 ]
+          [ _vanilla_n_1 LBL: h4 ARG0: x3 ]
+          [ _cake_n_1 LBL: h13 ARG0: x1 ] >
+  HCONS: < h6 qeq h4 h15 qeq h13 h22 qeq h18 > ]

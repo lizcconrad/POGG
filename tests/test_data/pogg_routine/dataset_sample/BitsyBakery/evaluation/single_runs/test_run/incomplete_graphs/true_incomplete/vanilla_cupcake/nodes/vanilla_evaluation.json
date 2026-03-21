@@ -1,0 +1,15 @@
+{
+    "node_name": "vanilla",
+    "node_props": {
+        "node_type": "property",
+        "lexicon_key": "vanilla"
+    },
+    "generated_SEMENT_string": "[ TOP: h78\n  INDEX: x77\n  RELS: < [ _vanilla_n_1 LBL: h78 ARG0: x77 ] > ]",
+    "sem_comp_fxns_used": [
+        "noun"
+    ],
+    "node_covered": true,
+    "node_included": false,
+    "generation_comment": null,
+    "inclusion_comment": "Successor of failed element"
+}

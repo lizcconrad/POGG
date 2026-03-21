@@ -1,7 +1,0 @@
-[
-    TOP: h000
-    INDEX: x001
-    RELS: <
-        [ _cake_n_1 LBL: h000 ARG0: x001 ]
-    >
-]

@@ -1,0 +1,44 @@
+{
+    "graph_name": "vanilla_cake_non_lexed_elements",
+    "sem_comp_fxns_used": [
+        "compound_noun",
+        "noun"
+    ],
+    "node_count": 3,
+    "nodes_covered": 2,
+    "nodes_included": 2,
+    "node_coverage": 0.6666666666666666,
+    "node_inclusion": 0.6666666666666666,
+    "edge_count": 2,
+    "edges_covered": 1,
+    "edges_included": 1,
+    "edge_coverage": 0.5,
+    "edge_inclusion": 0.5,
+    "gold_outputs": [
+        "the vanilla cake",
+        "the vanilla cakes"
+    ],
+    "generated_gold_outputs": [
+        "the vanilla cake",
+        "the vanilla cakes"
+    ],
+    "gold_output_generation_coverage": 1.0,
+    "generation_comment": null,
+    "generated_SEMENT_string": "[ TOP: h51\n  INDEX: x50\n  RELS: < [ compound LBL: h62 ARG0: e59 [ e PROG: - ] ARG1: u60 ARG2: u61 ]\n          [ udef_q LBL: h57 ARG0: x54 RSTR: h55 BODY: h56 ]\n          [ _vanilla_n_1 LBL: h53 ARG0: x52 ]\n          [ _cake_n_1 LBL: h51 ARG0: x50 ] >\n  HCONS: < h55 qeq h53 >\n  EQS: < x54 eq x52 h62 eq h58 u61 eq x54 h62 eq h51 u60 eq x50 > ]",
+    "collapsed_SEMENT_string": "[ TOP: h51\n  INDEX: x50\n  RELS: < [ compound LBL: h51 ARG0: e59 [ e PROG: - ] ARG1: x50 ARG2: x52 ]\n          [ udef_q LBL: h57 ARG0: x52 RSTR: h55 BODY: h56 ]\n          [ _vanilla_n_1 LBL: h53 ARG0: x52 ]\n          [ _cake_n_1 LBL: h51 ARG0: x50 ] >\n  HCONS: < h55 qeq h53 > ]",
+    "prepped_SEMENT_string": "[ TOP: h71\n  INDEX: e68\n  RELS: < [ unknown LBL: h67 ARG: x50 ARG0: e68 ]\n          [ def_udef_a_q LBL: h66 ARG0: x50 RSTR: h64 BODY: h65 ]\n          [ compound LBL: h51 ARG0: e59 [ e PROG: - ] ARG1: x50 ARG2: x52 ]\n          [ udef_q LBL: h57 ARG0: x52 RSTR: h55 BODY: h56 ]\n          [ _vanilla_n_1 LBL: h53 ARG0: x52 ]\n          [ _cake_n_1 LBL: h51 ARG0: x50 ] >\n  HCONS: < h55 qeq h53 h64 qeq h51 h71 qeq h67 > ]",
+    "generated_results": [
+        "A vanilla cake",
+        "A vanilla cake.",
+        "The vanilla cake",
+        "The vanilla cake.",
+        "The vanilla cakes",
+        "The vanilla cakes.",
+        "Vanilla cake",
+        "Vanilla cake",
+        "Vanilla cake.",
+        "Vanilla cake.",
+        "Vanilla cakes",
+        "Vanilla cakes."
+    ]
+}

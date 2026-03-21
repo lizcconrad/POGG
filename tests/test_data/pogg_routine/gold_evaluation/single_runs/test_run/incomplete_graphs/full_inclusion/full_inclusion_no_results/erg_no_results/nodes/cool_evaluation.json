@@ -1,0 +1,15 @@
+{
+    "node_name": "cool",
+    "node_props": {
+        "node_type": "entity",
+        "lexicon_key": "cool"
+    },
+    "generated_SEMENT_string": "[ TOP: h75\n  INDEX: e72\n  RELS: < [ _cool_a_1 LBL: h75 ARG0: e72 ARG1: u73 ARG2: i74 ] >\n  SLOTS: < ARG1: u73 ARG2: i74 > ]",
+    "sem_comp_fxns_used": [
+        "adjective"
+    ],
+    "node_covered": true,
+    "node_included": true,
+    "generation_comment": null,
+    "inclusion_comment": null
+}

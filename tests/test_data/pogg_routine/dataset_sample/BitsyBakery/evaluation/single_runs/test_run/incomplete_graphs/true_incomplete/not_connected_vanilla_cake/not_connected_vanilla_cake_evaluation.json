@@ -1,0 +1,22 @@
+{
+    "graph_name": "not_connected_vanilla_cake",
+    "sem_comp_fxns_used": [],
+    "node_count": 2,
+    "nodes_covered": 0,
+    "nodes_included": 0,
+    "node_coverage": 0.0,
+    "node_inclusion": 0.0,
+    "edge_count": 0,
+    "edges_covered": 0,
+    "edges_included": 0,
+    "edge_coverage": 0,
+    "edge_inclusion": 0,
+    "gold_outputs": [],
+    "generated_gold_outputs": [],
+    "gold_output_generation_coverage": 0,
+    "generation_comment": "Graph is not weakly connected, can't determine root",
+    "generated_SEMENT_string": null,
+    "collapsed_SEMENT_string": null,
+    "prepped_SEMENT_string": null,
+    "generated_results": []
+}

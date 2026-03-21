@@ -1,0 +1,21 @@
+{
+    "node_keys": {
+        "cake": {
+            "comp_fxn": "noun",
+            "predicate": "_cake_n_1",
+            "intrinsic_variable_properties": {}
+        },
+        "vanilla": {
+            "comp_fxn": "noun",
+            "predicate": "_vanilla_n_1",
+            "intrinsic_variable_properties": {}
+        }
+    },
+    "edge_keys": {
+        "flavor": {
+            "comp_fxn": "compound_noun",
+            "head_noun_sement": "parent",
+            "non_head_noun_sement": "child"
+        }
+    }
+}

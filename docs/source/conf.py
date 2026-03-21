@@ -63,15 +63,28 @@ togglebutton_hint_hide = ""
 # coverage options ???
 coverage_modules = ["pogg"]
 
-# defaults for sphinx_design
-sd_custom_directives = {
-     "dropdown-syntax": {
-        "inherit": "dropdown",
-        "options": {
-            "icon": "code",
-        },
+sphinx_immaterial_custom_admonitions = [
+    {
+        "name": "code",
+        "color": (136, 60, 166),
+        "icon": "fontawesome/solid/code",
+    },
+    {
+        "name": "assumptions",
+        "color": (90, 201, 204),
+        "icon": "fontawesome/solid/circle-exclamation"
     }
-}
+]
+
+# # defaults for sphinx_design
+# sd_custom_directives = {
+#      "dropdown-syntax": {
+#         "inherit": "dropdown",
+#         "options": {
+#             "icon": "code",
+#         },
+#     }
+# }
 
 # autosectionlabel_prefix_document = True
 

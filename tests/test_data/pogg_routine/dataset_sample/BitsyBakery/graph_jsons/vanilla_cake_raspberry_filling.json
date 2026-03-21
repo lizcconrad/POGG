@@ -1,0 +1,57 @@
+{
+    "nodes": {
+        "cake": {
+            "lexicon_key": "cake",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        },
+        "fresh": {
+            "lexicon_key": "fresh",
+            "node_properties": {
+                "node_type": "property"
+            }
+        },
+        "raspberry": {
+            "lexicon_key": "raspberry",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        },
+        "vanilla": {
+            "lexicon_key": "vanilla",
+            "node_properties": {
+                "node_type": "property"
+            }
+        }
+    },
+    "edges": [
+        {
+            "edge_name": "flavor",
+            "parent_node": "cake",
+            "child_node": "vanilla",
+            "lexicon_key": "flavor",
+            "edge_properties": {
+                "edge_type": "property"
+            }
+        },
+        {
+            "edge_name": "filling",
+            "parent_node": "cake",
+            "child_node": "raspberry",
+            "lexicon_key": "filling",
+            "edge_properties": {
+                "edge_type": "property"
+            }
+        },
+        {
+            "edge_name": "state",
+            "parent_node": "raspberry",
+            "child_node": "fresh",
+            "lexicon_key": "state",
+            "edge_properties": {
+                "edge_type": "property"
+            }
+        }
+    ]
+}

@@ -1,0 +1,106 @@
+GRAPH NAME: vanilla_cake
+
++----------------------------------------------------------------------------------+
+|                                GENERATED SEMENTS                                 |
++---------------+------------------------------------------------------------------+
+| Version       | SEMENT                                                           |
++---------------+------------------------------------------------------------------+
+| Original      | [ TOP: h2                                                        |
+|               |   INDEX: x1                                                      |
+|               |   RELS: < [ compound LBL: h13 ARG0: e10 ARG1: u11 ARG2: u12 ]    |
+|               |           [ udef_q LBL: h8 ARG0: x5 RSTR: h6 BODY: h7 ]          |
+|               |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                      |
+|               |           [ _cake_n_1 LBL: h2 ARG0: x1 ] >                       |
+|               |   HCONS: < h6 qeq h4 >                                           |
+|               |   EQS: < x5 eq x3 h13 eq h9 u12 eq x5 h13 eq h2 u11 eq x1 > ]    |
++---------------+------------------------------------------------------------------+
+| EQs Collapsed | [ TOP: h13                                                       |
+|               |   INDEX: x1                                                      |
+|               |   RELS: < [ compound LBL: h13 ARG0: e10 ARG1: x1 ARG2: x3 ]      |
+|               |           [ udef_q LBL: h8 ARG0: x3 RSTR: h6 BODY: h7 ]          |
+|               |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                      |
+|               |           [ _cake_n_1 LBL: h13 ARG0: x1 ] >                      |
+|               |   HCONS: < h6 qeq h4 > ]                                         |
++---------------+------------------------------------------------------------------+
+| Prepped       | [ TOP: h24                                                       |
+|               |   INDEX: e21                                                     |
+|               |   RELS: < [ unknown LBL: h20 ARG: x1 ARG0: e21 ]                 |
+|               |           [ def_udef_a_q LBL: h19 ARG0: x1 RSTR: h17 BODY: h18 ] |
+|               |           [ compound LBL: h13 ARG0: e10 ARG1: x1 ARG2: x3 ]      |
+|               |           [ udef_q LBL: h8 ARG0: x3 RSTR: h6 BODY: h7 ]          |
+|               |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                      |
+|               |           [ _cake_n_1 LBL: h13 ARG0: x1 ] >                      |
+|               |   HCONS: < h6 qeq h4 h17 qeq h13 h24 qeq h20 > ]                 |
++---------------+------------------------------------------------------------------+
+
++---------------------------------------------+
+|              EVALUATION METRICS             |
++------------------------+--------------------+
+| Metric                 | Value              |
++------------------------+--------------------+
+| Generated Text Results | 12                 |
++------------------------+--------------------+
+| Node Count             | 4                  |
+| Node Coverage          | 0.75               |
+| Node Inclusion         | 0.5                |
++------------------------+--------------------+
+| Edge Count             | 3                  |
+| Edge Coverage          | 0.3333333333333333 |
+| Edge Inclusion         | 0.3333333333333333 |
++------------------------+--------------------+
+
++-----------+--------------+---------------+----------------------+-----------------------------------------------------+
+| Node      | Node Covered | Node Included | Comment              | Generated SEMENT                                    |
++-----------+--------------+---------------+----------------------+-----------------------------------------------------+
+| cake      | True         | True          | None                 | [ TOP: h2                                           |
+|           |              |               |                      |   INDEX: x1                                         |
+|           |              |               |                      |   RELS: < [ _cake_n_1 LBL: h2 ARG0: x1 ] > ]        |
+| fresh     | False        | False         | 'fresh' not in       | None                                                |
+|           |              |               | lexicon's node       |                                                     |
+|           |              |               | entries; Successor   |                                                     |
+|           |              |               | of failed element    |                                                     |
+| raspberry | True         | False         | Successor of failed  | [ TOP: h15                                          |
+|           |              |               | element              |   INDEX: x14                                        |
+|           |              |               |                      |   RELS: < [ _raspberry_n_1 LBL: h15 ARG0: x14 ] > ] |
+| vanilla   | True         | True          | None                 | [ TOP: h4                                           |
+|           |              |               |                      |   INDEX: x3                                         |
+|           |              |               |                      |   RELS: < [ _vanilla_n_1 LBL: h4 ARG0: x3 ] > ]     |
++-----------+--------------+---------------+----------------------+-----------------------------------------------------+
+
++---------+-----------+-----------+--------------+---------------+----------------------+---------------------------------------------------------------+
+| Edge    | Parent    | Child     | Edge Covered | Edge Included | Comment              | Generated SEMENT                                              |
++---------+-----------+-----------+--------------+---------------+----------------------+---------------------------------------------------------------+
+| flavor  | cake      | vanilla   | True         | True          | None                 | [ TOP: h2                                                     |
+|         |           |           |              |               |                      |   INDEX: x1                                                   |
+|         |           |           |              |               |                      |   RELS: < [ compound LBL: h13 ARG0: e10 ARG1: u11 ARG2: u12 ] |
+|         |           |           |              |               |                      |           [ udef_q LBL: h8 ARG0: x5 RSTR: h6 BODY: h7 ]       |
+|         |           |           |              |               |                      |           [ _vanilla_n_1 LBL: h4 ARG0: x3 ]                   |
+|         |           |           |              |               |                      |           [ _cake_n_1 LBL: h2 ARG0: x1 ] >                    |
+|         |           |           |              |               |                      |   HCONS: < h6 qeq h4 >                                        |
+|         |           |           |              |               |                      |   EQS: < x5 eq x3 h13 eq h9 u12 eq x5 h13 eq h2 u11 eq x1 > ] |
+| filling | cake      | raspberry | False        | False         | 'filling' not in     | None                                                          |
+|         |           |           |              |               | lexicon's edge       |                                                               |
+|         |           |           |              |               | entries              |                                                               |
+| state   | raspberry | fresh     | False        | False         | child of 'state' has | None                                                          |
+|         |           |           |              |               | no SEMENT            |                                                               |
++---------+-----------+-----------+--------------+---------------+----------------------+---------------------------------------------------------------+
+
++-------------------------+
+|  GENERATED ENGLISH TEXT |
++----+--------------------+
+| #  | Generated Text     |
++----+--------------------+
+| 1  | A vanilla cake     |
+| 2  | A vanilla cake.    |
+| 3  | The vanilla cake   |
+| 4  | The vanilla cake.  |
+| 5  | The vanilla cakes  |
+| 6  | The vanilla cakes. |
+| 7  | Vanilla cake       |
+| 8  | Vanilla cake       |
+| 9  | Vanilla cake.      |
+| 10 | Vanilla cake.      |
+| 11 | Vanilla cakes      |
+| 12 | Vanilla cakes.     |
++----+--------------------+
+

@@ -1,0 +1,7 @@
+strict digraph {
+cake [node_type=entity, lexicon_key=cake];
+vanilla [node_type=property, lexicon_key=vanilla];
+irrelevant_node [lexicon_key="irrelevant_node"];
+cake -> vanilla [label=flavor, edge_type=property, lexicon_key=flavor];
+cake -> irrelevant_node [label="irrelevant_edge", edge_type=property, lexicon_key="irrelevant_edge"];
+}

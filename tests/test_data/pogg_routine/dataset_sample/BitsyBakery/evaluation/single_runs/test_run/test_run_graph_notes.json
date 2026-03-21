@@ -1,0 +1,64 @@
+{
+    "cycle": {
+        "tags": {
+            "no_SEMENT": "",
+            "no_text_results": "",
+            "cycle": ""
+        }
+    },
+    "erg_no_results": {
+        "tags": {
+            "full_node_coverage": "",
+            "full_node_inclusion": "",
+            "generated_SEMENT": "",
+            "no_text_results": ""
+        }
+    },
+    "not_connected_vanilla_cake": {
+        "tags": {
+            "no_SEMENT": "",
+            "no_text_results": ""
+        }
+    },
+    "vanilla_cake": {
+        "tags": {
+            "full_node_coverage": "",
+            "full_edge_coverage": "",
+            "full_node_inclusion": "",
+            "full_edge_inclusion": "",
+            "generated_SEMENT": "",
+            "generated_text_results": "",
+            "full_gold_generation_coverage": ""
+        }
+    },
+    "vanilla_cake_non_lexed_elements": {
+        "tags": {
+            "generated_SEMENT": "",
+            "generated_text_results": "",
+            "full_gold_generation_coverage": ""
+        }
+    },
+    "vanilla_cake_raspberry_filling": {
+        "tags": {
+            "full_node_coverage": "",
+            "generated_SEMENT": "",
+            "generated_text_results": ""
+        }
+    },
+    "vanilla_cake_wrong_golds": {
+        "tags": {
+            "full_node_coverage": "",
+            "full_edge_coverage": "",
+            "full_node_inclusion": "",
+            "full_edge_inclusion": "",
+            "generated_SEMENT": "",
+            "generated_text_results": ""
+        }
+    },
+    "vanilla_cupcake": {
+        "tags": {
+            "no_SEMENT": "",
+            "no_text_results": ""
+        }
+    }
+}

@@ -1,9 +1,0 @@
-[
-    TOP: h0
-    INDEX: x2
-    RELS: <
-        [ _tasty_a_1 LBL: h0 ARG0: e1 ARG1: x2 ]
-        [ _cookie_n_1 LBL: h3 ARG0: x4 ]
-    >
-    EQS: < x2 eq x4 h0 eq h3 >
-]

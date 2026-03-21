@@ -8,6 +8,7 @@
             }
         },
         "red": {
+            "lexicon_key": "red",
             "node_properties": {
                 "node_type": "property"
             }

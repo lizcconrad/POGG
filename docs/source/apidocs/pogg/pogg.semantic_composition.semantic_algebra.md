@@ -43,7 +43,7 @@
 
 ````
 
-````{py:method} create_base_SEMENT(predicate, intrinsic_variable_properties={})
+````{py:method} create_base_SEMENT(predicate, intrinsic_variable_properties=None, synopsis_dict=None)
 :canonical: pogg.semantic_composition.semantic_algebra.SemanticAlgebra.create_base_SEMENT
 
 ```{autodoc2-docstring} pogg.semantic_composition.semantic_algebra.SemanticAlgebra.create_base_SEMENT
@@ -87,6 +87,14 @@
 :canonical: pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_functor_index
 
 ```{autodoc2-docstring} pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_functor_index
+```
+
+````
+
+````{py:method} op_scopal_functor_index_argument_slots(functor, argument, slot_label)
+:canonical: pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_functor_index_argument_slots
+
+```{autodoc2-docstring} pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_functor_index_argument_slots
 ```
 
 ````

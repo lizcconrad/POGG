@@ -1,0 +1,9 @@
+strict digraph {
+cake [node_type=entity, lexicon_key=cake];
+vanilla [node_type=property, lexicon_key=vanilla];
+raspberry [node_type=entity, lexicon_key=raspberry];
+fresh [node_type=property, lexicon_key=fresh];
+cake -> vanilla [label=flavor, edge_type=property, lexicon_key=flavor];
+cake -> raspberry [label=filling, edge_type=property, lexicon_key=filling];
+raspberry -> fresh [label=state, edge_type=property, lexicon_key=state];
+}

@@ -15,10 +15,6 @@
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`POGGNodeReporting <pogg.evaluation.reporting.POGGNodeReporting>`
-  - ```{autodoc2-docstring} pogg.evaluation.reporting.POGGNodeReporting
-    :summary:
-    ```
 * - {py:obj}`POGGGraphReporting <pogg.evaluation.reporting.POGGGraphReporting>`
   - ```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting
     :summary:
@@ -27,35 +23,13 @@
   - ```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetReporting
     :summary:
     ```
+* - {py:obj}`POGGDatasetDiffReporting <pogg.evaluation.reporting.POGGDatasetDiffReporting>`
+  - ```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting
+    :summary:
+    ```
 ````
 
 ### API
-
-`````{py:class} POGGNodeReporting
-:canonical: pogg.evaluation.reporting.POGGNodeReporting
-
-```{autodoc2-docstring} pogg.evaluation.reporting.POGGNodeReporting
-```
-
-````{py:method} build_ASCII_node_row(node_eval)
-:canonical: pogg.evaluation.reporting.POGGNodeReporting.build_ASCII_node_row
-:staticmethod:
-
-```{autodoc2-docstring} pogg.evaluation.reporting.POGGNodeReporting.build_ASCII_node_row
-```
-
-````
-
-````{py:method} build_ASCII_edge_row(edge_eval)
-:canonical: pogg.evaluation.reporting.POGGNodeReporting.build_ASCII_edge_row
-:staticmethod:
-
-```{autodoc2-docstring} pogg.evaluation.reporting.POGGNodeReporting.build_ASCII_edge_row
-```
-
-````
-
-`````
 
 `````{py:class} POGGGraphReporting
 :canonical: pogg.evaluation.reporting.POGGGraphReporting
@@ -72,11 +46,29 @@
 
 ````
 
+````{py:method} build_ASCII_nodes_SEMENT_table(graph_eval)
+:canonical: pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_nodes_SEMENT_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_nodes_SEMENT_table
+```
+
+````
+
 ````{py:method} build_ASCII_edges_table(graph_eval)
 :canonical: pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_edges_table
 :staticmethod:
 
 ```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_edges_table
+```
+
+````
+
+````{py:method} build_ASCII_edges_SEMENT_table(graph_eval)
+:canonical: pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_edges_SEMENT_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_edges_SEMENT_table
 ```
 
 ````
@@ -90,11 +82,20 @@
 
 ````
 
-````{py:method} build_ASCII_graph_sement_table(graph_eval)
-:canonical: pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_graph_sement_table
+````{py:method} build_ASCII_graph_SEMENT_table(graph_eval)
+:canonical: pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_graph_SEMENT_table
 :staticmethod:
 
-```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_graph_sement_table
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_graph_SEMENT_table
+```
+
+````
+
+````{py:method} build_ASCII_gold_outputs_table(graph_eval)
+:canonical: pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_gold_outputs_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGGraphReporting.build_ASCII_gold_outputs_table
 ```
 
 ````
@@ -148,6 +149,86 @@
 :staticmethod:
 
 ```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetReporting.build_ASCII_dataset_report
+```
+
+````
+
+`````
+
+`````{py:class} POGGDatasetDiffReporting
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting
+```
+
+````{py:method} build_ASCII_metadata_diff_table(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_metadata_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_metadata_diff_table
+```
+
+````
+
+````{py:method} build_ASCII_graph_metrics_diff_table(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_graph_metrics_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_graph_metrics_diff_table
+```
+
+````
+
+````{py:method} build_ASCII_node_metrics_diff_table(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_node_metrics_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_node_metrics_diff_table
+```
+
+````
+
+````{py:method} build_ASCII_edge_metrics_diff_table(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_edge_metrics_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_edge_metrics_diff_table
+```
+
+````
+
+````{py:method} build_ASCII_sem_alg_functions_available_diff_table(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_sem_alg_functions_available_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_sem_alg_functions_available_diff_table
+```
+
+````
+
+````{py:method} build_ASCII_sem_comp_functions_available_diff_table(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_sem_comp_functions_available_diff_table
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_sem_comp_functions_available_diff_table
+```
+
+````
+
+````{py:method} build_ASCII_dataset_diff_report(evaluation_diff)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_dataset_diff_report
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.build_ASCII_dataset_diff_report
+```
+
+````
+
+````{py:method} store_diff_report(evaluation_path, base_run, comparison_run)
+:canonical: pogg.evaluation.reporting.POGGDatasetDiffReporting.store_diff_report
+:staticmethod:
+
+```{autodoc2-docstring} pogg.evaluation.reporting.POGGDatasetDiffReporting.store_diff_report
 ```
 
 ````

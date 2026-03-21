@@ -1,7 +1,0 @@
-[ TOP: h042
-  INDEX: x0411
-  RELS: < [ _vanilla_n_1 LBL: h040 ARG0: x045 ]
-          [ compound LBL: h042 ARG0: e043 ARG1: x0411 ARG2: x045 ]
-          [ udef_q LBL: h046 ARG0: x045 RSTR: h048 BODY: h049 ]
-          [ _cake_n_1 LBL: h042 ARG0: x0411 ] >
-  HCONS: < h048 qeq h040 > ]

@@ -1,0 +1,14 @@
+{
+    "node_name": "node",
+    "node_props": {
+        "lexicon_key": "node"
+    },
+    "generated_SEMENT_string": "[ TOP: h1\n  INDEX: x2\n  RELS: < [ _bear_n_1 LBL: h1 ARG0: x2 ] > ]",
+    "sem_comp_fxns_used": [
+        "noun"
+    ],
+    "node_covered": true,
+    "node_included": true,
+    "generation_comment": "me when i'm a comment",
+    "inclusion_comment": "me when i'm also a comment"
+}

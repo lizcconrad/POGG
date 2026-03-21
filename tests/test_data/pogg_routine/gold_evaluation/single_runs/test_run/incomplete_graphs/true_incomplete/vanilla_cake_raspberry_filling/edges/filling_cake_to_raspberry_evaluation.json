@@ -1,0 +1,16 @@
+{
+    "edge_name": "filling",
+    "edge_props": {
+        "label": "filling",
+        "edge_type": "property",
+        "lexicon_key": "filling"
+    },
+    "parent_node_name": "cake",
+    "child_node_name": "raspberry",
+    "generated_SEMENT_string": null,
+    "sem_comp_fxns_used": [],
+    "edge_covered": false,
+    "edge_included": false,
+    "generation_comment": "'filling' not in lexicon's edge entries",
+    "inclusion_comment": "No SEMENT generated for this edge"
+}

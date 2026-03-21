@@ -130,7 +130,7 @@
 ```{autodoc2-docstring} pogg.lexicon.lexicon_builder.POGGLexiconUtil
 ```
 
-````{py:method} initialize_lexicon_directory(lexicon_name, lexicon_directory)
+````{py:method} initialize_lexicon_directory(lexicon_name, lexicon_directory, lexicon_skeleton=None)
 :canonical: pogg.lexicon.lexicon_builder.POGGLexiconUtil.initialize_lexicon_directory
 :staticmethod:
 
@@ -144,6 +144,15 @@
 :staticmethod:
 
 ```{autodoc2-docstring} pogg.lexicon.lexicon_builder.POGGLexiconUtil.convert_dict_entry_to_POGGLexiconEntry
+```
+
+````
+
+````{py:method} convert_POGGLexiconEntry_to_dict_entry(pogg_entry)
+:canonical: pogg.lexicon.lexicon_builder.POGGLexiconUtil.convert_POGGLexiconEntry_to_dict_entry
+:staticmethod:
+
+```{autodoc2-docstring} pogg.lexicon.lexicon_builder.POGGLexiconUtil.convert_POGGLexiconEntry_to_dict_entry
 ```
 
 ````
@@ -193,7 +202,7 @@
 
 ````
 
-````{py:method} check_edge_entry_completion(node_entry)
+````{py:method} check_edge_entry_completion(edge_entry)
 :canonical: pogg.lexicon.lexicon_builder.POGGLexiconUtil.check_edge_entry_completion
 :staticmethod:
 
@@ -238,7 +247,7 @@
 
 ````
 
-````{py:method} add_new_graph_data_to_lexicon(lexicon_name, lexicon_dir, new_lexicon_skeleton)
+````{py:method} add_new_graph_data_to_lexicon(lexicon_name, lexicon_directory, new_lexicon_skeleton)
 :canonical: pogg.lexicon.lexicon_builder.POGGLexiconUtil.add_new_graph_data_to_lexicon
 :staticmethod:
 
@@ -252,6 +261,15 @@
 :staticmethod:
 
 ```{autodoc2-docstring} pogg.lexicon.lexicon_builder.POGGLexiconUtil.update_lexicon_files
+```
+
+````
+
+````{py:method} dump_complete_lexicon_object_to_json(lexicon_dump_file_path, lexicon_object)
+:canonical: pogg.lexicon.lexicon_builder.POGGLexiconUtil.dump_complete_lexicon_object_to_json
+:staticmethod:
+
+```{autodoc2-docstring} pogg.lexicon.lexicon_builder.POGGLexiconUtil.dump_complete_lexicon_object_to_json
 ```
 
 ````

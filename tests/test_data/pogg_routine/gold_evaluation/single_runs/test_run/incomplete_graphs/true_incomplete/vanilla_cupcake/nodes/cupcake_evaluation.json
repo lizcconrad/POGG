@@ -1,0 +1,13 @@
+{
+    "node_name": "cupcake",
+    "node_props": {
+        "node_type": "entity",
+        "lexicon_key": "cupcake"
+    },
+    "generated_SEMENT_string": null,
+    "sem_comp_fxns_used": [],
+    "node_covered": false,
+    "node_included": false,
+    "generation_comment": "'cupcake' not in lexicon's node entries",
+    "inclusion_comment": "No SEMENT generated for this node"
+}

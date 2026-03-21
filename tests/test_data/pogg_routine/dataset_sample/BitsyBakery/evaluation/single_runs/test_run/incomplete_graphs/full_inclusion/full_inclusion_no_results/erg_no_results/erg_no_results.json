@@ -1,0 +1,11 @@
+{
+    "nodes": {
+        "cool": {
+            "lexicon_key": "cool",
+            "node_properties": {
+                "node_type": "entity"
+            }
+        }
+    },
+    "edges": []
+}

@@ -83,4 +83,13 @@
 
 ````
 
+````{py:method} write_graph_to_json(graph, filepath)
+:canonical: pogg.data_handling.graph_util.POGGGraphUtil.write_graph_to_json
+:staticmethod:
+
+```{autodoc2-docstring} pogg.data_handling.graph_util.POGGGraphUtil.write_graph_to_json
+```
+
+````
+
 `````

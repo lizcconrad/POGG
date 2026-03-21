@@ -1,4 +1,0 @@
-[ TOP: h5
-  INDEX: e3 [ MOOD: indicative ]
-  RELS: < [ _tasty_a_1 LBL: h5 ARG0: e3 ARG1: u4 ] >
-  SLOTS: < ARG1: u4 > ]

@@ -6,7 +6,11 @@
 POGG documentation
 ==================
 
-POGG (Precision-Oriented Graphical Generator) is a python package designed to convert structured data (e.g. directed graphs or tables) into plain English text. It does this by building Minimal Recursion Semantic (MRS) structures from scratch and then sends them to the English Resource Grammar (ERG) which generates English strings for those semantic structures..
+POGG (Precision-Oriented Graphical Generator) is a python package designed to convert structured data (e.g. directed graphs or tables) into plain English text. It does this by building Minimal Recursion Semantic (MRS) structures from scratch and then sends them to the English Resource Grammar (ERG) which generates English strings for those semantic structures.
+
+TODO
+-----
+:doc:`Click here for a list of pages that have not been created yet. <TODO/TODO>`
 
 API Reference
 --------------
@@ -30,7 +34,15 @@ API Reference
 
    sement_util <apidocs/pogg/pogg.semantic_composition.sement_util>
    semantic_algebra <apidocs/pogg/pogg.semantic_composition.semantic_algebra>
-   base_constructions <apidocs/pogg/pogg.semantic_composition.base_constructions>
+   semantic_composition <apidocs/pogg/pogg.semantic_composition.semantic_composition>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Semantic Composition Mixins
+
+   single_word_constructions <apidocs/pogg/pogg.semantic_composition.composition_mixins.single_word_constructions>
+   base_constructions <apidocs/pogg/pogg.semantic_composition.composition_mixins.base_constructions>
+
 
 .. toctree::
    :maxdepth: 1
@@ -44,6 +56,26 @@ API Reference
 
    Graph Utilities <apidocs/pogg/pogg.data_handling.graph_util>
    POGGDataset <apidocs/pogg/pogg.data_handling.pogg_dataset>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Graph to SEMENT module
+
+   Graph to SEMENT <apidocs/pogg/pogg.graph_to_SEMENT.graph_to_SEMENT>
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Evaluation and Reporting
+
+   Evaluation <apidocs/pogg/pogg.evaluation.evaluation>
+   Reporting <apidocs/pogg/pogg.evaluation.reporting>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: POGG Routine
+
+   POGG Routine <apidocs/pogg/pogg.pogg_routine>
 
 
 
@@ -63,5 +95,12 @@ Usage Examples
    POGGDataset Examples <usage_nbs/pogg/data_handling/pogg_dataset_usage>
    Graph Util Examples <usage_nbs/pogg/data_handling/graph_util_usage>
 
-   sementutil Examples <usage_nbs/pogg/semantic_composition/sementutil_usage>
+   SEMENT Util Examples <usage_nbs/pogg/semantic_composition/sementutil_usage>
    SemanticAlgebra class Examples <usage_nbs/pogg/semantic_composition/SemanticAlgebra_usage>
+
+   Lexicon Builder Examples <usage_nbs/pogg/lexicon/lexicon_builder_usage>
+
+   Graph to SEMENT Examples <usage_nbs/pogg/graph_to_SEMENT/POGGGraphConverter_usage>
+
+   Evaluation Examples <usage_nbs/pogg/evaluation/evaluation_usage>
+   Reporting Examples <usage_nbs/pogg/evaluation/reporting_usage>
