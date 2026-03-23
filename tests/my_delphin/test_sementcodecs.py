@@ -1,7 +1,7 @@
 from pytest_cases import fixture
 from copy import deepcopy
 from delphin import mrs
-from pogg.semantic_composition.sement_util import SEMENT
+from pogg.my_delphin.my_delphin import SEMENT
 import pogg.my_delphin.sementcodecs as sementcodecs
 
 

@@ -118,11 +118,33 @@ class TestPOGGConfig:
     ### OBJECT FUNCTION TESTS ###
     @staticmethod
     def test_POGGConfig_concretize(pogg_config):
+        # reset to 0
+        pogg_config.var_labeler.reset_labeler()
+
         #  _give_v_1 : ARG0 e, ARG1 i, ARG2 u, [ ARG3 i ].
         # result of pogg_config.concretize("_give_v_1") should match golden_args
         golden_args = {"ARG0": "e1", "ARG1": "i2", "ARG2": "u3", "ARG3": "i4"}
 
         assert golden_args == pogg_config.concretize("_give_v_1")
+
+    @staticmethod
+    def test_POGGConfig_concretize_manual_sybopsis(pogg_config):
+        # reset to 0
+        pogg_config.var_labeler.reset_labeler()
+
+        #  neg : ARG0 i, ARG1 2
+        # result of pogg_config.concretize("neg", synopsis_dict) should match golden_args
+        golden_args = {"ARG0": "i1", "ARG1": "h2" }
+
+        synopsis_dict = {
+            "roles": [
+                {"name": "ARG0", "value": "i"},
+                {"name": "ARG1", "value": "h"},
+            ]
+        }
+
+        assert golden_args == pogg_config.concretize("neg", synopsis_dict)
+
 
     @staticmethod
     def test_POGGConfig_concretize_no_synopsis(pogg_config):

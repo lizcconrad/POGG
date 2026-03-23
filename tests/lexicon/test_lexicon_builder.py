@@ -67,29 +67,31 @@ class TestPOGGLexiconUtil:
                 assert f.read() == "dummy data"
 
     @staticmethod
-    def test_initialize_lexicon_directory_file_contents(tmp_path):
-        POGGLexiconUtil.initialize_lexicon_directory("test", tmp_path)
+    @parametrize_with_cases("lexicon_skeleton, gold_contents", cases=InitializeLexiconDirectory)
+    def test_initialize_lexicon_directory_file_contents(lexicon_skeleton, gold_contents, tmp_path):
+        POGGLexiconUtil.initialize_lexicon_directory("test", tmp_path, lexicon_skeleton)
 
         test_lexicon_complete_json = json.load(open(os.path.join(tmp_path, "test_lexicon_complete_entries.json")))
         test_lexicon_incomplete_json = json.load(open(os.path.join(tmp_path, "test_lexicon_incomplete_entries.json")))
         test_lexicon_invalid_json = json.load(open(os.path.join(tmp_path, "test_lexicon_invalid_entries.json")))
         test_lexicon_all_json = json.load(open(os.path.join(tmp_path, "test_lexicon_all_entries.json")))
 
-        gold_empty = {
-            "node_keys": {},
-            "edge_keys": {}
-        }
-
-        assert gold_empty == test_lexicon_complete_json
-        assert gold_empty == test_lexicon_incomplete_json
-        assert gold_empty == test_lexicon_invalid_json
-        assert gold_empty == test_lexicon_all_json
+        assert gold_contents['complete'] == test_lexicon_complete_json
+        assert gold_contents['incomplete'] == test_lexicon_incomplete_json
+        assert gold_contents['invalid'] == test_lexicon_invalid_json
+        assert gold_contents['all'] == test_lexicon_all_json
 
 
     @parametrize_with_cases("test_json_entry_key, test_json_entry_val, gold_POGGLexiconEntry", cases=ConvertDictEntry)
     def test_convert_dict_entry_to_POGGLexiconEntry(self, gold_POGGLexiconEntry, test_json_entry_key, test_json_entry_val):
         test_lex_entry = POGGLexiconUtil.convert_dict_entry_to_POGGLexiconEntry(test_json_entry_key, test_json_entry_val)
         assert self.assert_POGGLexiconEntry_equality(test_lex_entry, gold_POGGLexiconEntry)
+
+
+    @parametrize_with_cases("test_POGGLexiconEntry, gold_dict_entry_value", cases=ConvertPOGGLexiconEntry)
+    def test_convert_POGGLexiconEntry_to_dict_entry(self, test_POGGLexiconEntry, gold_dict_entry_value):
+        test_dict_entry = POGGLexiconUtil.convert_POGGLexiconEntry_to_dict_entry(test_POGGLexiconEntry)
+        assert test_dict_entry == gold_dict_entry_value
 
 
     @parametrize_with_cases("graph_json, gold_lexicon_skeleton", cases=CreateLexiconSkeleton)
@@ -150,10 +152,9 @@ class TestPOGGLexiconUtil:
     def test_expand_edge_entry(self, in_entry, gold_expanded_entry):
         assert POGGLexiconUtil.expand_edge_entry(in_entry) == gold_expanded_entry
 
-    @parametrize_with_cases("lexicon_dir, gold_latest_complete, gold_latest_updated", cases=LoadLatestLexiconJSONData)
-    def test_load_latest_lexicon_json_data(self, lexicon_dir, gold_latest_complete, gold_latest_updated):
-        test_latest_complete, test_latest_updated = POGGLexiconUtil.load_latest_lexicon_json_data(lexicon_dir)
-        assert test_latest_complete == gold_latest_complete
+    @parametrize_with_cases("lexicon_dir, gold_latest_updated", cases=LoadLatestLexiconJSONData)
+    def test_load_latest_lexicon_json_data(self, lexicon_dir, gold_latest_updated):
+        test_latest_updated = POGGLexiconUtil.load_latest_lexicon_json_data(lexicon_dir)
         assert test_latest_updated == gold_latest_updated
 
     @parametrize_with_cases("tmp_path, complete, incomplete, invalid, gold_complete, gold_incomplete, gold_invalid, gold_all",
@@ -206,3 +207,13 @@ class TestPOGGLexiconUtil:
         assert json.load(open(os.path.join(lexicon_dir, "worked_on_incomplete_entries.json"))) == gold_updated_incomplete
         assert json.load(open(os.path.join(lexicon_dir, "worked_on_invalid_entries.json"))) == gold_updated_invalid
         assert json.load(open(os.path.join(lexicon_dir, "worked_on_all_entries.json"))) == gold_updated_all
+
+
+    @parametrize_with_cases("dump_file_path, lexicon_obj, gold_dump_json", cases=DumpLexiconObjectToJson)
+    def test_dump_lexicon_object_to_json(self, dump_file_path, lexicon_obj, gold_dump_json):
+        POGGLexiconUtil.dump_complete_lexicon_object_to_json(dump_file_path, lexicon_obj)
+
+        with open(os.path.join(dump_file_path), "r") as dump_file:
+            test_json = json.load(dump_file)
+
+            assert test_json == gold_dump_json

@@ -1,0 +1,69 @@
+{
+    "nodes": {
+        "idCake1": {
+            "lexicon_key": "idCake1",
+            "node_properties": {}
+        },
+        "idCar1": {
+            "lexicon_key": "idCar",
+            "node_properties": {
+                "node_type": "entity",
+                "root": "root"
+            }
+        },
+        "idHouse1": {
+            "lexicon_key": "idHouse",
+            "node_properties": {}
+        },
+        "red": {
+            "lexicon_key": "red",
+            "node_properties": {
+                "node_type": "property"
+            }
+        },
+        "small": {
+            "lexicon_key": "small",
+            "node_properties": {}
+        },
+        "vanilla": {
+            "lexicon_key": "vanilla",
+            "node_properties": {}
+        }
+    },
+    "edges": [
+        {
+            "edge_name": "idColor",
+            "parent_node": "idCar1",
+            "child_node": "red",
+            "lexicon_key": "idColor",
+            "edge_properties": {
+                "edge_type": "property"
+            }
+        },
+        {
+            "edge_name": "idSize",
+            "parent_node": "idCar1",
+            "child_node": "small",
+            "lexicon_key": "idSize",
+            "edge_properties": {}
+        },
+        {
+            "edge_name": "isNear",
+            "parent_node": "idCar1",
+            "child_node": "idHouse1",
+            "lexicon_key": "isNear",
+            "edge_properties": {
+                "edge_type": "relationship"
+            }
+        },
+        {
+            "edge_name": "idFlavor",
+            "parent_node": "idCake1",
+            "child_node": "vanilla",
+            "lexicon_key": "idFlavor",
+            "edge_properties": {
+                "edge_type": "property"
+            }
+        }
+    ]
+}

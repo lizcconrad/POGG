@@ -1,8 +1,9 @@
 import os
 from pytest_cases import fixture
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.semantic_composition.base_constructions import SemanticComposition
+from pogg.semantic_composition.semantic_composition import SemanticComposition
 from pogg.graph_to_SEMENT.graph_to_SEMENT import POGGGraphConverter
+from pogg.lexicon.lexicon_builder import POGGLexiconEntry
 
 @fixture(scope="session")
 def graph_to_SEMENT_test_dir(test_data_dir):
@@ -34,13 +35,23 @@ def pogg_graph_converter(module_pogg_config, mocker):
         }
     )
 
+    pogg_lexicon_node_entry_cookie = mocker.MagicMock()
+    pogg_lexicon_node_entry_cookie.configure_mock(
+        **{
+            "composition_function_name": "noun",
+            "parameters": {
+                "predicate": "_coooookie_n_1",
+                "intrinsic_variable_properties": {}
+            }
+        }
+    )
+
     pogg_lexicon_node_entry_vanilla = mocker.MagicMock()
     pogg_lexicon_node_entry_vanilla.configure_mock(
         **{
             "composition_function_name": "noun",
             "parameters": {
-                "predicate": "_vanilla_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_vanilla_n_1"
             }
         }
     )
@@ -56,29 +67,83 @@ def pogg_graph_converter(module_pogg_config, mocker):
         }
     )
 
-    # POGGLexiconEntry(key='flavor', composition_function_name='compound_noun', parameters={'head_noun_sement': 'parent', 'non_head_noun_sement': 'child'})
-    pogg_lexicon_edge_entry = mocker.MagicMock()
-    pogg_lexicon_edge_entry.configure_mock(
+    pogg_lexicon_node_entry_true = mocker.MagicMock()
+    pogg_lexicon_node_entry_true.configure_mock(
+        **{
+            "composition_function_name": "boolean_value",
+            "parameters": {
+                "value": True,
+                "intrinsic_variable_properties": {}
+            }
+        }
+    )
+
+    # POGGLexiconEntry(key='flavor', composition_function_name='compound_noun', parameters={'head_noun_SEMENT': 'parent', 'non_head_noun_SEMENT': 'child'})
+    pogg_lexicon_edge_entry_flavor = mocker.MagicMock()
+    pogg_lexicon_edge_entry_flavor.configure_mock(
         **{
             "composition_function_name": "compound_noun",
             "parameters": {
-                "head_noun_sement": "parent",
-                "non_head_noun_sement": "child",
+                "head_noun_SEMENT": "parent",
+                "non_head_noun_SEMENT": "child",
                 "superfluous": "just_another_param_for_branch_coverage"
             }
         }
     )
+
+
+    pogg_lexicon_edge_entry_color = mocker.MagicMock()
+    pogg_lexicon_edge_entry_color.configure_mock(
+        **{
+            "composition_function_name": "prenominal_adjective",
+            "parameters": {
+                "adjective_SEMENT": "child",
+                "nominal_SEMENT": "parent"
+            }
+        }
+    )
+
+
+    # just making a ridiculous boolean edge for coverage purposes
+    # make this a proper POGGLexiconEntry object because this gets checked for nested entries
+    pogg_lexicon_edge_entry_boolean_color = POGGLexiconEntry(
+        key='flavor',
+        composition_function_name='boolean_property',
+        parameters={
+            'boolean_node_SEMENT': 'child',
+            'modified_SEMENT': 'parent',
+            "true_SEMENT": POGGLexiconEntry(
+                key="adjective",
+                composition_function_name="adjective",
+                parameters={
+                    "predicate": "_blue_a_1",
+                    "intrinsic_variable_properties": {}
+                }
+            ),
+            "false_SEMENT": POGGLexiconEntry(
+                key="adjective",
+                composition_function_name="adjective",
+                parameters={
+                    "predicate": "_red_a_1",
+                    "intrinsic_variable_properties": {}
+                }
+            ),
+        })
 
     pogg_lexicon = mocker.MagicMock()
     pogg_lexicon.configure_mock(
         **{
             "node_entries": {
                 "cake": pogg_lexicon_node_entry_cake,
+                "cookie": pogg_lexicon_node_entry_cookie,
                 "vanilla": pogg_lexicon_node_entry_vanilla,
-                "chocolate": pogg_lexicon_node_entry_chocolate
+                "chocolate": pogg_lexicon_node_entry_chocolate,
+                "true": pogg_lexicon_node_entry_true,
             },
             "edge_entries": {
-                "flavor": pogg_lexicon_edge_entry
+                "flavor": pogg_lexicon_edge_entry_flavor,
+                "color": pogg_lexicon_edge_entry_color,
+                "boolean_color": pogg_lexicon_edge_entry_boolean_color,
             }
         }
     )

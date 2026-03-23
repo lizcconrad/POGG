@@ -2,15 +2,13 @@
     "node_keys": {
         "birthdayCandle": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_candle_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_candle_n_1"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_birthday_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_birthday_n_1"
             }
         },
         "candy": {
@@ -18,13 +16,11 @@
         },
         "cookie": {
             "comp_fxn": "noun",
-            "predicate": "_cookie_n_1",
-            "intrinsic_variable_properties": {}
+            "predicate": "_cookie_n_1"
         },
         "bread": {
             "comp_fxn": "noun",
             "predicate": "_bread_n_1",
-            "intrinsic_variable_properties": {},
             "failure_msg": "nuh uh!"
         },
         "cheese": {
@@ -35,21 +31,21 @@
     "edge_keys": {
         "flavor": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child"
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
         },
         "occasion": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child"
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
         },
         "scent": {
             "comp_fxn": ""
         },
         "filling": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child",
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child",
             "failure_msg": "oopsies!"
         },
         "color": {

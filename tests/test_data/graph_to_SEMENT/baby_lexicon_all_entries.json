@@ -1,4 +1,13 @@
 {
-    "node_keys": {},
+    "node_keys": {
+        "cake": {
+            "predicate": "_cake_n_1",
+            "intrinsic_variable_properties": { "NUM": "sg" }
+        },
+        "cookie": {
+            "predicate": "_coooookie_n_1",
+            "intrinsic_variable_properties": {}
+        }
+    },
     "edge_keys": {}
 }

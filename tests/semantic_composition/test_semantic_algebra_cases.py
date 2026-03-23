@@ -1,8 +1,10 @@
 import os
 from delphin import mrs
+from pytest_cases import fixture
 
 # assume sementcodecs works
 import pogg.my_delphin.sementcodecs as sementcodecs
+
 
 class GetSlots:
     """
@@ -58,18 +60,23 @@ class CreateBaseSement:
     """
 
     @staticmethod
-    def case_give(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "give_base_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
-
-        return "_give_v_1", {"TENSE": "pres"},  gold_sement
+    def case_give():
+        # base SEMENT for _give_v1
+        SEMENT_str = """[ TOP: h0
+              INDEX: e1 [ TENSE: pres ]
+              RELS: < [ _give_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: i4 ] >
+              SLOTS: < ARG1: i2 ARG2: u3 ARG3: i4 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
+        return "_give_v_1", {"TENSE": "pres"},  gold_SEMENT
 
     @staticmethod
-    def case_the(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "the_base_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
-
-        return "_the_q", {},  gold_sement
+    def case_the():
+        SEMENT_str = """[ TOP: h0
+              INDEX: x1
+              RELS: < [ _the_q LBL: h2 ARG0: x1 RSTR: h3 BODY: h4 ] >
+              SLOTS: < ARG0: x1 RSTR: h3 BODY: h4 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
+        return "_the_q", {},  gold_SEMENT
 
 
 class CreateCARGSement:
@@ -89,17 +96,23 @@ class CreateCARGSement:
 
     @staticmethod
     def case_liz(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "liz_CARG_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+        SEMENT_str = """[ TOP: h0
+          INDEX: x1
+          RELS: < [ named LBL: h0 ARG0: x1 CARG: "Liz" ] > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
-        return "named", "Liz",  gold_sement
+        return "named", "Liz",  gold_SEMENT
 
     @staticmethod
     def case_five(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "five_CARG_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+        SEMENT_str = """[ TOP: h0
+          INDEX: i1
+          RELS: < [ card LBL: h0 ARG0: i1 ARG1: u2 CARG: "5" ] >
+          SLOTS: < ARG1: u2 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
-        return "card", "5",  gold_sement
+        return "card", "5",  gold_SEMENT
+
 
 class OpNonScopalArgumentHook:
     """
@@ -119,25 +132,34 @@ class OpNonScopalArgumentHook:
 
     @staticmethod
     def case_tasty_cookie(semantic_algebra_test_dir, sem_alg_obj):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "tasty_cookie_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+        SEMENT_str = """[ TOP: h3
+          INDEX: x4
+          RELS: < [ _tasty_a_1 LBL: h0 ARG0: e1 ARG1: u2 ]
+                  [ _cookie_n_1 LBL: h3 ARG0: x4 ] >
+          EQS: < u2 eq x4 h0 eq h3 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
         # assumes create_base_SEMENT works
         tasty_sement = sem_alg_obj.create_base_SEMENT("_tasty_a_1")
         cookie_sement = sem_alg_obj.create_base_SEMENT("_cookie_n_1")
 
-        return tasty_sement, cookie_sement, "ARG1", gold_sement
+        return tasty_sement, cookie_sement, "ARG1", gold_SEMENT
 
     @staticmethod
     def case_extremely_tasty(semantic_algebra_test_dir, sem_alg_obj):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "extremely_tasty_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+        SEMENT_str = """[ TOP: h3
+          INDEX: e4
+          RELS: < [ _extremely_x_deg LBL: h0 ARG0: e1 ARG1: u2 ]
+                  [ _tasty_a_1 LBL: h3 ARG0: e4 ARG1: u5 ] >
+          EQS: < u2 eq e4 h0 eq h3 >
+          SLOTS: < ARG1: u5 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
         # assumes create_base_SEMENT works
         extremely_sement = sem_alg_obj.create_base_SEMENT("_extremely_x_deg")
         tasty_sement = sem_alg_obj.create_base_SEMENT("_tasty_a_1")
 
-        return extremely_sement, tasty_sement, "ARG1", gold_sement
+        return extremely_sement, tasty_sement, "ARG1", gold_SEMENT
 
 
 class OpNonScopalFunctorHook:
@@ -156,17 +178,31 @@ class OpNonScopalFunctorHook:
     """
 
     @staticmethod
-    def case_tasty_cookie(semantic_algebra_test_dir, sem_alg_obj):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "eat_the_cookie_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_tasty_cookie(sem_alg_obj):
+        gold_SEMENT_str = """[ TOP: h7
+          INDEX: e8
+          RELS: < [ _eat_v_1 LBL: h7 ARG0: e8 ARG1: i9 ARG2: i10 ]
+                  [ _the_q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+                  [ _cookie_n_1 LBL: h4 ARG0: x5 ] >
+          EQS: < x1 eq x5 x5 eq i10 >
+          SLOTS: < ARG1: i9 >
+          HCONS: < h2 qeq h4 > ]"""
+        gold_SEMENT = sementcodecs.decode(gold_SEMENT_str)
 
-        the_cookie_sement_file = os.path.join(semantic_algebra_test_dir, "the_cookie_sement.txt")
-        the_cookie_sement = sementcodecs.decode(open(the_cookie_sement_file).read())
+        the_cookie_SEMENT_str = """[ TOP: h6
+          INDEX: x1
+          RELS: < [ _the_q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+                  [ _cookie_n_1 LBL: h4 ARG0: x5 ] >
+          EQS: < x1 eq x5 >
+          SLOTS: < BODY: h3 >
+          HCONS: < h2 qeq h4 > ]"""
+        the_cookie_sement = sementcodecs.decode(the_cookie_SEMENT_str)
 
         # assumes create_base_SEMENT works
         eat_sement = sem_alg_obj.create_base_SEMENT("_eat_v_1")
 
-        return eat_sement, the_cookie_sement, "ARG2", gold_sement
+        return eat_sement, the_cookie_sement, "ARG2", gold_SEMENT
+
 
 class OpScopalQuantifier:
     """
@@ -181,19 +217,25 @@ class OpScopalQuantifier:
     """
     SUCCESS CASES
         1. "the cookie"
-        2. "extremely tasty"
     """
 
     @staticmethod
-    def case_the_cookie(semantic_algebra_test_dir, sem_alg_obj):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "the_cookie_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_the_cookie(sem_alg_obj):
+        SEMENT_str = """[ TOP: h6
+                  INDEX: x1
+                  RELS: < [ _the_q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+                          [ _cookie_n_1 LBL: h4 ARG0: x5 ] >
+                  EQS: < x1 eq x5 >
+                  SLOTS: < BODY: h3 >
+                  HCONS: < h2 qeq h4 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
         # assumes create_base_SEMENT works
         the_sement = sem_alg_obj.create_base_SEMENT("_the_q")
         cookie_sement = sem_alg_obj.create_base_SEMENT("_cookie_n_1")
 
-        return the_sement, cookie_sement, gold_sement
+        return the_sement, cookie_sement, gold_SEMENT
+
 
 class OpScopalArgumentIndex:
     """
@@ -211,15 +253,21 @@ class OpScopalArgumentIndex:
     """
 
     @staticmethod
-    def case_probably_sleeps(semantic_algebra_test_dir, sem_alg_obj):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "probably_sleeps_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_probably_sleeps(sem_alg_obj):
+        SEMENT_str = """[ TOP: h0
+          INDEX: e4
+          RELS: <
+            [ _probable_a_1 LBL: h0 ARG0: e1 ARG1: u2 ]
+            [ _sleep_v_1 LBL: h3 ARG0: e4 ARG1: i5 ] >
+          HCONS: <  u2 qeq h3 >]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
         # assumes create_base_SEMENT works
         probable_sement = sem_alg_obj.create_base_SEMENT("_probable_a_1")
         sleep_sement = sem_alg_obj.create_base_SEMENT("_sleep_v_1")
 
-        return probable_sement, sleep_sement, "ARG1", gold_sement
+        return probable_sement, sleep_sement, "ARG1", gold_SEMENT
+
 
 class OpScopalFunctorIndex:
     """
@@ -233,21 +281,80 @@ class OpScopalFunctorIndex:
 
     """
     SUCCESS CASES
-        1. "probably sleeps"
+        1. "believe cats sleep"
     """
 
     @staticmethod
-    def case_probably_sleeps(semantic_algebra_test_dir, sem_alg_obj):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "believe_cats_sleep_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_believe_cats_sleep(sem_alg_obj):
+        SEMENT_str = """[ TOP: h0
+          INDEX: e1
+          RELS: < [ _believe_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: h4 ]
+                  [ udef_q LBL: h5 ARG0: x6 RSTR: h7 BODY: h8 ]
+                  [ _cat_n_1 LBL: h9 ARG0: x10 ]
+                  [ _sleep_v_1 LBL: h11 ARG0: e12 ARG1: i13 ] >
+          EQS: < x10 eq i13 x10 eq x6 >
+          SLOTS: < ARG1: i2 ARG3: h4 >
+          HCONS: < h7 qeq h9 u3 qeq h11 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
-        udef_cat_sleep_sement_file = os.path.join(semantic_algebra_test_dir, "udef_cat_sleep_sement.txt")
-        udef_cat_sleep_sement = sementcodecs.decode(open(udef_cat_sleep_sement_file).read())
+        udef_cat_sleep_SEMENT_str = """[ TOP: h117
+            INDEX: e118
+            RELS: <
+                [ udef_q LBL: h110 ARG0: x111 RSTR: h112 BODY: h113 ]
+                [ _cat_n_1 LBL: h114 ARG0: x115 ]
+                [ _sleep_v_1 LBL: h117 ARG0: e118 ARG1: x119 ]
+            >
+            EQS: < x111 eq x115 x111 eq x119 >
+            SLOTS: < BODY: h113 >
+            HCONS: < h112 qeq h114 > ]"""
+        udef_cat_sleep_sement = sementcodecs.decode(udef_cat_sleep_SEMENT_str)
 
         # assumes create_base_SEMENT works
         believe_sement = sem_alg_obj.create_base_SEMENT("_believe_v_1")
 
-        return believe_sement, udef_cat_sleep_sement, "ARG2", gold_sement
+        return believe_sement, udef_cat_sleep_sement, "ARG2", gold_SEMENT
+
+
+class OpScopalFunctorIndexArgumentSlots:
+    """
+    FUNCTIONS BEING TESTED:
+        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_functor_index_argument_slots
+
+    GENERAL DESCRIPTION OF TEST CASES:
+        Provide two SEMENTs to be passed into op_scopal_functor_index_argument_slots, the slot to be plugged, and the expected result
+        test should compare result of call with expected result
+    """
+
+    """
+    SUCCESS CASES
+        1. "did not sleep"
+    """
+
+    @staticmethod
+    def case_did_not_sleep(sem_alg_obj):
+        SEMENT_str = """[ TOP: h0
+              INDEX: e1
+              RELS: <
+                [ neg LBL: h0 ARG0: e1 ARG1: h2 ]
+                [ _sleep_v_1 LBL: h3 ARG0: e4 ARG1: i5 ] >
+              HCONS: <  h2 qeq h3 >
+              SLOTS: < ARG1: i5 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
+
+        neg_synopsis = {
+            'roles': [
+                {'name': 'ARG0',
+                 'value': 'e'},
+                {'name': 'ARG1',
+                 'value': 'h'},
+            ]
+        }
+
+        # assumes create_base_SEMENT works
+        neg_sement = sem_alg_obj.create_base_SEMENT("neg", None, neg_synopsis)
+        sleep_sement = sem_alg_obj.create_base_SEMENT("_sleep_v_1")
+
+        return neg_sement, sleep_sement, "ARG1", gold_SEMENT
 
 
 class PrepareForGeneration:
@@ -266,46 +373,113 @@ class PrepareForGeneration:
         2. quantified noun 
         3. verb
         4. probably sleeps (the ARG1 of probably needs to be constrained to type "h")
+        5. unquantified cardinal number 
+        6. already has GTOP 
     """
 
     @staticmethod
-    def case_unquantified_noun(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "generatable_quant_cookie_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_unquantified_noun():
+        SEMENT_str = """[ TOP: h10
+            INDEX: e1
+            RELS: <
+                [ unknown LBL: h0 ARG0: e1 ARG: x4 ]
+                [ def_udef_a_q LBL: h3 ARG0: x4 RSTR: h5 BODY: h6 ]
+                [ _cookie_n_1 LBL: h7 ARG0: x4 ] >
+            HCONS: < h5 qeq h7 h10 qeq h0 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
-        cookie_sement_file = os.path.join(semantic_algebra_test_dir, "unquantified_cookie_sement.txt")
-        cookie_sement = sementcodecs.decode(open(cookie_sement_file).read())
+        cookie_SEMENT_str = """[ TOP: h0
+            INDEX: x1
+            RELS: < [ _cookie_n_1 LBL: h0 ARG0: x1 ] > ]"""
+        cookie_sement = sementcodecs.decode(cookie_SEMENT_str)
 
-        return cookie_sement, gold_sement
-
-    @staticmethod
-    def case_quantified_noun(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "generatable_quant_cookie_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
-
-        quant_cookie_sement_file = os.path.join(semantic_algebra_test_dir, "quantified_cookie_sement.txt")
-        quant_cookie_sement = sementcodecs.decode(open(quant_cookie_sement_file).read())
-
-        return quant_cookie_sement, gold_sement
+        return cookie_sement, gold_SEMENT
 
     @staticmethod
-    def case_verb(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "generatable_verb_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_quantified_noun():
+        SEMENT_str = """[ TOP: h10
+            INDEX: e1
+            RELS: <
+                [ unknown LBL: h0 ARG0: e1 ARG: x4 ]
+                [ def_udef_a_q LBL: h3 ARG0: x4 RSTR: h5 BODY: h6 ]
+                [ _cookie_n_1 LBL: h7 ARG0: x4 ] >
+            HCONS: < h5 qeq h7 h10 qeq h0 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
-        eat_sement_file = os.path.join(semantic_algebra_test_dir, "eat_sement.txt")
-        eat_sement = sementcodecs.decode(open(eat_sement_file).read())
+        quant_cookie_SEMENT_str = """[ TOP: h6
+            INDEX: x1
+            RELS: <
+                [ def_udef_a_Q LBL: h0 ARG0: x1 RSTR: h2 BODY: h3 ]
+                [ _cookie_n_1 LBL: h4 ARG0: x5 ] >
+            EQS: < x1 eq x5 >
+            SLOTS: < BODY: h3 >
+            HCONS: < h2 qeq h4 > ]"""
+        quant_cookie_sement = sementcodecs.decode(quant_cookie_SEMENT_str)
 
-        return eat_sement, gold_sement
+        return quant_cookie_sement, gold_SEMENT
 
     @staticmethod
-    def case_probably_sleeps(semantic_algebra_test_dir):
-        gold_sement_file = os.path.join(semantic_algebra_test_dir, "generatable_probably_sleeps_sement.txt")
-        gold_sement = sementcodecs.decode(open(gold_sement_file).read())
+    def case_verb():
+        SEMENT_str = """[ TOP: h0
+            INDEX: e1
+            RELS: < [ _eat_v_1 LBL: h2 ARG0: e1 ARG1: i2  ARG2: i3 ] >
+            HCONS: < h0 qeq h2 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
-        probably_sleeps_sement_file = os.path.join(semantic_algebra_test_dir, "probably_sleeps_u_hcons_members_sement.txt")
-        probably_sleeps_sement = sementcodecs.decode(open(probably_sleeps_sement_file).read())
+        eat_SEMENT_str = """[ TOP: h2
+            INDEX: e1
+            RELS: < [ _eat_v_1 LBL: h2 ARG0: e1 ARG1: i2  ARG2: i3 ] > ]"""
+        eat_sement = sementcodecs.decode(eat_SEMENT_str)
 
-        return probably_sleeps_sement, gold_sement
+        return eat_sement, gold_SEMENT
 
+    @staticmethod
+    def case_probably_sleeps():
+        SEMENT_str = """[ TOP: h7
+          INDEX: e4
+          RELS: <
+            [ _probable_a_1 LBL: h0 ARG0: e1 ARG1: h6 ]
+            [ _sleep_v_1 LBL: h3 ARG0: e4 ARG1: i5 ] >
+          HCONS: <  h6 qeq h3 h7 qeq h0 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
 
+        probably_sleeps_SEMENT_str = """[ TOP: h0
+          INDEX: e4
+          RELS: <
+            [ _probable_a_1 LBL: h0 ARG0: e1 ARG1: u2 ]
+            [ _sleep_v_1 LBL: u3 ARG0: e4 ARG1: i5 ] >
+          HCONS: <  u2 qeq u3 > ]"""
+        probably_sleeps_sement = sementcodecs.decode(probably_sleeps_SEMENT_str)
+
+        return probably_sleeps_sement, gold_SEMENT
+
+    @staticmethod
+    def case_unquantified_number():
+        SEMENT_str = """[ TOP: h10
+                INDEX: e1
+                RELS: <
+                    [ unknown LBL: h0 ARG0: e1 ARG: x4 ]
+                    [ number_q LBL: h3 ARG0: x4 RSTR: h5 BODY: h6 ]
+                    [ card LBL: h7 ARG0: x4 CARG: "5" ] >
+                HCONS: < h5 qeq h7 h10 qeq h0 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
+
+        number_SEMENT_str = """[ TOP: h0
+                INDEX: x1
+                RELS: < [ card LBL: h0 ARG0: x1 CARG: "5" ] > ]"""
+        cookie_sement = sementcodecs.decode(number_SEMENT_str)
+
+        return cookie_sement, gold_SEMENT
+
+    @staticmethod
+    def case_has_gtop():
+        SEMENT_str = """[ TOP: h10
+                    INDEX: e1
+                    RELS: <
+                        [ unknown LBL: h0 ARG0: e1 ARG: x4 ]
+                        [ def_udef_a_q LBL: h3 ARG0: x4 RSTR: h5 BODY: h6 ]
+                        [ _cookie_n_1 LBL: h7 ARG0: x4 ] >
+                    HCONS: < h5 qeq h7 h10 qeq h0 > ]"""
+        gold_SEMENT = sementcodecs.decode(SEMENT_str)
+
+        return gold_SEMENT, gold_SEMENT

@@ -3,7 +3,6 @@
         "bread": {
             "comp_fxn": "noun",
             "predicate": "_bread_n_1",
-            "intrinsic_variable_properties": {},
             "failure_msg": "nuh uh!"
         },
         "cheese": {
@@ -14,8 +13,8 @@
     "edge_keys": {
         "filling": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child",
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child",
             "failure_msg": "oopsies!"
         },
         "color": {

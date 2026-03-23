@@ -3,7 +3,8 @@ from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
 # import test case classes
 # use the dot to specify that the module should be imported from the same path as *this* module
-from .test_semantic_composition_cases import *
+from .test_semantic_composition_single_word_cases import *
+from .test_semantic_composition_base_constructions_cases import *
 
 
 class TestSingleWordConstructions:
@@ -12,99 +13,87 @@ class TestSingleWordConstructions:
     """
 
     @staticmethod
-    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="basic")
-    def test_basic(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.basic(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.basic(predicate)
-
-        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_SEMENT, test_sement)
-
-    @staticmethod
-    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="adjective")
-    def test_adjective(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.adjective(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.adjective(predicate)
-
-        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_SEMENT, test_sement)
-
-    @staticmethod
-    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="determiner")
-    def test_determiner(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.determiner(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.determiner(predicate)
+    @parametrize_with_cases("predicate, var_props, synopsis, gold_SEMENT", cases=SingleWordConstructions, has_tag="manual_synopsis")
+    def test_manual_synopsis(predicate, var_props, synopsis, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.manual_synopsis(predicate, synopsis, var_props)
 
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 
     @staticmethod
-    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="named_entity")
-    def test_named_entity(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.named_entity(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.named_entity(predicate)
+    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="basic")
+    def test_basic(predicate, var_props, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.basic(predicate, var_props)
+        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_SEMENT, test_sement)
 
+    @staticmethod
+    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="adjective")
+    def test_adjective(predicate, var_props, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.adjective(predicate, var_props)
+        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_SEMENT, test_sement)
+
+    @staticmethod
+    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="comparative_adjective")
+    def test_comparative_adjective(predicate, var_props, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.comparative_adjective(predicate, var_props)
+        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
+            gold_SEMENT, test_sement)
+
+    @staticmethod
+    @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="determiner")
+    def test_determiner(predicate, var_props, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.determiner(predicate, var_props)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 
     @staticmethod
     @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="noun")
     def test_noun(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.noun(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.noun(predicate)
+        test_sement = sem_comp_obj.noun(predicate, var_props)
+        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
+            gold_SEMENT, test_sement)
 
+    @staticmethod
+    @parametrize_with_cases("digit, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="number")
+    def test_number(digit, var_props, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.number(digit, var_props)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 
     @staticmethod
     @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="preposition")
     def test_preposition(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.preposition(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.preposition(predicate)
-
+        test_sement = sem_comp_obj.preposition(predicate, var_props)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 
     @staticmethod
     @parametrize_with_cases("var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="pronoun")
     def test_pronoun(var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.pronoun(var_props)
-        else:
-            test_sement = sem_comp_obj.pronoun()
-
+        test_sement = sem_comp_obj.pronoun(var_props)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
+            gold_SEMENT, test_sement)
+
+    @staticmethod
+    @parametrize_with_cases("name, var_props, gold_SEMENT", cases=SingleWordConstructions,
+                            has_tag="proper_noun")
+    def test_proper_noun(name, var_props, gold_SEMENT, sem_comp_obj):
+        test_sement = sem_comp_obj.proper_noun(name, var_props)
+        assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT,
+                                                   test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 
     @staticmethod
     @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="quantifier")
     def test_quantifier(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.quantifier(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.quantifier(predicate)
-
+        test_sement = sem_comp_obj.quantifier(predicate, var_props)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 
     @staticmethod
     @parametrize_with_cases("predicate, var_props, gold_SEMENT", cases=SingleWordConstructions, has_tag="verb")
     def test_verb(predicate, var_props, gold_SEMENT, sem_comp_obj):
-        if var_props:
-            test_sement = sem_comp_obj.verb(predicate, var_props)
-        else:
-            test_sement = sem_comp_obj.verb(predicate)
-
+        test_sement = sem_comp_obj.verb(predicate, var_props)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_SEMENT, test_sement), POGGSEMENTUtil.build_isomorphism_report(
             gold_SEMENT, test_sement)
 

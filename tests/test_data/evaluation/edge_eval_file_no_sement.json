@@ -1,0 +1,16 @@
+{
+    "edge_name": "edge",
+    "edge_props": {
+        "prop": "val"
+    },
+    "parent_node_name": "parent",
+    "child_node_name": "child",
+    "generated_SEMENT_string": null,
+    "sem_comp_fxns_used": [
+        "prenominal_adjective"
+    ],
+    "edge_covered": true,
+    "edge_included": true,
+    "generation_comment": "me when i'm a comment",
+    "inclusion_comment": "me when i'm also a comment"
+}

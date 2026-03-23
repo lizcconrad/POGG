@@ -1,7 +1,6 @@
 """
 The `pogg_dataset` module contains the `POGGDataset` class which stores information about a provided dataset.
-Once stored as a `POGGDataset` object, the dataset can go through the POGG graph to text routine.
-In addition, evaluation information about each graph in the dataset will be collected and stored.
+Once stored as a `POGGDataset` object, the dataset can go through the POGG graph-to-text routine.
 
 [See usage examples here.](project:/usage_nbs/pogg/data_handling/pogg_dataset_usage.ipynb)
 """
@@ -15,7 +14,7 @@ from pogg.lexicon.lexicon_builder import POGGLexiconUtil
 class POGGDataset:
     """
     A `POGGDataset` object stores information about a provided dataset such as where it's located
-    and where any output from running the graph to text routine should be stored.
+    and where any output from running the graph-to-text routine should be stored.
     """
     def __init__(self, yaml_filepath):
         """
@@ -27,7 +26,7 @@ class POGGDataset:
         | --------- | ---- | ----------- |
         | `yaml_filepath` | `str` | filepath where the config file detailing directories relevant to the dataset |
 
-        :::{info} YAML config example
+        :::{example} YAML config example
         :collapsible:
         ```
         # top level directory
@@ -56,6 +55,7 @@ class POGGDataset:
         | `graph_dot_dir` | subdirectory where the graphs are stored in DOT format |
         | `lexicon_dir` | subdirectory where the lexicon information is stored |
         | `evaluation_dir` | subdirectory where the evaluation information collected during graph to text conversion will be stored |
+        | `gold_outputs_dir` | subdirectory where the gold outputs for each graph are stored |
         """
         yaml_file = open(yaml_filepath, 'r')
         self.yaml_config = yaml.safe_load(yaml_file)
@@ -72,8 +72,10 @@ class POGGDataset:
         self.data_chunk = self._store_path_value("data_chunk", self.data_dir, True)
         self.graph_json_dir = self._store_path_value("graph_json_dir", self.data_chunk)
         self.graph_dot_dir = self._store_path_value("graph_dot_dir", self.data_chunk)
+        self.graph_png_dir = self._store_path_value("graph_png_dir", self.data_chunk, True)
         self.lexicon_dir = self._store_path_value("lexicon_dir", self.data_chunk)
         self.evaluation_dir = self._store_path_value("evaluation_dir", self.data_chunk)
+        self.gold_outputs_dir = self._store_path_value("gold_outputs_dir", self.data_chunk)
 
         # initialize lexicon in case no files exist yet (skipping ones that do)
         POGGLexiconUtil.initialize_lexicon_directory(self.dataset_name, self.lexicon_dir)
@@ -90,7 +92,7 @@ class POGGDataset:
         | Parameter | Type | Description | Default |
         | --------- | ---- | ----------- | -------- |
         | `key` | `str` | key in the config file to check and store | |
-        | `prepend_path` | `str` | path to prepend to directory information provided if it's a subdirectory | `""` |
+        | `prepend_path` | `str` | path to prepend to the provided directory information if it's a subdirectory | `""` |
         | `optional` | `bool` | whether the key is optional for the POGGDataset object | `False` |
 
         **Returns**

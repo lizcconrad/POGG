@@ -9,6 +9,71 @@ NOTE: FIXTURES COME FROM THE fixtures.py FILE IN THE SAME DIRECTORY AS THIS FILE
 Each "case" in this file will modify things where needed and return necessary information for the tests
 """
 
+class InitializeLexiconDirectory:
+    """
+    FUNCTION BEING TESTED:
+        - pogg.lexicon.lexicon_builder.POGGLexiconUtil.initialize_lexicon_directory
+
+    GENERAL DESCRIPTION OF TEST CASES:
+        Provide a lexicon skeleton (or None) and the expected contents of the initialized files
+    """
+
+    """
+    SUCCESS CASES:
+        1. initialize with an empty skeleton
+        2. initialize given a small skeleton 
+    """
+
+    @staticmethod
+    def case_none_skeleton():
+
+        empty = {
+            "node_keys": {},
+            "edge_keys": {}
+        }
+
+        gold_contents = {
+            "complete": empty,
+            "incomplete": empty,
+            "invalid": empty,
+            "all": empty,
+        }
+
+        return None, gold_contents
+
+    @staticmethod
+    def case_small_skeleton():
+        empty = {
+            "node_keys": {},
+            "edge_keys": {}
+        }
+
+        small_skeleton = {
+            "node_keys": {
+                "cake": {
+                    "comp_fxn": ""
+                },
+                "vanilla": {
+                    "comp_fxn": ""
+                }
+            },
+            "edge_keys": {
+                "flavor": {
+                    "comp_fxn": ""
+                }
+            }
+        }
+
+        gold_contents = {
+            "complete": empty,
+            "incomplete": small_skeleton,
+            "invalid": empty,
+            "all": small_skeleton,
+        }
+
+        return small_skeleton, gold_contents
+
+
 class ConvertDictEntry:
     """
     FUNCTION BEING TESTED:
@@ -35,32 +100,28 @@ class ConvertDictEntry:
         node_json_key = "birthdayCandle"
         node_json_value = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_candle_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_candle_n_1"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_birthday_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_birthday_n_1"
             }
         }
 
         # create the gold object
-        candle_entry = POGGLexiconEntry("head_noun_sement", "noun", {
-            "predicate": "_candle_n_1",
-            "intrinsic_variable_properties": {}
+        candle_entry = POGGLexiconEntry("head_noun_SEMENT", "noun", {
+            "predicate": "_candle_n_1"
         })
 
-        birthday_entry = POGGLexiconEntry("non_head_noun_sement", "noun", {
-            "predicate": "_birthday_n_1",
-            "intrinsic_variable_properties": {}
+        birthday_entry = POGGLexiconEntry("non_head_noun_SEMENT", "noun", {
+            "predicate": "_birthday_n_1"
         })
 
         gold_node_entry = POGGLexiconEntry("birthdayCandle", "compound_noun", {
-            "head_noun_sement": candle_entry,
-            "non_head_noun_sement": birthday_entry,
+            "head_noun_SEMENT": candle_entry,
+            "non_head_noun_SEMENT": birthday_entry,
         })
 
         return node_json_key, node_json_value, gold_node_entry
@@ -83,17 +144,96 @@ class ConvertDictEntry:
         edge_json_key = "flavor"
         edge_json_value = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child"
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
         }
 
         # create the gold object
         gold_edge_entry = POGGLexiconEntry("flavor", "compound_noun", {
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child"
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
         })
 
         return edge_json_key, edge_json_value, gold_edge_entry
+
+
+class ConvertPOGGLexiconEntry:
+    """
+    FUNCTION BEING TESTED:
+        - pogg.lexicon.lexicon_builder.POGGLexiconUtil.convert_POGGLexiocnEntry_to_dict_entry
+
+    GENERAL DESCRIPTION OF TEST CASES:
+        Convert a POGGLexiconEntry object into a node or edge entry in JSON format
+    """
+
+    @staticmethod
+    def case_node_birthdayCandle():
+        """
+        DESCRIPTION:
+            Node entry for "birthday candle"
+
+        CASE NOTES:
+            Node entry is nested so this tests the basic case as well as the recursive branch
+
+        RETURNS:
+            - POGGLexiconEntry object
+            - gold JSON version of lexicon entry
+        """
+        # create the POGGLexiconEntry object
+        candle_entry = POGGLexiconEntry("head_noun_SEMENT", "noun", {
+            "predicate": "_candle_n_1"
+        })
+
+        birthday_entry = POGGLexiconEntry("non_head_noun_SEMENT", "noun", {
+            "predicate": "_birthday_n_1"
+        })
+
+        node_entry = POGGLexiconEntry("birthdayCandle", "compound_noun", {
+            "head_noun_SEMENT": candle_entry,
+            "non_head_noun_SEMENT": birthday_entry,
+        })
+
+        gold_node_json_value = {
+            "comp_fxn": "compound_noun",
+            "head_noun_SEMENT": {
+                "comp_fxn": "noun",
+                "predicate": "_candle_n_1"
+            },
+            "non_head_noun_SEMENT": {
+                "comp_fxn": "noun",
+                "predicate": "_birthday_n_1"
+            }
+        }
+
+        return node_entry, gold_node_json_value
+
+    @staticmethod
+    def case_edge_flavor():
+        """
+        DESCRIPTION:
+            Edge entry for "flavor"
+
+        PARAMS:
+            - individual_lexicon_dict_entries_dir: from data_dir_fixtures.py
+            - gold_node_POGG_LexiconEntry_birthdayCandle: from gold_object_fixtures.py
+
+        RETURNS:
+            - gold POGGLexiconEntry object
+            - gold JSON version of lexicon entry
+        """
+        # create the POGGLexiconEntry object
+        edge_entry = POGGLexiconEntry("flavor", "compound_noun", {
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
+        })
+
+        gold_edge_json_value = {
+            "comp_fxn": "compound_noun",
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
+        }
+
+        return edge_entry, gold_edge_json_value
 
 
 class CreateLexiconSkeleton:
@@ -194,27 +334,27 @@ class ReadLexiconFromDirectory:
     """
 
     """
-    CASES:
+    SUCCESS CASES:
         1. basic branches, typical lexicon
         2. blank files; set lexicon to defauly empty lexicon 
-        3. nonexistent file, throw error  
+        
+    FAILURE CASES:
+        1. nonexistent file, throw error  
     """
 
     @staticmethod
     @case(tags='success')
     def case_basic(lexicon_directories_dir):
         # gold node information
-        candle_entry = POGGLexiconEntry("head_noun_sement", "noun", {
-            "predicate": "_candle_n_1",
-            "intrinsic_variable_properties": {}
+        candle_entry = POGGLexiconEntry("head_noun_SEMENT", "noun", {
+            "predicate": "_candle_n_1"
         })
-        birthday_entry = POGGLexiconEntry("non_head_noun_sement", "noun", {
-            "predicate": "_birthday_n_1",
-            "intrinsic_variable_properties": {}
+        birthday_entry = POGGLexiconEntry("non_head_noun_SEMENT", "noun", {
+            "predicate": "_birthday_n_1"
         })
         gold_node_entry = POGGLexiconEntry("birthdayCandle", "compound_noun", {
-            "head_noun_sement": candle_entry,
-            "non_head_noun_sement": birthday_entry,
+            "head_noun_SEMENT": candle_entry,
+            "non_head_noun_SEMENT": birthday_entry,
         })
         node_entries = {
             "birthdayCandle": gold_node_entry
@@ -224,8 +364,8 @@ class ReadLexiconFromDirectory:
         edge_entries = {
             "flavor": POGGLexiconEntry("flavor", "compound_noun",
                                        {
-                                            "head_noun_sement": "parent",
-                                            "non_head_noun_sement": "child"
+                                            "head_noun_SEMENT": "parent",
+                                            "non_head_noun_SEMENT": "child"
                                         })
         }
 
@@ -239,6 +379,7 @@ class ReadLexiconFromDirectory:
     @staticmethod
     @case(tags='success')
     def case_blank_files(lexicon_directories_dir):
+        # gold version of lexicon should have empty dictionaries as node and edge entries because that's what the read_lexicon_from_directory function inserts
         return "empty", os.path.join(lexicon_directories_dir, "blank_files"), POGGLexicon("empty", "", {}, {})
 
     @staticmethod
@@ -261,6 +402,7 @@ class ValidateNodeEntry:
     """
     CASES:
         VALID
+            0. empty string as entry 
             1. empty entry
             2. complete node entry
             3. node entry with failure message (i.e. has been "fixed" and needs the message removed)
@@ -275,6 +417,11 @@ class ValidateNodeEntry:
 
     @staticmethod
     @case(tags='success')
+    def case_empty_string_as_entry():
+        return ""
+
+    @staticmethod
+    @case(tags='success')
     def case_empty_entry():
         return {"comp_fxn": ""}
 
@@ -283,8 +430,7 @@ class ValidateNodeEntry:
     def case_complete_entry():
         return {
             "comp_fxn": "noun",
-            "predicate": "_cake_n_1",
-            "intrinsic_variable_properties": {}
+            "predicate": "_cake_n_1"
         }
 
     @staticmethod
@@ -294,7 +440,6 @@ class ValidateNodeEntry:
         return {
             "comp_fxn": "noun",
             "predicate": "_cake_n_1",
-            "intrinsic_variable_properties": {},
             "failure_msg": "oopsies!"
         }
 
@@ -303,15 +448,13 @@ class ValidateNodeEntry:
     def case_nested_entry():
         return {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
                 "predicate": "_candle_n_1",
-                "intrinsic_variable_properties": {}
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
                 "predicate": "_birthday_n_1",
-                "intrinsic_variable_properties": {}
             }
         }
 
@@ -341,11 +484,11 @@ class ValidateNodeEntry:
     def case_nested_nonexistent_comp_fxn():
         entry_value = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
                 "predicate": "_candle_n_1"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "nuh uh!",
                 "predicate": "teehee"
             }
@@ -358,11 +501,11 @@ class ValidateNodeEntry:
     def case_nested_nonexistent_parameter():
         entry_value = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
                 "predicate": "_candle_n_1"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
                 "not_real": "gotcha!"
             }
@@ -384,8 +527,10 @@ class ValidateEdgeEntry:
     CASES:
         VALID
             1. empty entry
-            2. complete edge entry
-            3. edge entry with failure message (i.e. has been "fixed" and needs the message removed)
+            2. partially complete entry
+            3. complete edge entry
+            4. edge entry that introduces its own nested SEMENT
+            5. edge entry with failure message (i.e. has been "fixed" and needs the message removed)
 
         INVALID
             1. comp_fxn doesn't exist
@@ -400,11 +545,39 @@ class ValidateEdgeEntry:
 
     @staticmethod
     @case(tags='success')
+    def case_partially_complete_entry():
+        return {
+            "comp_fxn": "prepositional_relationship",
+            "preposition_predicate": "_in_p_loc",
+            "figure_SEMENT": "parent",
+            "ground_SEMENT": ""
+        }
+
+    @staticmethod
+    @case(tags='success')
     def case_complete_entry():
         return {
-            "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child"
+            "comp_fxn": "prepositional_relationship",
+            "preposition_predicate": "_in_p_loc",
+            "figure_SEMENT": "parent",
+            "ground_SEMENT": "child"
+        }
+
+    @staticmethod
+    @case(tags='success')
+    def case_nested_entry():
+        return {
+            "comp_fxn": "boolean_property",
+            "boolean_node_SEMENT": "child",
+            "modified_SEMENT": "parent",
+            "true_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_movable_a_1"
+            },
+            "false_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_immovable_a_1"
+            }
         }
 
     @staticmethod
@@ -412,8 +585,8 @@ class ValidateEdgeEntry:
     def case_fixed_entry_w_failure_msg():
         return {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child",
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child",
             "failure_msg": "oopsies!"
         }
 
@@ -444,8 +617,8 @@ class ValidateEdgeEntry:
         # values should be "parent" and "child"
         entry_value = {
              "comp_fxn": "compound_noun",
-             "head_noun_sement": "mommy",
-             "non_head_noun_sement": "baby"
+             "head_noun_SEMENT": "mommy",
+             "non_head_noun_SEMENT": "baby"
         }
         # should raise an ValueError
         return entry_value, ValueError
@@ -467,11 +640,14 @@ class CheckNodeEntryCompletion:
         COMPLETE
             1. completed node entry
             2. completed nested node entry
+            3. completed node entry with a "null" value for optional SEMENT parameter
 
         INCOMPLETE
+            0. empty string 
             1. empty
             2. missing a parameter
-            2. parameter not filled out
+            3. parameter not filled out
+            4. incomplete nested entry 
 
     """
 
@@ -479,8 +655,7 @@ class CheckNodeEntryCompletion:
     def case_complete_entry():
         entry = {
             "comp_fxn": "noun",
-            "predicate": "_cake_n_1",
-            "intrinsic_variable_properties": {}
+            "predicate": "_cake_n_1"
         }
         return entry, True
 
@@ -488,18 +663,37 @@ class CheckNodeEntryCompletion:
     def case_nested_complete_entry():
         entry = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_candle_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_candle_n_1"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_birthday_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_birthday_n_1"
             }
         }
         return entry, True
+
+    @staticmethod
+    def case_optional_SEMENT_entry():
+        entry = {
+            "comp_fxn": "ARG2_relative_clause",
+            "verb_SEMENT": {
+                "comp_fxn": "verb",
+                "predicate": "_eat_v_1"
+            },
+            "ARG2_SEMENT": {
+                "comp_fxn": "noun",
+                "predicate": "_cake_n_1"
+            },
+            "ARG1_SEMENT": None
+        }
+        return entry, True
+
+    @staticmethod
+    def case_empty_string():
+        entry = ""
+        return entry, False
 
     @staticmethod
     def case_empty_entry():
@@ -512,8 +706,7 @@ class CheckNodeEntryCompletion:
     @staticmethod
     def case_missing_param():
         entry = {
-            "comp_fxn": "noun",
-            "predicate": "_cake_n_1"
+            "comp_fxn": "noun"
         }
         return entry, False
 
@@ -521,8 +714,21 @@ class CheckNodeEntryCompletion:
     def case_unfilled_param():
         entry = {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
+        }
+        return entry, False
+
+    @staticmethod
+    def case_nested_incomplete_entry():
+        entry = {
+            "comp_fxn": "compound_noun",
+            "head_noun_SEMENT": {
+                "comp_fxn": "noun",
+                "predicate": "_candle_n_1",
+            },
+            "non_head_noun_SEMENT": {
+                "comp_fxn": ""
+            }
         }
         return entry, False
 
@@ -541,12 +747,15 @@ class CheckEdgeEntryCompletion:
     """
     CASES:
         COMPLETE
-            1. completed edge entry
+            1. complete edge entry
+            2. complete nested edge entry 
+            3. complete edge entry with a "null" value for optional SEMENT parameter
     
         INCOMPLETE
             1. empty
             2. missing a parameter
-            2. parameter not filled out
+            3. parameter not filled out
+            4. incomplete nested edge entry 
     
     """
 
@@ -555,8 +764,35 @@ class CheckEdgeEntryCompletion:
         entry = {
             "comp_fxn": "relative_direction",
             "direction_predicate": "_north_a_1",
-            "figure_sement": "parent",
-            "ground_sement": "child"
+            "figure_SEMENT": "parent",
+            "ground_SEMENT": "child"
+        }
+        return entry, True
+
+    @staticmethod
+    def case_complete_nested_entry():
+        entry = {
+            "comp_fxn": "boolean_property",
+            "boolean_node_SEMENT": "child",
+            "modified_SEMENT": "parent",
+            "true_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_movable_a_1"
+            },
+            "false_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_immovable_a_1"
+            }
+        }
+        return entry, True
+
+    @staticmethod
+    def case_optional_SEMENT_entry():
+        entry = {
+            "comp_fxn": "ARG2_relative_clause",
+            "verb_SEMENT": "child",
+            "ARG2_SEMENT": "parent",
+            "ARG1_SEMENT": None
         }
         return entry, True
 
@@ -570,8 +806,7 @@ class CheckEdgeEntryCompletion:
     @staticmethod
     def case_missing_param():
         entry = {
-            "comp_fxn": "noun",
-            "predicate": "_cake_n_1"
+            "comp_fxn": "noun"
         }
         return entry, False
 
@@ -579,8 +814,23 @@ class CheckEdgeEntryCompletion:
     def case_unfilled_param():
         entry = {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
+        }
+        return entry, False
+
+    @staticmethod
+    def case_incomplete_nested_entry():
+        entry = {
+            "comp_fxn": "boolean_property",
+            "boolean_node_SEMENT": "child",
+            "modified_SEMENT": "parent",
+            "true_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_movable_a_1"
+            },
+            "false_SEMENT": {
+                "comp_fxn": ""
+            }
         }
         return entry, False
 
@@ -598,12 +848,18 @@ class ExpandNodeEntry:
 
     """
     CASES:
+        0. IN: empty string, OUT: empty string 
         1. IN: empty entry, OUT: empty entry
         2. IN: entry w/ top level comp_fxn, OUT: expansion w/ top level comp_fxn's params
         3. IN: entry w/ top level comp_fxn that has a recursive param, OUT: expansion w/ top level comp_fxn's params
         4. IN: entry w/ nested comp_fxn, OUT: expansion w/ nested comp_fxn's params
         5. IN: fully expanded entry, OUT: fully expanded entry
+        6. IN: entry where comp_fxn has a required dict type parameter, OUT: expansion with empty dict parameter
     """
+
+    @staticmethod
+    def case_empty_string():
+        return "", ""
 
     @staticmethod
     def case_empty_entry():
@@ -619,8 +875,7 @@ class ExpandNodeEntry:
         }
         gold_expanded_entry = {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         }
         return in_entry, gold_expanded_entry
 
@@ -631,10 +886,10 @@ class ExpandNodeEntry:
         }
         gold_expanded_entry = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": ""
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": ""
             }
         }
@@ -644,24 +899,22 @@ class ExpandNodeEntry:
     def case_nested_comp_fxn_params():
         in_entry = {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun"
             }
         }
         gold_expanded_entry ={
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "",
-                "intrinsic_variable_properties": {}
+                "predicate": ""
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "",
-                "intrinsic_variable_properties": {}
+                "predicate": ""
             }
         }
         return in_entry, gold_expanded_entry
@@ -670,10 +923,23 @@ class ExpandNodeEntry:
     def case_already_expanded_entry():
         expanded_entry = {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         }
         return expanded_entry, expanded_entry
+
+    @staticmethod
+    def case_required_dict_parameter():
+        in_entry = {
+            "comp_fxn": "manual_synopsis"
+        }
+
+        expanded_entry = {
+            "comp_fxn": "manual_synopsis",
+            "predicate": "",
+            "synopsis_dict": {}
+        }
+
+        return in_entry, expanded_entry
 
 
 class ExpandEdgeEntry:
@@ -689,10 +955,17 @@ class ExpandEdgeEntry:
 
     """
     CASES:
+        0. IN: empty string, OUT: empty string
         1. IN: empty entry, OUT: empty entry
-        2. IN: entry w/ comp_fxn, OUT: expansion w/ comp_fxn's params'
-        3. IN: fully expanded entry, OUT: fully expanded entry
+        2. IN: entry w/ comp_fxn, OUT: expansion w/ comp_fxn's params
+        3. IN: entry w/ nested SEMENT, OUT: expansion w/ nested SEMENT's params
+        4. IN: fully expanded entry, OUT: fully expanded entry
+        5. IN: entry where comp_fxn has a required dict type parameter, OUT: expansion with empty dict parameter
     """
+
+    @staticmethod
+    def case_empty_string():
+        return "", ""
 
     @staticmethod
     def case_empty_entry():
@@ -708,8 +981,37 @@ class ExpandEdgeEntry:
         }
         gold_expanded_entry = {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
+        }
+        return in_entry, gold_expanded_entry
+
+    @staticmethod
+    def case_incomplete_nested_entry():
+        in_entry = {
+            "comp_fxn": "boolean_property",
+            "boolean_node_SEMENT": "child",
+            "modified_SEMENT": "parent",
+            "true_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_movable_a_1"
+            },
+            "false_SEMENT": {
+                "comp_fxn": "adjective"
+            }
+        }
+
+        gold_expanded_entry = {
+            "comp_fxn": "boolean_property",
+            "boolean_node_SEMENT": "child",
+            "modified_SEMENT": "parent",
+            "true_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": "_movable_a_1"
+            },
+            "false_SEMENT": {
+                "comp_fxn": "adjective",
+                "predicate": ""
+            }
         }
         return in_entry, gold_expanded_entry
 
@@ -717,10 +1019,23 @@ class ExpandEdgeEntry:
     def case_already_expanded_entry():
         expanded_entry = {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         }
         return expanded_entry, expanded_entry
+
+    @staticmethod
+    def case_required_dict_parameter():
+        in_entry = {
+            "comp_fxn": "manual_synopsis"
+        }
+
+        expanded_entry = {
+            "comp_fxn": "manual_synopsis",
+            "predicate": "",
+            "synopsis_dict": {}
+        }
+
+        return in_entry, expanded_entry
 
 
 class LoadLatestLexiconJSONData:
@@ -744,10 +1059,9 @@ class LoadLatestLexiconJSONData:
     @staticmethod
     def case_sample_lexicon(lexicon_directories_dir):
         sample_lexicon_dir = os.path.join(lexicon_directories_dir, "sample_w_data_in_each_file")
-        gold_latest_complete = json.load(open(os.path.join(sample_lexicon_dir, "gold_latest_complete_entries.json")))
         gold_latest_updated = json.load(open(os.path.join(sample_lexicon_dir, "gold_latest_updated_entries.json")))
 
-        return sample_lexicon_dir, gold_latest_complete, gold_latest_updated
+        return sample_lexicon_dir, gold_latest_updated
 
     @staticmethod
     def case_empty_lexicon(lexicon_directories_dir):
@@ -864,7 +1178,7 @@ class UpdateLexiconFiles:
     GENERAL DESCRIPTION OF TEST CASES:
         Read in lexicon files and update them as needed (e.g. expand edited entries, move invalid ones to invalid file); compare to gold expected version of file
 
-        For each case, return the the directory to read from, and the gold expected results
+        For each case, return the directory to read from, and the gold expected results
     """
 
     """
@@ -897,5 +1211,32 @@ class UpdateLexiconFiles:
 
         return tmp_path, gold_updated_complete, gold_updated_incomplete, gold_updated_invalid, gold_updated_all
 
+class DumpLexiconObjectToJson:
+    """
+    FUNCTION BEING TESTED:
+        - pogg.lexicon.lexicon_builder.POGGLexiconUtil.dump_lexicon_object_to_json
 
+    GENERAL DESCRIPTION OF TEST CASES:
+        Read in JSON file as POGGLexiconObject then dump it to new JSON file and make sure it matches the original
+    """
 
+    @staticmethod
+    def case_basic_lexicon(tmp_path, lexicon_directories_dir):
+        node = POGGLexiconEntry("birthdayCandle", "compound_noun", {
+            "head_noun_SEMENT": {"comp_fxn": "noun", "predicate": "_candle_n_1"},
+            "non_head_noun_SEMENT": {"comp_fxn": "noun", "predicate": "_birthday_n_1"}
+        })
+
+        edge = POGGLexiconEntry("flavor", "compound_noun", {
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
+        })
+
+        lexicon_obj = POGGLexicon("lexicon", "", {"birthdayCandle": node}, {"flavor": edge})
+
+        sample_lexicon_dir = os.path.join(lexicon_directories_dir, "eval_dump")
+        gold_dump = json.load(open(os.path.join(sample_lexicon_dir, "gold_eval_dump.json")))
+
+        tmp_file = os.path.join(tmp_path, "dump.json")
+
+        return tmp_file, lexicon_obj, gold_dump

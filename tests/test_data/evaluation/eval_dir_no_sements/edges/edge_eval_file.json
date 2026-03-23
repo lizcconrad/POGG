@@ -5,7 +5,7 @@
     },
     "parent_node_name": "parent",
     "child_node_name": "child",
-    "generated_SEMENT_string": "[ TOP: h1372\n  INDEX: x1371\n  RELS: < [ _black_a_1 LBL: h1375 ARG0: i1373 ARG1: i1374 ]\n          [ _bear_n_1 LBL: h1372 ARG0: x1371 ] >\n  EQS: < h1375 eq h1372 i1374 eq x1371 > ]",
+    "generated_SEMENT_string": null,
     "sem_comp_fxns_used": [
         "prenominal_adjective"
     ],

@@ -1,0 +1,14 @@
+{
+    "node_name": "cake",
+    "node_props": {
+        "lexicon_key": "cake"
+    },
+    "generated_SEMENT_string": null,
+    "sem_comp_fxns_used": [
+        "noun"
+    ],
+    "node_covered": true,
+    "node_included": true,
+    "generation_comment": "me when i'm a comment",
+    "inclusion_comment": "me when i'm also a comment"
+}

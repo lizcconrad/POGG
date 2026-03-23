@@ -14,9 +14,9 @@ class TestPOGGNodeEvaluation:
     """
 
     @staticmethod
-    @parametrize_with_cases("node_name, node_props, gold_node_eval, attributes", cases=POGGNodeEvaluationInit)
-    def test_init(node_name, node_props, gold_node_eval, attributes):
-        test_node_eval = POGGNodeEvaluation(node_name, node_props)
+    @parametrize_with_cases("node_name, node_props, eval_file_path, gold_node_eval, attributes", cases=POGGNodeEvaluationInit)
+    def test_init(node_name, node_props, eval_file_path, gold_node_eval, attributes):
+        test_node_eval = POGGNodeEvaluation(node_name, node_props, eval_file_path)
         for attr in attributes:
             assert getattr(test_node_eval, attr) == getattr(gold_node_eval, attr)
 
@@ -29,6 +29,12 @@ class TestPOGGNodeEvaluation:
         assert test_node_eval.generated_SEMENT == sement
         assert test_node_eval.generated_SEMENT_string == sement_string
 
+    @staticmethod
+    @parametrize_with_cases("node_eval_obj, gold_dict", cases=POGGNodeEvaluationGetDictRepresentation)
+    def test_get_dict_representation(node_eval_obj, gold_dict):
+        test_dict = node_eval_obj.get_dict_representation()
+        assert test_dict == gold_dict
+
 
 class TestPOGGEdgeEvaluation:
     """
@@ -36,9 +42,9 @@ class TestPOGGEdgeEvaluation:
     """
 
     @staticmethod
-    @parametrize_with_cases("edge_name, edge_props, parent_name, child_name, gold_edge_eval, attributes", cases=POGGEdgeEvaluationInit)
-    def test_init(edge_name, edge_props, parent_name, child_name, gold_edge_eval, attributes):
-        test_edge_eval = POGGEdgeEvaluation(edge_name, edge_props, parent_name, child_name)
+    @parametrize_with_cases("edge_name, edge_props, parent_name, child_name, eval_file_path, gold_edge_eval, attributes", cases=POGGEdgeEvaluationInit)
+    def test_init(edge_name, edge_props, parent_name, child_name, eval_file_path, gold_edge_eval, attributes):
+        test_edge_eval = POGGEdgeEvaluation(edge_name, edge_props, parent_name, child_name, eval_file_path)
         for attr in attributes:
             assert getattr(test_edge_eval, attr) == getattr(gold_edge_eval, attr)
 
@@ -51,6 +57,12 @@ class TestPOGGEdgeEvaluation:
         assert test_node_eval.generated_SEMENT == sement
         assert test_node_eval.generated_SEMENT_string == sement_string
 
+    @staticmethod
+    @parametrize_with_cases("edge_eval_obj, gold_dict", cases=POGGEdgeEvaluationGetDictRepresentation)
+    def test_get_dict_representation(edge_eval_obj, gold_dict):
+        test_dict = edge_eval_obj.get_dict_representation()
+        assert test_dict == gold_dict
+
 
 class TestPOGGGraphEvaluation:
     """
@@ -58,11 +70,31 @@ class TestPOGGGraphEvaluation:
     """
 
     @staticmethod
-    @parametrize_with_cases("graph, graph_name, gold_graph_eval, attributes", cases=POGGGraphEvaluationInit)
-    def test_init(graph, graph_name, gold_graph_eval, attributes):
-        test_graph_eval = POGGGraphEvaluation(graph, graph_name)
-        for attr in attributes:
-            assert getattr(test_graph_eval, attr) == getattr(gold_graph_eval, attr)
+    @parametrize_with_cases("graph, graph_name, eval_dir_path, gold_graph_eval, graph_attributes, node_attributes, edge_attributes", cases=POGGGraphEvaluationInit)
+    def test_init(graph, graph_name, eval_dir_path, gold_graph_eval, graph_attributes, node_attributes, edge_attributes):
+        test_graph_eval = POGGGraphEvaluation(graph, graph_name, eval_dir_path)
+        for attr in graph_attributes:
+            test_attr = getattr(test_graph_eval, attr)
+            gold_attr = getattr(gold_graph_eval, attr)
+
+            if isinstance(test_attr, nx.DiGraph):
+                assert nx.is_isomorphic(test_attr, gold_attr)
+            elif attr == "node_evaluations":
+                for key in test_attr.keys():
+                    for n_attr in node_attributes:
+                        assert getattr(test_attr[key], n_attr) == getattr(gold_attr[key], n_attr)
+            elif attr == "edge_evaluations":
+                for i in range(len(test_attr)):
+                    for e_attr in edge_attributes:
+                        assert getattr(test_attr[i], e_attr) == getattr(gold_attr[i], e_attr)
+            else:
+                assert getattr(test_graph_eval, attr) == getattr(gold_graph_eval, attr)
+
+    @staticmethod
+    @parametrize_with_cases("graph_eval_obj, gold_dict", cases=POGGGraphEvaluationGetDictRepresentation)
+    def test_get_top_level_dict_representation(graph_eval_obj, gold_dict):
+        test_dict = graph_eval_obj.get_top_level_dict_representation()
+        assert test_dict == gold_dict
 
     @staticmethod
     @parametrize_with_cases("graph_eval, gold_node_evaluations, attrs", cases=CreateNodeEvaluations)
@@ -101,12 +133,12 @@ class TestPOGGGraphEvaluation:
 
     @staticmethod
     @parametrize_with_cases("sement, sement_string", cases=SetSement)
-    def test_set_wrapped_SEMENT(sement, sement_string):
+    def test_set_prepped_SEMENT(sement, sement_string):
         test_graph_eval = POGGGraphEvaluation(nx.DiGraph(), "name")
-        test_graph_eval.set_wrapped_SEMENT(sement)
+        test_graph_eval.set_prepped_SEMENT(sement)
 
-        assert test_graph_eval.wrapped_SEMENT == sement
-        assert test_graph_eval.wrapped_SEMENT_string == sement_string
+        assert test_graph_eval.prepped_SEMENT == sement
+        assert test_graph_eval.prepped_SEMENT_string == sement_string
 
     @staticmethod
     @parametrize_with_cases("sement, sement_string", cases=SetSement)
@@ -192,12 +224,41 @@ class TestPOGGGraphEvaluation:
 
 class TestPOGGEvaluation:
     @staticmethod
-    @parametrize_with_cases("dataset_name, gold_pogg_eval, attributes", cases=POGGEvaluationInit)
-    def test_init(dataset_name, gold_pogg_eval, attributes):
-        test_pogg_eval = POGGEvaluation(dataset_name)
+    @parametrize_with_cases("dataset_name, eval_dir, gold_pogg_eval, attributes", cases=POGGEvaluationInit, has_tag="success")
+    def test_init(dataset_name, eval_dir, gold_pogg_eval, attributes):
+        test_pogg_eval = POGGEvaluation(dataset_name, eval_dir)
         for attr in attributes:
             assert getattr(test_pogg_eval, attr) == getattr(gold_pogg_eval, attr)
 
+    @staticmethod
+    @parametrize_with_cases("eval_obj, gold_dict", cases=POGGEvaluationGetDictRepresentation)
+    def test_get_top_level_dict_representation(eval_obj, gold_dict):
+        test_dict = eval_obj.get_top_level_dict_representation()
+        assert test_dict == gold_dict
+
+    @staticmethod
+    @parametrize_with_cases("dataset_name, eval_dir", cases=POGGEvaluationInit, has_tag="failure")
+    def test_init_failure(dataset_name, eval_dir):
+        with pytest.raises(ValueError):
+            POGGEvaluation(dataset_name, eval_dir)
+
+    @staticmethod
+    @parametrize_with_cases("dataset_name, eval_dir", cases=POGGEvaluationInit, has_tag="no_files")
+    def test_init_failure_files_not_found(dataset_name, eval_dir):
+        with pytest.raises(FileNotFoundError):
+            POGGEvaluation(dataset_name, eval_dir)
+
+    @staticmethod
+    @parametrize_with_cases("eval_obj, graph_name, gold_result", cases=GetGraphEvaluation, has_tag="success")
+    def test_get_graph_evaluation(eval_obj, graph_name, gold_result):
+        graph_eval = eval_obj.get_graph_evaluation(graph_name)
+        assert graph_eval == gold_result
+
+    @staticmethod
+    @parametrize_with_cases("eval_obj, graph_name", cases=GetGraphEvaluation, has_tag="failure")
+    def test_get_graph_evaluation_failure(eval_obj, graph_name):
+        with pytest.raises(KeyError):
+            eval_obj.get_graph_evaluation(graph_name)
 
     @staticmethod
     @parametrize_with_cases("graph, graph_name", cases=AddGraph)
@@ -206,8 +267,8 @@ class TestPOGGEvaluation:
         test_pogg_eval.add_graph(graph, graph_name)
 
         assert len(test_pogg_eval.graph_evaluations) == 1
-        assert test_pogg_eval.graph_evaluations[0].graph == graph
-        assert test_pogg_eval.graph_evaluations[0].graph_name == graph_name
+        assert test_pogg_eval.graph_evaluations[graph_name].graph == graph
+        assert test_pogg_eval.graph_evaluations[graph_name].graph_name == graph_name
 
 
     @staticmethod

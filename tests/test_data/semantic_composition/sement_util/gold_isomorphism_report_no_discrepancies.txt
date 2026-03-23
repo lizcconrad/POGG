@@ -1,21 +1,23 @@
 --- GOLD SEMENT ---
 [ TOP: h0
-  INDEX: e1
+  INDEX: e1 [ e TENSE: pres ]
   RELS: < [ _believe_v_1 LBL: h0 ARG0: e1 ARG1: i2 ARG2: u3 ARG3: h4 ]
-          [ _the_q LBL: h5 ARG0: x10 RSTR: h7 BODY: h8 ]
+          [ _the_q LBL: h5 ARG0: x10 [ x NUM: sg ] RSTR: h7 BODY: h8 ]
           [ _cat_n_1 LBL: h9 ARG0: x10 ]
-         [ _sleep_v_1 LBL: h11 ARG0: e12 ARG1: x10 ] >
+          [ _sleep_v_1 LBL: h11 ARG0: e12 ARG1: x10 ] >
   HCONS: < h7 qeq h9 u3 qeq h11 >
+  ICONS: < e1 topic h7 >
   SLOTS: < ARG1: i2 ARG3: h4 > ]
 
 --- ACTUAL SEMENT ---
 [ TOP: h00
-  INDEX: e01
+  INDEX: e01 [ e TENSE: pres ]
   RELS: < [ _believe_v_1 LBL: h00 ARG0: e01 ARG1: i02 ARG2: u03 ARG3: h04 ]
-          [ _the_q LBL: h05 ARG0: x010 RSTR: h07 BODY: h08 ]
+          [ _the_q LBL: h05 ARG0: x010 [ x NUM: sg ] RSTR: h07 BODY: h08 ]
           [ _cat_n_1 LBL: h09 ARG0: x010 ]
           [ _sleep_v_1 LBL: h011 ARG0: e012 ARG1: x010 ] >
   HCONS: < h07 qeq h09 u03 qeq h011 >
+  ICONS: < e01 topic h07 >
   SLOTS: < ARG1: i02 ARG3: h04 > ]
 
 
@@ -40,20 +42,20 @@ Slot Name              Gold Var    Actual Var
 SEMANTIC ROLE IDENTITY CONSISTENCIES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 OVERLAPPING
-Role Set                                             Gold Var    Actual Var
----------------------------------------------------  ----------  ------------
-['_cat_n_1.ARG0', '_sleep_v_1.ARG1', '_the_q.ARG0']  x10         x010
-['INDEX', '_believe_v_1.ARG0']                       e1          e01
-['TOP', '_believe_v_1.LBL']                          h0          h00
-['_believe_v_1.ARG1']                                i2          i02
-['_believe_v_1.ARG2']                                u3          u03
-['_believe_v_1.ARG3']                                h4          h04
-['_cat_n_1.LBL']                                     h9          h09
-['_sleep_v_1.ARG0']                                  e12         e012
-['_sleep_v_1.LBL']                                   h11         h011
-['_the_q.BODY']                                      h8          h08
-['_the_q.LBL']                                       h5          h05
-['_the_q.RSTR']                                      h7          h07
+Role Set                                             Gold Var    Actual Var    Properties
+---------------------------------------------------  ----------  ------------  -----------------
+['_cat_n_1.ARG0', '_sleep_v_1.ARG1', '_the_q.ARG0']  x10         x010          {'NUM': 'sg'}
+['INDEX', '_believe_v_1.ARG0']                       e1          e01           {'TENSE': 'pres'}
+['TOP', '_believe_v_1.LBL']                          h0          h00           {}
+['_believe_v_1.ARG1']                                i2          i02           {}
+['_believe_v_1.ARG2']                                u3          u03           {}
+['_believe_v_1.ARG3']                                h4          h04           {}
+['_cat_n_1.LBL']                                     h9          h09           {}
+['_sleep_v_1.ARG0']                                  e12         e012          {}
+['_sleep_v_1.LBL']                                   h11         h011          {}
+['_the_q.BODY']                                      h8          h08           {}
+['_the_q.LBL']                                       h5          h05           {}
+['_the_q.RSTR']                                      h7          h07           {}
 
 HANDLE CONSTRAINT CONSISTENCIES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -62,3 +64,11 @@ Hi Role Set            Lo Role Set         Gold QEQ    Actual QEQ
 ---------------------  ------------------  ----------  ------------
 ['_believe_v_1.ARG2']  ['_sleep_v_1.LBL']  u3 qeq h11  u03 qeq h011
 ['_the_q.RSTR']        ['_cat_n_1.LBL']    h7 qeq h9   h07 qeq h09
+
+INDIVIDUAL CONSTRAINT CONSISTENCIES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OVERLAPPING
+Left Role Set                   Right Role Set    Gold Constraint    Actual Constraint
+------------------------------  ----------------  -----------------  -------------------
+['INDEX', '_believe_v_1.ARG0']  ['_the_q.RSTR']   e1 topic h7        e01 topic h07
+

@@ -3,6 +3,11 @@ import json
 import networkx as nx
 from pytest_cases import case
 
+"""
+NOTE: FIXTURES COME FROM THE fixtures.py FILE IN THE SAME DIRECTORY AS THIS FILE
+Each "case" in this file will modify things where needed and return necessary information for the tests
+"""
+
 class BuildGraph:
     """
     FUNCTION BEING TESTED:
@@ -81,16 +86,6 @@ class FindRoot:
 
     @staticmethod
     @case(tags="success")
-    def case_root_not_marked_extra_newline(data_handling_test_dir):
-        graph_file = os.path.join(data_handling_test_dir, "small_red_car_no_root_extra_newline.dot")
-        nx_graph = nx.nx_pydot.read_dot(graph_file)
-
-        gold_root = ('idCar1', {'lexicon_key': 'idCar', 'node_type': 'entity'})
-
-        return nx_graph, gold_root
-
-    @staticmethod
-    @case(tags="success")
     def case_rooted_graph_with_cycle(data_handling_test_dir):
         graph_file = os.path.join(data_handling_test_dir, "rooted_graph_with_cycle.dot")
         nx_graph = nx.nx_pydot.read_dot(graph_file)
@@ -124,16 +119,69 @@ class FindRoot:
         return nx_graph
 
 
-
 class ReadFromDot:
+    """
+    FUNCTION BEING TESTED:
+        - pogg.data_handling.graph_util.POGGGraphUtil.read_from_dot
+
+    GENERAL DESCRIPTION OF TEST CASES:
+        Provide a path to a graph dot format and ensure that a graph object is created.
+        Test doesn't check contents of graph because this is just a wrapped around a NetworkX function so that package is responsible
+    """
+
+    """
+    SUCCESS CASES
+        1. one graph in dot format
+    """
+
     @staticmethod
     def case_dot_file(data_handling_test_dir):
         graph_file = os.path.join(data_handling_test_dir, "full_build_graph_coverage.dot")
         return graph_file
 
 class WriteTo:
+    """
+    FUNCTION BEING TESTED:
+        - pogg.data_handling.graph_util.POGGGraphUtil.write_graph_to_dot
+        - pogg.data_handling.graph_util.POGGGraphUtil.write_graph_to_png
+        - pogg.data_handling.graph_util.POGGGraphUtil.write_graph_to_svg
+
+    GENERAL DESCRIPTION OF TEST CASES:
+        Provide graph object and ensure that a dot/png/svg file is created
+        Test doesn't check contents of files because these are just wrapped around NetworkX functions so that package is responsible
+    """
+
+    """
+    SUCCESS CASES
+        1. one NetworkX DiGraph
+    """
     @staticmethod
     def case_graph(data_handling_test_dir):
         graph_file = os.path.join(data_handling_test_dir, "full_build_graph_coverage.dot")
         nx_graph = nx.nx_pydot.read_dot(graph_file)
         return nx_graph
+
+class WriteToJSON:
+    """
+    FUNCTION BEING TESTED:
+        - pogg.data_handling.graph_util.POGGGraphUtil.write_graph_to_json
+
+    GENERAL DESCRIPTION OF TEST CASES:
+        Provide a graph object and ensure that a JSON file in the POGG JSON graph format is created with the correct contents
+    """
+
+    """
+    SUCCESS CASES
+        1. one graph in dot format
+    """
+    @staticmethod
+    def case_graph(data_handling_test_dir):
+        graph_file = os.path.join(data_handling_test_dir, "full_build_graph_coverage.dot")
+        nx_graph = nx.nx_pydot.read_dot(graph_file)
+
+        # not the same as the original JSON because the write_to_json file inserts default values for things that were left out
+        # such as properties dicts and lexicon keys
+        with open(os.path.join(data_handling_test_dir, "full_build_graph_coverage_written_json.json"), "r") as f:
+            gold_json = json.load(f)
+
+        return nx_graph, gold_json

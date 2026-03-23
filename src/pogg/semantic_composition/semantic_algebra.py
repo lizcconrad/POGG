@@ -6,7 +6,7 @@ The semantic_algebra module contains the SemanticAlgebra class which contains me
 
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
-import pogg.semantic_composition.sement_util as sement_util
+from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 from pogg.pogg_config import POGGConfig
 
 
@@ -23,7 +23,7 @@ class SemanticAlgebra:
         **Parameters / Instance Attributes**
         | Parameter | Type | Description |
         | --------- | ---- | ----------- |
-        | `pogg_config` | `POGGConfig` | POGGConfig object that contains information about the SEMI and variable labeler |
+        | `pogg_config` | `POGGConfig` | `POGGConfig` object that contains information about the SEMI and variable labeler |
         """
         self.pogg_config = pogg_config
 
@@ -31,6 +31,8 @@ class SemanticAlgebra:
     def _get_slots(self, ep):
         """
         Get the slots contributed by a particular EP to send into a SEMENT.
+
+        The information about what slots are contirbuted is obtained from the [SEMI]().
 
         **Parameters**
         | Parameter | Type | Description |
@@ -51,11 +53,11 @@ class SemanticAlgebra:
         return slots
 
 
-    def create_base_SEMENT(self, predicate, intrinsic_variable_properties={}):
+    def create_base_SEMENT(self, predicate, intrinsic_variable_properties=None, synopsis_dict=None):
         """
-        Make the base case SEMENT
+        Make the base case SEMENT.
 
-        That is, a SEMENT with only one EP in the `RELS` list before any composition has occurred
+        That is, a SEMENT with only one EP in the `RELS` list before any composition has occurred.
 
         **Parameters**
         | Parameter | Type | Description | Default | Example |
@@ -68,9 +70,12 @@ class SemanticAlgebra:
         | ---- | ----------- |
         | `SEMENT` | newly created SEMENT with one EP in the `RELS` list |
         """
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
 
         # get semantic arguments for given predicate
-        args = self.pogg_config.concretize(predicate)
+        args = self.pogg_config.concretize(predicate, synopsis_dict)
+
         # create EP
         # create a handle that will serve as the LBL for the EP
         lbl = self.pogg_config.var_labeler.get_var_name('h')
@@ -92,9 +97,9 @@ class SemanticAlgebra:
 
     def create_CARG_SEMENT(self, predicate, carg_value, intrinsic_variable_properties={}):
         """
-        Make a base case SEMENT for an EP with a CARG argument
+        Make a base case SEMENT for an EP with a CARG argument.
 
-        For example, a SEMENT with the EP `named`, with a `CARG` value of "Liz"
+        For example, a SEMENT with the EP `named`, with a `CARG` value of "Liz".
 
         **Parameters**
         | Parameter | Type | Description | Default | Example |
@@ -124,11 +129,10 @@ class SemanticAlgebra:
         # send in empty lists for eqs, hcons, and icons for ease of composition
         return SEMENT(lbl, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties})
 
-
     def op_non_scopal_argument_hook(self, functor, argument, slot_label):
         """
         Perform non-scopal composition on two SEMENTs. The hook (i.e. the `LTOP` and `INDEX`) of the resulting SEMENT comes from the argument.
-        Typically used when the functor is a modifier (e.g. *tasty cookie*)
+        Typically used when the functor is a modifier (e.g. *tasty cookie*).
 
         **Parameters**
         | Parameter | Type | Description | Example |
@@ -187,7 +191,7 @@ class SemanticAlgebra:
     def op_non_scopal_functor_hook(self, functor, argument, slot_label):
         """
         Perform non-scopal composition on two SEMENTs. The hook of the resulting SEMENT comes from the functor.
-        Typically used when the argument is a complement (e.g. *give a cookie*) or preposition (*in the park*)
+        Typically used when the argument is a complement (e.g. *give a cookie*) or preposition (*in the park*).
 
         **Parameters**
         | Parameter | Type | Description | Example |
@@ -308,6 +312,7 @@ class SemanticAlgebra:
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
+
     def op_scopal_functor_index(self, functor, argument, slot_label):
         """
         Perform scopal composition where the INDEX comes from the functor (as does the LTOP, but this is true for all versions of scopal composition).
@@ -362,9 +367,77 @@ class SemanticAlgebra:
         result_variables.update(functor.variables)
         result_variables.update(argument.variables)
 
+        # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
+        # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
+        new_h = self.pogg_config.var_labeler.get_var_name("h")
+        result_variables.update({new_h: {}})
+        result_eqs.append((new_h, functor.slots[slot_label]))
+
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
+    def op_scopal_functor_index_argument_slots(self, functor, argument, slot_label):
+        """
+        Perform scopal composition where the INDEX comes from the functor (as does the LTOP, but this is true for all versions of scopal composition)
+        but the slots come *from the argument*.
+        Used for negation because the INDEX must come from `neg` but the slots of the argument should persist (e.g. *the player who has not eaten a berry*).
+
+        **Parameters**
+        | Parameter | Type | Description | Example |
+        | --------- | ---- | ----------- | ------- |
+        | `functor` | `SEMENT` | SEMENT object for the functor  |  |
+        | `argument` | `SEMENT` | SEMENT object for the argument  |  |
+        | `slot_label` | `str` | label for the semantic argument slot in the functor that the argument is plugging | `ARG1` |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `SEMENT` | newly created SEMENT resulting from composition |
+        """
+
+        # FUNC = semantic functor
+        # ARG = semantic argument
+        # SLOT = hole to be filled on the functor by composition
+        # RES = SEMENT resulting from composition
+
+        # RES.TOP = FUNC.TOP (note TOP serves as LTOP for SEMENTs)
+        # RES.INDEX = FUNC.INDEX
+        # RES.RELS = FUNC.RELS + ARG.RELS
+        # RES.EQS = FUNC.EQS + ARG.EQS
+        # ... no new EQs here just a QEQ in HCONS
+        # RES.SLOTS = ARG.SLOTS
+        # ... take the slots from argument specifically in this case
+
+        # RES.HCONS = FUNC.HCONS + ARG.HCONS + FUNC.slot_label =q ARG.TOP
+        # RES.ICONS = FUNC.ICONS + ARG.ICONS
+
+        result_top = functor.top
+        result_index = functor.index
+
+        result_rels = functor.rels + argument.rels
+
+        result_eqs = functor.eqs + argument.eqs
+
+        result_slots = argument.slots.copy()
+
+        result_hcons = functor.hcons + argument.hcons
+        result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
+
+        result_icons = functor.icons + argument.icons
+
+        result_variables = {}
+        result_variables.update(functor.variables)
+        result_variables.update(argument.variables)
+
+        # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
+        # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
+        new_h = self.pogg_config.var_labeler.get_var_name("h")
+        result_variables.update({new_h: {}})
+        result_eqs.append((new_h, functor.slots[slot_label]))
+
+        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons,
+                      result_variables)
 
     def op_scopal_quantifier(self, functor, argument):
         """
@@ -435,13 +508,14 @@ class SemanticAlgebra:
 
         1. check if the INDEX is of type `e`
 
-        If not...
+            - If not...
 
-        2. check if given SEMENT is quantified, and wrap in generic quantifier if not
-        3. wrap in `unknown` event
-        4. create a new GTOP handle and set it to be QEQ to the SEMENT's previous LTOP
-        5. overwrite all EQs to one representative value
-        6. constrain all hi-handles in QEQ relationships to be of type `h`
+                1. check if given SEMENT is quantified, and wrap in generic quantifier if necessary
+                2. wrap in `unknown` event
+
+        2. create a new GTOP handle and set it to be QEQ to the SEMENT's previous LTOP
+        3. overwrite all EQs to one representative value
+        4. constrain all hi-handles in QEQ relationships to be of type `h`
         :::
 
         **Parameters**
@@ -456,13 +530,22 @@ class SemanticAlgebra:
         """
 
         # duplicate sement to avoid editing the original
-        unprepared_sement = sement_util.duplicate_sement(sement)
-
+        unprepared_sement = POGGSEMENTUtil.duplicate_sement(sement)
 
         if sement.index[0] != "e":
             # check if quantified, wrap in one if not
-            if not sement_util.check_if_quantified(unprepared_sement):
-                quant_sement = self.create_base_SEMENT("def_udef_a_q")
+            if not POGGSEMENTUtil.check_if_quantified(unprepared_sement):
+                # if the top level predicate is "named," use "proper_q"
+                quant_sement = None
+                for rel in unprepared_sement.rels:
+                    # if rel.predicate == "named" and rel.args['ARG0'] == unprepared_sement.index:
+                    #     quant_sement = self.create_base_SEMENT("def_or_proper_q")
+                    if rel.predicate == "card" and rel.args['ARG0'] == unprepared_sement.index:
+                        quant_sement = self.create_base_SEMENT("number_q")
+
+                if quant_sement is None:
+                    quant_sement = self.create_base_SEMENT("def_udef_a_q")
+
                 quantified_sement = self.op_scopal_quantifier(quant_sement, unprepared_sement)
             else:
                 quantified_sement = sement
@@ -474,12 +557,19 @@ class SemanticAlgebra:
             e_type_sement = unprepared_sement
 
         # wrap with GTOP
-        gtop = self.pogg_config.var_labeler.get_var_name("h")
-        new_hcon = mrs.HCons(gtop, "qeq", e_type_sement.top)
+        # check if there's already a GTOP
+        has_gtop = False
+        for hcon in e_type_sement.hcons:
+            if e_type_sement.top == hcon.hi:
+                has_gtop = True
 
-        # change top and add hcon
-        e_type_sement.top = gtop
-        e_type_sement.hcons.append(new_hcon)
+        if not has_gtop:
+            gtop = self.pogg_config.var_labeler.get_var_name("h")
+            new_hcon = mrs.HCons(gtop, "qeq", e_type_sement.top)
+
+            # change top and add hcon
+            e_type_sement.top = gtop
+            e_type_sement.hcons.append(new_hcon)
 
         # go through all handle constraints, if any variable is not of type h, add another EQ
         # e.g. if the hi argument in an hcon is u1 then add < u1 eq h2 >
@@ -494,7 +584,7 @@ class SemanticAlgebra:
                 e_type_sement.eqs.append((new_h, hcon.lo))
                 e_type_sement.variables[new_h] = {}
 
-        final_sement = sement_util.overwrite_eqs(e_type_sement)
+        final_sement = POGGSEMENTUtil.overwrite_eqs(e_type_sement)
         return final_sement
 
 

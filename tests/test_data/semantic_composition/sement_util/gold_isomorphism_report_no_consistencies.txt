@@ -1,11 +1,11 @@
 --- GOLD SEMENT ---
 [ TOP: h1
-  INDEX: x2
+  INDEX: x2 [ x NUM: pl ]
   RELS: < [ _cookie_n_1 LBL: h1 ARG0: x2 ] > ]
 
 --- ACTUAL SEMENT ---
 [ TOP: h3
-  INDEX: x4
+  INDEX: x4 [ x NUM: sg ]
   RELS: < [ _cake_n_1 LBL: h3 ARG0: x4 ] > ]
 
 
@@ -14,18 +14,18 @@
 =====================
 
 SEMANTIC ROLE IDENTITY DISCREPANCIES
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 GOLD ONLY
-Role Set                     Gold Var
----------------------------  ----------
-['INDEX', '_cookie_n_1.ARG0']  x2
-['TOP', '_cookie_n_1.LBL']     h1
+Role Set                       Gold Var    Properties
+-----------------------------  ----------  -------------
+['INDEX', '_cookie_n_1.ARG0']  x2          {'NUM': 'pl'}
+['TOP', '_cookie_n_1.LBL']     h1          {}
 
 ACTUAL ONLY
-Role Set                       Actual Var
------------------------------  ------------
-['INDEX', '_cake_n_1.ARG0']  x4
-['TOP', '_cake_n_1.LBL']     h3
+Role Set                     Actual Var    Properties
+---------------------------  ------------  -------------
+['INDEX', '_cake_n_1.ARG0']  x4            {'NUM': 'sg'}
+['TOP', '_cake_n_1.LBL']     h3            {}
 
 
 
@@ -33,5 +33,4 @@ Role Set                       Actual Var
 =====================
 === CONSISTENCIES ===
 =====================
-
 

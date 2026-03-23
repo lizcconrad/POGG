@@ -23,9 +23,9 @@
     ],
     "gold_output_generation_coverage": 1.0,
     "generation_comment": null,
-    "generated_SEMENT_string": "[ TOP: h718\n  INDEX: x717\n  RELS: < [ _silver_a_1 LBL: h721 ARG0: i719 ARG1: i720 ]\n          [ _horse_n_1 LBL: h718 ARG0: x717 ] >\n  EQS: < h721 eq h718 i720 eq x717 > ]",
-    "collapsed_SEMENT_string": "[ TOP: h718\n  INDEX: x717\n  RELS: < [ _silver_a_1 LBL: h718 ARG0: i719 ARG1: x717 ]\n          [ _horse_n_1 LBL: h718 ARG0: x717 ] > ]",
-    "prepped_SEMENT_string": "[ TOP: h730\n  INDEX: e727\n  RELS: < [ unknown LBL: h726 ARG: x717 ARG0: e727 ]\n          [ def_udef_a_q LBL: h725 ARG0: x717 RSTR: h723 BODY: h724 ]\n          [ _silver_a_1 LBL: h718 ARG0: i719 ARG1: x717 ]\n          [ _horse_n_1 LBL: h718 ARG0: x717 ] >\n  HCONS: < h723 qeq h718 h730 qeq h726 > ]",
+    "generated_SEMENT_string": null,
+    "collapsed_SEMENT_string": null,
+    "prepped_SEMENT_string": null,
     "generated_results": [
         "A silver horse",
         "A silver horse.",

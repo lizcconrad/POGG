@@ -12,7 +12,7 @@ class _VarIterator:
     """
     Iterator to help with creating handles, indices, and variables in SEMENTs.
 
-    For example, the `ARG0` of the `_cake_n_1` predicate may have a value of `x1`, the `1` comes from this iterator.
+    For example, the `ARG0` of the `_cake_n_1` predicate may have a value of `x1`. The `1` comes from this iterator.
     Every time a new variable is introduced the current value of the iterator is used and the iterator is incremented.
     """
     def __init__(self, start=0):
@@ -58,12 +58,12 @@ class _VarLabeler:
     """
     Returns the appropriate label for the next created variable.
 
-    For example, the intrinsic variable of a noun, the type will be `x` and then the object's variable iterator
+    For example, for the intrinsic variable of a noun, the type will be `x` and then the object's variable iterator
     (`self.VarIt`) determines the number following the type.
     """
     def __init__(self):
         """
-        Make a `VarIterator which` will increment for each variable made and include the number on the variable name.
+        Make a `VarIterator` which will increment for each variable made and include the number on the variable name.
 
         **Instance Attributes**
         | Attribute | Type | Description |
@@ -118,6 +118,21 @@ class POGGConfig:
         | --------- | ---- | ------------ |
         | `yaml_filepath` | `str` | path to the YAML file which contains the configuration information |
 
+        :::{example} YAML config example
+        :collapsible:
+        ```
+        # top level directory
+        data_dir: "/absolute/path/to/dataset/directory"
+
+        # subdirectories
+        # Grammar information
+        grammar_location: ./ERG/ERG_2023/erg-2023.dat
+        SEMI: ./ERG/ERG_2023/trunk/etc/erg.smi
+        ```
+        :::
+
+        Provided the provided YAML config file has the appropriate fields, the instance attributes shown in the below table will be accessible.
+
         **Instance Attributes**
         | Attribute | Type | Description |
         | --------- | ---- | ------------ |
@@ -135,7 +150,6 @@ class POGGConfig:
         self.SEMI_location = None
         self.SEMI = None
         self.var_labeler = None
-
 
         # save grammar_location in the POGGConfig object
         try:
@@ -156,34 +170,67 @@ class POGGConfig:
 
         self.var_labeler = _VarLabeler()
 
-
-    def concretize(self, predicate):
+    def concretize(self, predicate, manual_synopsis=None):
         """
         Given a predicate label, find the semantic argument slots and concretize the variable names.
-
 
         For example, if according to the SEMI, the variable type of the predicate's `ARG1` is `e`
         then give it a concrete value such as `e1`. Return as a dict of arguments and their concrete variable values.
 
+        Optionally, provide a synopsis dictionary if the synopsis pulled from the SEMI is not the desired version for a predicate label.
+
         **Parameters**
-        | Parameter | Type | Description |
-        | --------- | ---- | ----------- |
-        | `prediacte` | `str` | ERG predicate label (e.g. `_cookie_n_1` for the word 'cookie') |
+        | Parameter | Type | Default | Description | Example |
+        | --------- | ---- | ------- | ----------- | ------- |
+        | `predicate` | `str` | -- | ERG predicate label | `_cookie_n_1` for the word 'cookie' |
+        | `manual_synopsis` | `str` | `None` | Dictionary of predicate roles and their variable types | See dropdown |
+
+        ````{example} Synopsis Dictionary Example
+        :collapsible:
+        A synopsis dictionary is a dictionary with one key, `roles` which contains a list of dictionaries
+        detailing the name of each argument and its variable type.
+
+        Because the `find_synopsis` function from PyDelphin only returns the first synopsis for a predicate label,
+        it is sometimes necessary to provide the synopsis manually to ensure proper generation.
+
+        Below is an example for the predicate `_cool_a_1` which has two versions, and the second one is required for generating
+        phrases like *the cool jacket*.
+
+        ```
+        _cool_a_1 : ARG0 e, [ ARG1 u ], [ ARG2 i ].
+        _cool_a_1 : ARG0 e, ARG1 i.
+        ```
+
+        ```
+        {
+            "roles": [
+                {"name": "ARG0", "value": "e"}
+                {"name": "ARG1", "value": "i"}
+            ]
+        }
+        ```
+
+        ````
 
         **Returns**
-        | Type | Description |
-        | ---- | ----------- |
-        | dict of `str`:`str` | dict of semantic slots and their variable values (e.g. `{'ARG1': 'x1'}`) |
+        | Type | Description | Example |
+        | ---- | ----------- | ------- |
+        | dict of `str`:`str` | dict of semantic slots and their variable values | `{'ARG1': 'x1'}` |
         """
 
-        try:
-            synopsis = self.SEMI.find_synopsis(predicate)
-        except semi.SemIError:
-            raise KeyError(f"Couldn't find {predicate} in the SEMI")
+        if manual_synopsis is None:
+            try:
+                synopsis = self.SEMI.find_synopsis(predicate)
+                synopsis_dict = synopsis.to_dict()
+            except semi.SemIError:
+                raise KeyError(f"Couldn't find {predicate} in the SEMI")
+        else:
+            # TODO: make this so that the user enters in what is in the .smi file rather than a full dictionary structure
+            synopsis_dict = manual_synopsis
 
-        syn_dict = synopsis.to_dict()
+
         args_dict = {}
-        for role in syn_dict['roles']:
+        for role in synopsis_dict['roles']:
             # currently, role['value'] is just a variable type, like e
             # we still want that in the final variable name, so pass it in as the prefix to the var_labeler
             # but set the value of the role in the args_dict to be the returned var_name (something like e2)

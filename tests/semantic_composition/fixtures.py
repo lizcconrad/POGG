@@ -1,7 +1,7 @@
 import os
 from pytest_cases import fixture
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.semantic_composition.base_constructions import SemanticComposition
+from pogg.semantic_composition.semantic_composition import SemanticComposition
 
 @fixture(scope="session")
 def semantic_composition_test_dir(test_data_dir):

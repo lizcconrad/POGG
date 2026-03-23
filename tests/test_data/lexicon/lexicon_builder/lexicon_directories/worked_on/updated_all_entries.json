@@ -2,29 +2,25 @@
     "node_keys": {
         "birthdayCandle": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": {
+            "head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_candle_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_candle_n_1"
             },
-            "non_head_noun_sement": {
+            "non_head_noun_SEMENT": {
                 "comp_fxn": "noun",
-                "predicate": "_birthday_n_1",
-                "intrinsic_variable_properties": {}
+                "predicate": "_birthday_n_1"
             }
         },
         "EXPANDED_cookie": {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         },
         "NO_CHANGE_candy": {
             "comp_fxn": ""
         },
         "FIXED_cupcake": {
             "comp_fxn": "noun",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         },
         "INVALID_brownie": {
             "comp_fxn": "nuh uh!",
@@ -36,33 +32,30 @@
         },
         "COMPLETED_bread": {
             "comp_fxn": "noun",
-            "predicate": "_bread_n_1",
-            "intrinsic_variable_properties": {}
+            "predicate": "_bread_n_1"
         }
     },
     "edge_keys": {
         "COMPLETED_property": {
             "comp_fxn": "compound_noun",
-            "non_head_noun_sement": "parent",
-            "head_noun_sement": "child"
+            "non_head_noun_SEMENT": "parent",
+            "head_noun_SEMENT": "child"
         },
         "flavor": {
             "comp_fxn": "compound_noun",
-            "head_noun_sement": "parent",
-            "non_head_noun_sement": "child"
+            "head_noun_SEMENT": "parent",
+            "non_head_noun_SEMENT": "child"
         },
         "EXPANDED_color": {
             "comp_fxn": "adjective",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         },
         "NO_CHANGE_scent": {
             "comp_fxn": ""
         },
         "FIXED_texture": {
             "comp_fxn": "adjective",
-            "predicate": "",
-            "intrinsic_variable_properties": {}
+            "predicate": ""
         },
         "INVALID_property": {
             "comp_fxn": "uh oh...",

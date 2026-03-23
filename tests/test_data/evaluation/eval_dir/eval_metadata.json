@@ -1,0 +1,12 @@
+{
+    "run_id": "00000",
+    "dataset_name": "dataset",
+    "dataset_location": "/dataset",
+    "semantic_algebra_functions_available": [
+        "fxn0"
+    ],
+    "semantic_composition_functions_available": [
+        "fxn1",
+        "fxn2"
+    ]
+}

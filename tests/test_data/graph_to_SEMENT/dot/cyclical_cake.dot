@@ -1,0 +1,4 @@
+strict digraph {
+cake [node_type=entity, lexicon_key=cake];
+cake -> cake;
+}
