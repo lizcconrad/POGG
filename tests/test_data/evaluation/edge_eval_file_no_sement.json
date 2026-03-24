@@ -9,6 +9,10 @@
     "sem_comp_fxns_used": [
         "prenominal_adjective"
     ],
+    "sem_alg_fxns_used": [
+        "create_base_SEMENT",
+        "op_non_scopal_argument_hook"
+    ],
     "edge_covered": true,
     "edge_included": true,
     "generation_comment": "me when i'm a comment",

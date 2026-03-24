@@ -8,6 +8,8 @@ import copy
 import inspect
 import networkx as nx
 
+from pogg.semantic_composition.call_tracer import SemCompTracer, SemAlgTracer
+
 import pogg.lexicon.lexicon_builder
 from pogg.my_delphin.my_delphin import SEMENT
 from pogg.data_handling.graph_util import POGGGraphUtil
@@ -108,6 +110,10 @@ class POGGGraphConverter:
         # comes in as a tuple from the NetworkX NodeView
         node_name, node_props = node[0], node[1]
 
+        # reset the tracers
+        SemCompTracer.reset_fxns_called()
+        SemAlgTracer.reset_fxns_called()
+
         # try to get the comp_fxn
         try:
             # get the comp_fxn
@@ -129,7 +135,18 @@ class POGGGraphConverter:
                 node_evaluation.node_covered = True
                 node_evaluation.set_SEMENT(sement)
                 # add fxn to list of fxns used
-                node_evaluation.sem_comp_fxns_used.add(comp_fxn_name)
+                # node_evaluation.sem_comp_fxns_used.add(comp_fxn_name)
+                # node_evaluation.sem_alg_fxns_used.update(SemAlgTracer.fxns_called)
+                # node_evaluation.sem_alg_fxns_used.update(SemAlgTracer.fxns_called)
+
+                node_evaluation.sem_alg_fxns_used = {
+                    k: node_evaluation.sem_alg_fxns_used.get(k, 0) + SemAlgTracer.fxns_called.get(k, 0)
+                    for k in node_evaluation.sem_alg_fxns_used.keys() | SemAlgTracer.fxns_called.keys()}
+
+                node_evaluation.sem_comp_fxns_used = {
+                    k: node_evaluation.sem_comp_fxns_used.get(k, 0) + SemCompTracer.fxns_called.get(k, 0)
+                    for k in node_evaluation.sem_comp_fxns_used.keys() | SemCompTracer.fxns_called.keys()}
+
 
             return sement
         except Exception as err:
@@ -160,6 +177,10 @@ class POGGGraphConverter:
         | ---- | ----------- |
         | `SEMENT` | SEMENT produced with the given edge information |
         """
+
+        # reset the tracers
+        SemAlgTracer.reset_fxns_called()
+        SemCompTracer.reset_fxns_called()
 
         # check if one of the SEMENTs to compose is None
         if parent is None:
@@ -210,7 +231,18 @@ class POGGGraphConverter:
 
         if edge_evaluation:
             # add fxn to list of fxns used
-            edge_evaluation.sem_comp_fxns_used.add(comp_fxn_name)
+            # edge_evaluation.sem_comp_fxns_used.add(comp_fxn_name)
+            # edge_evaluation.sem_comp_fxns_used.update(SemCompTracer.fxns_called)
+            # edge_evaluation.sem_alg_fxns_used.update(SemAlgTracer.fxns_called)
+
+            edge_evaluation.sem_alg_fxns_used = {
+                k: edge_evaluation.sem_alg_fxns_used.get(k, 0) + SemAlgTracer.fxns_called.get(k, 0)
+                for k in edge_evaluation.sem_alg_fxns_used.keys() | SemAlgTracer.fxns_called.keys()}
+
+            edge_evaluation.sem_comp_fxns_used = {
+                k: edge_evaluation.sem_comp_fxns_used.get(k, 0) + SemCompTracer.fxns_called.get(k, 0)
+                for k in edge_evaluation.sem_comp_fxns_used.keys() | SemCompTracer.fxns_called.keys()}
+
             edge_evaluation.edge_covered = True
             edge_evaluation.set_SEMENT(sement)
 

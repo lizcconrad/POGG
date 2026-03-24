@@ -5,9 +5,12 @@
         "lexicon_key": "raspberry"
     },
     "generated_SEMENT_string": "[ TOP: h37\n  INDEX: x36\n  RELS: < [ _raspberry_n_1 LBL: h37 ARG0: x36 ] > ]",
-    "sem_comp_fxns_used": [
-        "noun"
-    ],
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 1
+    },
+    "sem_comp_fxns_used": {
+        "noun": 1
+    },
     "node_covered": true,
     "node_included": false,
     "generation_comment": null,

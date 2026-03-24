@@ -187,6 +187,15 @@ class POGG:
         # 0. store run metadata
         now = datetime.datetime.now()
         self.evaluation.run_id = now.strftime("%m%d%Y_%H%M%S")
+
+        # TODO: a little hacky but oh well...
+        self.evaluation.sem_alg_fxns_available = set([method_name for method_name in dir(self.semantic_algebra)
+                                                       if callable(
+                getattr(self.semantic_algebra, method_name)) and not re.match("__.*__", method_name)])
+        self.evaluation.sem_alg_fxns_available.remove('_get_slots')
+        self.evaluation.sem_alg_fxns_available.remove('prepare_for_generation')
+
+
         self.evaluation.sem_comp_fxns_available = set([method_name for method_name in dir(self.semantic_composition)
                          if callable(getattr(self.semantic_composition, method_name)) and not re.match("__.*__", method_name)])
 

@@ -1,12 +1,15 @@
 from pogg.my_delphin.my_delphin import SEMENT
 import re
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
+from pogg.semantic_composition.call_tracer import SemCompTracer
 
 class BooleanConstructionsMixin:
     """
     The `BooleanConstructionsMixin` contains functions for composing new SEMENTs where the version of one SEMENT is determined by a boolean value
     e.g. if an edge points to a boolean node, then depending on that value the SEMENT that should be generated from that edge will change
     """
+
+    @SemCompTracer.trace
     def boolean_value(self, value: bool) -> SEMENT:
         # turning it into a SEMENT for consistency of what semantic composition functions return
         if value:
@@ -14,7 +17,7 @@ class BooleanConstructionsMixin:
         else:
             return self.adjective("_false_a_of")
 
-
+    @SemCompTracer.trace
     def boolean_edge(self, main_comp_fxn, boolean_value_node: SEMENT,
                      true_SEMENT: SEMENT, false_SEMENT: SEMENT, **kwargs):
         """eatenberry": {
@@ -32,6 +35,7 @@ class BooleanConstructionsMixin:
         }"""
         pass
 
+    @SemCompTracer.trace
     def boolean_property(self, boolean_node_SEMENT: SEMENT, modified_SEMENT: SEMENT, true_SEMENT: SEMENT, false_SEMENT: SEMENT) -> SEMENT:
         key_rel = None
         for rel in boolean_node_SEMENT.rels:
@@ -47,6 +51,7 @@ class BooleanConstructionsMixin:
         else:
             return None
 
+    @SemCompTracer.trace
     def boolean_ARG1_relative_clause(self, boolean_node_SEMENT: SEMENT, ARG1_SEMENT: SEMENT, ARG2_SEMENT: SEMENT,
                                      true_SEMENT: SEMENT, false_SEMENT: SEMENT) -> SEMENT:
         key_rel = None
@@ -63,6 +68,7 @@ class BooleanConstructionsMixin:
         else:
             return None
 
+    @SemCompTracer.trace
     def boolean_ARG2_relative_clause(self, boolean_node_SEMENT: SEMENT, true_SEMENT: SEMENT, false_SEMENT: SEMENT,
                                      ARG2_SEMENT: SEMENT, ARG1_SEMENT: SEMENT=None) -> SEMENT:
         key_rel = None

@@ -1,10 +1,13 @@
 {
     "graph_name": "graph",
-    "sem_comp_fxns_used": [
-        "adjective",
-        "noun",
-        "prenominal_adjective"
-    ],
+    "sem_comp_fxns_used": {
+        "adjective": 1,
+        "noun": 1,
+        "prenominal_adjective": 1
+    },
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 2
+    },
     "node_count": 2,
     "nodes_covered": 2,
     "nodes_included": 2,

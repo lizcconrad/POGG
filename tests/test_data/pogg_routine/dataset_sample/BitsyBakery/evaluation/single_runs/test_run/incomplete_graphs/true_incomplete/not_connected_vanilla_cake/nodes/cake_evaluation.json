@@ -5,7 +5,8 @@
         "lexicon_key": "cake"
     },
     "generated_SEMENT_string": null,
-    "sem_comp_fxns_used": [],
+    "sem_alg_fxns_used": {},
+    "sem_comp_fxns_used": {},
     "node_covered": false,
     "node_included": false,
     "generation_comment": null,

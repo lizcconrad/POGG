@@ -47,8 +47,8 @@ class POGGNodeEvaluation:
         self.node_props = node_props
 
         # functions called during generation
-        # self.sem_alg_fxns_used = set()
-        self.sem_comp_fxns_used = set()
+        self.sem_alg_fxns_used = {}
+        self.sem_comp_fxns_used = {}
 
         # associated SEMENT
         self.generated_SEMENT = None
@@ -95,7 +95,8 @@ class POGGNodeEvaluation:
 
             'generated_SEMENT_string': self.generated_SEMENT_string,
 
-            'sem_comp_fxns_used': sorted(list(self.sem_comp_fxns_used)),
+            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
+            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
             'node_covered': self.node_covered,
 
             'node_included': self.node_included,
@@ -112,6 +113,7 @@ class POGGNodeEvaluation:
             self.generated_SEMENT_string = node_json_obj['generated_SEMENT_string']
             if self.generated_SEMENT_string is not None:
                 self.generated_SEMENT = sementcodecs.decode(self.generated_SEMENT_string)
+            self.sem_alg_fxns_used = node_json_obj['sem_alg_fxns_used']
             self.sem_comp_fxns_used = node_json_obj['sem_comp_fxns_used']
             self.node_covered = node_json_obj['node_covered']
             self.node_included = node_json_obj['node_included']
@@ -163,8 +165,8 @@ class POGGEdgeEvaluation:
         self.generated_SEMENT_string = None
 
         # functions called during generation
-        # self.sem_alg_fxns_used = set()
-        self.sem_comp_fxns_used = set()
+        self.sem_alg_fxns_used = {}
+        self.sem_comp_fxns_used = {}
 
         # evaluation information
         # was there a SEMENT generated from this node?
@@ -208,7 +210,8 @@ class POGGEdgeEvaluation:
 
             'generated_SEMENT_string': self.generated_SEMENT_string,
 
-            'sem_comp_fxns_used': sorted(list(self.sem_comp_fxns_used)),
+            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
+            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
 
             'edge_covered': self.edge_covered,
             'edge_included': self.edge_included,
@@ -227,6 +230,7 @@ class POGGEdgeEvaluation:
             self.generated_SEMENT_string = edge_json["generated_SEMENT_string"]
             if self.generated_SEMENT_string is not None:
                 self.generated_SEMENT = sementcodecs.decode(self.generated_SEMENT_string)
+            self.sem_alg_fxns_used = edge_json["sem_alg_fxns_used"]
             self.sem_comp_fxns_used = edge_json["sem_comp_fxns_used"]
             self.edge_covered = edge_json["edge_covered"]
             self.edge_included = edge_json["edge_included"]
@@ -302,8 +306,8 @@ class POGGGraphEvaluation:
         self.edge_inclusion = None
 
         # functions called during generation
-        # self.sem_alg_fxns_used = set()
-        self.sem_comp_fxns_used = set()
+        self.sem_alg_fxns_used = {}
+        self.sem_comp_fxns_used = {}
 
         # gold output information
         self.gold_outputs = set()
@@ -571,7 +575,14 @@ class POGGGraphEvaluation:
 
             # add the functions used to the set for the whole graph
             # self.sem_alg_fxns_used.update(node_eval.sem_alg_fxns_used)
-            self.sem_comp_fxns_used.update(node_eval.sem_comp_fxns_used)
+            # self.sem_comp_fxns_used.update(node_eval.sem_comp_fxns_used)
+            self.sem_alg_fxns_used = {
+                k: self.sem_alg_fxns_used.get(k, 0) + node_eval.sem_alg_fxns_used.get(k, 0)
+                for k in self.sem_alg_fxns_used.keys() | node_eval.sem_alg_fxns_used.keys()}
+
+            self.sem_comp_fxns_used = {
+                k: self.sem_comp_fxns_used.get(k, 0) + node_eval.sem_comp_fxns_used.get(k, 0)
+                for k in self.sem_comp_fxns_used.keys() | node_eval.sem_comp_fxns_used.keys()}
 
             # compute coverage / inclusion
             if node_eval.node_covered:
@@ -586,7 +597,15 @@ class POGGGraphEvaluation:
         for edge_eval in self.edge_evaluations:
             # add the functions used to the set for the whole graph
             # self.sem_alg_fxns_used.update(edge_eval.sem_alg_fxns_used)
-            self.sem_comp_fxns_used.update(edge_eval.sem_comp_fxns_used)
+            # self.sem_comp_fxns_used.update(edge_eval.sem_comp_fxns_used)
+
+            self.sem_alg_fxns_used = {
+                k: self.sem_alg_fxns_used.get(k, 0) + edge_eval.sem_alg_fxns_used.get(k, 0)
+                for k in self.sem_alg_fxns_used.keys() | edge_eval.sem_alg_fxns_used.keys()}
+
+            self.sem_comp_fxns_used = {
+                k: self.sem_comp_fxns_used.get(k, 0) + edge_eval.sem_comp_fxns_used.get(k, 0)
+                for k in self.sem_comp_fxns_used.keys() | edge_eval.sem_comp_fxns_used.keys()}
 
             # compute coverage / inclusion
             if edge_eval.edge_covered:
@@ -612,7 +631,8 @@ class POGGGraphEvaluation:
         return {
             'graph_name': self.graph_name,
 
-            'sem_comp_fxns_used': sorted(list(self.sem_comp_fxns_used)),
+            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
+            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
 
             'node_count': self.node_count,
             'nodes_covered': self.nodes_covered,
@@ -689,6 +709,7 @@ class POGGGraphEvaluation:
 
         self.generated_results = graph_evaluation_json['generated_results']
         self.sem_comp_fxns_used = graph_evaluation_json['sem_comp_fxns_used']
+        self.sem_alg_fxns_used = graph_evaluation_json['sem_alg_fxns_used']
 
         self.node_count = graph_evaluation_json['node_count']
         self.nodes_covered = graph_evaluation_json['nodes_covered']
@@ -785,7 +806,10 @@ class POGGEvaluation:
 
         self.sem_alg_fxns_available = set()
         self.sem_comp_fxns_available = set()
-        self.sem_comp_fxns_used = set()
+        self.sem_alg_fxns_used = {}
+        self.sem_alg_fxns_used_count = None
+        self.sem_alg_fxns_used_coverage = None
+        self.sem_comp_fxns_used = {}
         self.sem_comp_fxns_used_count = None
         self.sem_comp_fxns_used_coverage = None
 
@@ -864,7 +888,15 @@ class POGGEvaluation:
             graph_eval = self.graph_evaluations[graph_name]
 
             # self.sem_alg_fxns_used.update(graph_eval.sem_alg_fxns_used)
-            self.sem_comp_fxns_used.update(graph_eval.sem_comp_fxns_used)
+            # self.sem_comp_fxns_used.update(graph_eval.sem_comp_fxns_used)
+
+            self.sem_alg_fxns_used = {
+                k: self.sem_alg_fxns_used.get(k, 0) + graph_eval.sem_alg_fxns_used.get(k, 0)
+                for k in self.sem_alg_fxns_used.keys() | graph_eval.sem_alg_fxns_used.keys()}
+
+            self.sem_comp_fxns_used = {
+                k: self.sem_comp_fxns_used.get(k, 0) + graph_eval.sem_comp_fxns_used.get(k, 0)
+                for k in self.sem_comp_fxns_used.keys() | graph_eval.sem_comp_fxns_used.keys()}
 
             if graph_eval.generated_SEMENT is not None:
                 self.graph_SEMENT_count += 1
@@ -893,6 +925,7 @@ class POGGEvaluation:
         self.full_edge_inclusion = self.full_edge_count and self.full_edges_included / self.full_edge_count
 
         self.sem_comp_fxns_used_coverage = len(self.sem_comp_fxns_available) and len(self.sem_comp_fxns_used) / len(self.sem_comp_fxns_available)
+        self.sem_alg_fxns_used_coverage = len(self.sem_alg_fxns_available) and len(self.sem_alg_fxns_used) / len(self.sem_alg_fxns_available)
 
 
 
@@ -914,8 +947,11 @@ class POGGEvaluation:
 
             'sem_alg_fxns_available': sorted(list(self.sem_alg_fxns_available)),
             'sem_comp_fxns_available': sorted(list(self.sem_comp_fxns_available)),
-            'sem_comp_fxns_used': sorted(list(self.sem_comp_fxns_used)),
+            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
+            'sem_alg_fxns_used_count': len(self.sem_alg_fxns_used),
+            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
             'sem_comp_fxns_used_count': len(self.sem_comp_fxns_used),
+            'sem_alg_fxns_used_coverage': self.sem_alg_fxns_used_coverage,
             'sem_comp_fxns_used_coverage': self.sem_comp_fxns_used_coverage,
 
             'full_node_count': self.full_node_count,
@@ -980,7 +1016,11 @@ class POGGEvaluation:
         self.full_edge_coverage = dataset_eval["full_edge_coverage"]
         self.full_edge_inclusion = dataset_eval["full_edge_inclusion"]
 
-        self.sem_comp_fxns_used = set(dataset_eval["sem_comp_fxns_used"])
+        self.sem_alg_fxns_used = dataset_eval["sem_alg_fxns_used"]
+        self.sem_alg_fxns_used_count = dataset_eval["sem_alg_fxns_used_count"]
+        self.sem_alg_fxns_used_coverage = dataset_eval["sem_alg_fxns_used_coverage"]
+
+        self.sem_comp_fxns_used = dataset_eval["sem_comp_fxns_used"]
         self.sem_comp_fxns_used_count = dataset_eval["sem_comp_fxns_used_count"]
         self.sem_comp_fxns_used_coverage = dataset_eval["sem_comp_fxns_used_coverage"]
 

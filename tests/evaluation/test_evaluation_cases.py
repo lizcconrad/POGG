@@ -337,7 +337,8 @@ class POGGNodeEvaluationGetDictRepresentation:
             'node_name': "node",
             'node_props': {"prop": "val"},
             'generated_SEMENT_string': "fake SEMENT string",
-            'sem_comp_fxns_used': [],
+            'sem_comp_fxns_used': {},
+            'sem_alg_fxns_used': {},
             'node_covered': True,
             'node_included': False,
             'generation_comment': "fake comment",
@@ -474,7 +475,8 @@ class POGGEdgeEvaluationGetDictRepresentation:
             'parent_node_name': "parent",
             'edge_props': {"prop": "val"},
             'generated_SEMENT_string': "fake SEMENT string",
-            'sem_comp_fxns_used': [],
+            'sem_comp_fxns_used': {},
+            'sem_alg_fxns_used': {},
             'edge_covered': True,
             'edge_included': False,
             'generation_comment': "fake comment",
@@ -565,7 +567,8 @@ class POGGGraphEvaluationInit:
                 "node_included": True,
                 "generation_comment": "me when i'm a comment",
                 "inclusion_comment": "me when i'm also a comment",
-                "sem_comp_fxns_used": ["noun"]
+                "sem_comp_fxns_used": ["noun"],
+                "sem_alg_fxns_used": ["create_base_SEMENT"]
             }
         )
 
@@ -585,6 +588,7 @@ class POGGGraphEvaluationInit:
                 "generation_comment": "me when i'm a comment",
                 "inclusion_comment": "me when i'm also a comment",
                 "sem_comp_fxns_used": ["prenominal_adjective"],
+                "sem_alg_fxns_used": ["create_base_SEMENT", "op_non_scopal_argument_hook"]
             }
         )
 
@@ -657,7 +661,8 @@ class POGGGraphEvaluationInit:
                 "node_included": True,
                 "generation_comment": "me when i'm a comment",
                 "inclusion_comment": "me when i'm also a comment",
-                "sem_comp_fxns_used": ["noun"]
+                "sem_comp_fxns_used": {"noun": 1},
+                "sem_alg_fxns_used": {"create_base_SEMENT": 1}
             }
         )
 
@@ -675,7 +680,8 @@ class POGGGraphEvaluationInit:
                 "edge_included": True,
                 "generation_comment": "me when i'm a comment",
                 "inclusion_comment": "me when i'm also a comment",
-                "sem_comp_fxns_used": ["prenominal_adjective"],
+                "sem_comp_fxns_used": {"prenominal_adjective": 1},
+                "sem_alg_fxns_used": {"create_base_SEMENT": 2, "op_non_scopal_argument_hook": 1}
             }
         )
 
@@ -724,10 +730,10 @@ class POGGGraphEvaluationInit:
                   "prepped_SEMENT", "prepped_SEMENT_string", "generated_results"]
 
         n_attr = ["node_name", "node_props", "generated_SEMENT", "generated_SEMENT_string",
-                  "node_covered", "node_included", "generation_comment", "sem_comp_fxns_used"]
+                  "node_covered", "node_included", "generation_comment", "sem_alg_fxns_used", "sem_comp_fxns_used"]
 
         e_attr = ["edge_name", "edge_props", "generated_SEMENT", "generated_SEMENT_string",
-                  "edge_covered", "edge_included", "generation_comment", "inclusion_comment", "sem_comp_fxns_used"]
+                  "edge_covered", "edge_included", "generation_comment", "inclusion_comment", "sem_alg_fxns_used", "sem_comp_fxns_used"]
 
         return graph, "graph", evaluation_directory_sample_dir, mock_graph_eval, g_attr, n_attr, e_attr
 
@@ -768,11 +774,13 @@ class POGGGraphEvaluationGetDictRepresentation:
         graph_eval_obj.generated_results = ["me", "myself", "i"]
         graph_eval_obj.generated_gold_outputs = ["me"]
         graph_eval_obj.gold_output_generation_coverage = 0.5
-        graph_eval_obj.sem_comp_fxns_used = ["fxn"]
+        graph_eval_obj.sem_alg_fxns_used = {"fxn": 1}
+        graph_eval_obj.sem_comp_fxns_used = {"fxn": 1}
 
         gold_dict = {
             'graph_name': "graph",
-            'sem_comp_fxns_used': ["fxn"],
+            'sem_alg_fxns_used': {"fxn": 1},
+            'sem_comp_fxns_used': {"fxn": 1},
             'node_count': 5,
             'nodes_covered': 4,
             'nodes_included': 3,
@@ -1196,9 +1204,12 @@ class POGGEvaluationInit:
                 "full_edge_inclusion": None,
                 "sem_alg_fxns_available": set(),
                 "sem_comp_fxns_available": set(),
-                "sem_comp_fxns_used": set(),
+                "sem_alg_fxns_used": {},
+                "sem_comp_fxns_used": {},
                 "sem_comp_fxns_used_count": None,
                 "sem_comp_fxns_used_coverage": None,
+                "sem_alg_fxns_used_count": None,
+                "sem_alg_fxns_used_coverage": None,
 
             }
         )
@@ -1210,7 +1221,9 @@ class POGGEvaluationInit:
                 "full_edges_included", "full_edge_coverage", "full_edge_inclusion",
                 "graphs_with_gold_text_count", "graphs_with_gold_text_coverage",
                 "graphs_with_complete_gold_text_count", "graphs_with_complete_gold_text_coverage",
-                "sem_comp_fxns_used_count", "sem_comp_fxns_used_coverage", "sem_comp_fxns_used"]
+                "sem_comp_fxns_used_count", "sem_comp_fxns_used_coverage",
+                "sem_alg_fxns_available", "sem_comp_fxns_available", "sem_comp_fxns_used",
+                "sem_alg_fxns_used", "sem_alg_fxns_used_count", "sem_alg_fxns_used_coverage"]
 
         return "dataset", None, mock_eval, attr
 
@@ -1227,7 +1240,8 @@ class POGGEvaluationInit:
                 "run_complete": True,
                 "sem_alg_fxns_available": {"fxn0"},
                 "sem_comp_fxns_available": {"fxn1", "fxn2"},
-                "sem_comp_fxns_used": {"fxn1"},
+                "sem_comp_fxns_used": {"fxn1": 1},
+                "sem_alg_fxns_used": {"fxn0": 1},
                 "graph_count": 10,
                 "graph_SEMENT_count": 10,
                 "graph_SEMENT_coverage": 1.0,
@@ -1249,6 +1263,8 @@ class POGGEvaluationInit:
                 "full_edge_inclusion": 0.8,
                 "sem_comp_fxns_used_count": 1,
                 "sem_comp_fxns_used_coverage": 0.5,
+                "sem_alg_fxns_used_count": 1,
+                "sem_alg_fxns_used_coverage": 1.0,
             }
         )
 
@@ -1260,7 +1276,8 @@ class POGGEvaluationInit:
                 "graphs_with_gold_text_count", "graphs_with_gold_text_coverage",
                 "graphs_with_complete_gold_text_count", "graphs_with_complete_gold_text_coverage",
                 "sem_comp_fxns_used_count", "sem_comp_fxns_used_coverage",
-                "sem_alg_fxns_available", "sem_comp_fxns_available", "sem_comp_fxns_used"]
+                "sem_alg_fxns_available", "sem_comp_fxns_available", "sem_comp_fxns_used",
+                "sem_alg_fxns_used", "sem_alg_fxns_used_count", "sem_alg_fxns_used_coverage"]
 
         return "dataset", eval_sample_directory, mock_eval, attr
 
@@ -1309,10 +1326,12 @@ class POGGEvaluationGetDictRepresentation:
         eval_obj.graphs_with_complete_gold_text_count = 7
         eval_obj.graphs_with_complete_gold_text_coverage = 0.7
         eval_obj.sem_alg_fxns_available = {"fxn0"}
+        eval_obj.sem_alg_fxns_used = {"fxn0": 1}
         eval_obj.sem_comp_fxns_available = {"fxn1", "fxn2"}
-        eval_obj.sem_comp_fxns_used = {"fxn1"}
+        eval_obj.sem_comp_fxns_used = {"fxn1": 1}
         eval_obj.sem_comp_fxns_used_count = 1
         eval_obj.sem_comp_fxns_used_coverage = 0.5
+        eval_obj.sem_alg_fxns_used_coverage = 1.0
         eval_obj.full_node_count = 100
         eval_obj.full_nodes_covered = 90
         eval_obj.full_nodes_included = 80
@@ -1335,10 +1354,13 @@ class POGGEvaluationGetDictRepresentation:
             'graphs_with_complete_gold_text_count': 7,
             'graphs_with_complete_gold_text_coverage': 0.7,
             'sem_alg_fxns_available': ["fxn0"],
+            'sem_alg_fxns_used': {"fxn0": 1},
             'sem_comp_fxns_available': ["fxn1", "fxn2"],
-            'sem_comp_fxns_used': ["fxn1"],
+            'sem_comp_fxns_used': {"fxn1": 1},
             'sem_comp_fxns_used_count': 1,
             'sem_comp_fxns_used_coverage': 0.5,
+            'sem_alg_fxns_used_count': 1,
+            'sem_alg_fxns_used_coverage': 1.0,
             'full_node_count': 100,
             'full_nodes_covered': 90,
             'full_nodes_included': 80,

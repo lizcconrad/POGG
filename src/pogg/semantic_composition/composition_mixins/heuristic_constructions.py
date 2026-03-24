@@ -2,6 +2,8 @@ from pogg.my_delphin.my_delphin import SEMENT
 import re
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
+from pogg.semantic_composition.call_tracer import SemCompTracer
+
 class HeuristicConstructionsMixin:
     """
     The `HeuristicConstructionsMixin` contains functions for composing new SEMENTs where the specific construction is ambiguous.
@@ -9,6 +11,8 @@ class HeuristicConstructionsMixin:
     For example, if a graph has an edge called "descriptor" that might point to an adjective or what would be realized as a passive participle modifier
     As far as the MRS is concerned, the composition for these is different so this function will "guess" what type of descriptor was given and proceed that way
     """
+
+    @SemCompTracer.trace
     def generic_prenominal_descriptor(self, descriptor_SEMENT: SEMENT, described_SEMENT: SEMENT) -> SEMENT:
         # edges labeled "descriptor" may have an adjective or a participle as their child
         # so the function has to determine which type of descriptor it has and do composition based on that
@@ -37,6 +41,7 @@ class HeuristicConstructionsMixin:
             else:
                 return self.prenominal_adjective(descriptor_SEMENT, described_SEMENT)
 
+    @SemCompTracer.trace
     def quantify_generic(self, quantified_SEMENT: SEMENT) -> SEMENT:
         """
         Quantify a SEMENT in with generic quantifier, specifically `def_udef_a_q`

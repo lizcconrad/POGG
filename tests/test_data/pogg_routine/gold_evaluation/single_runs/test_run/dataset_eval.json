@@ -8,7 +8,16 @@
     "graphs_with_gold_text_coverage": 0.25,
     "graphs_with_complete_gold_text_count": 2,
     "graphs_with_complete_gold_text_coverage": 0.25,
-    "sem_alg_fxns_available": [],
+    "sem_alg_fxns_available": [
+        "create_CARG_SEMENT",
+        "create_base_SEMENT",
+        "op_non_scopal_argument_hook",
+        "op_non_scopal_functor_hook",
+        "op_scopal_argument_index",
+        "op_scopal_functor_index",
+        "op_scopal_functor_index_argument_slots",
+        "op_scopal_quantifier"
+    ],
     "sem_comp_fxns_available": [
         "ARG1_relative_clause",
         "ARG2_relative_clause",
@@ -48,14 +57,25 @@
         "un_prefix",
         "verb"
     ],
-    "sem_comp_fxns_used": [
-        "adjective",
-        "compound_noun",
-        "noun",
-        "prenominal_adjective"
-    ],
-    "sem_comp_fxns_used_count": 4,
-    "sem_comp_fxns_used_coverage": 0.10526315789473684,
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 20,
+        "op_non_scopal_argument_hook": 5,
+        "op_non_scopal_functor_hook": 4,
+        "op_scopal_quantifier": 4
+    },
+    "sem_alg_fxns_used_count": 4,
+    "sem_comp_fxns_used": {
+        "adjective": 2,
+        "basic": 4,
+        "compound_noun": 4,
+        "noun": 10,
+        "prenominal_adjective": 1,
+        "quantifier": 4,
+        "quantify": 4
+    },
+    "sem_comp_fxns_used_count": 7,
+    "sem_alg_fxns_used_coverage": 0.5,
+    "sem_comp_fxns_used_coverage": 0.1891891891891892,
     "full_node_count": 17,
     "full_nodes_covered": 12,
     "full_nodes_included": 9,

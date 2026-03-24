@@ -1,6 +1,7 @@
 {
     "graph_name": "not_connected_vanilla_cake",
-    "sem_comp_fxns_used": [],
+    "sem_alg_fxns_used": {},
+    "sem_comp_fxns_used": {},
     "node_count": 2,
     "nodes_covered": 0,
     "nodes_included": 0,

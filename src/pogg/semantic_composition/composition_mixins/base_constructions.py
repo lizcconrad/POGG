@@ -8,6 +8,8 @@ from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
+from pogg.semantic_composition.call_tracer import SemCompTracer
+
 class BaseConstructionsMixin:
     """
     The `BaseConstructionsMixin` contains functions for composing new SEMENTs using two input SEMENTs.
@@ -36,6 +38,7 @@ class BaseConstructionsMixin:
     #     object_and_verb = self.object_of_verb(verb_SEMENT, object_SEMENT)
     #     return self.semantic_algebra.op_non_scopal_functor_hook(object_and_verb, subject_SEMENT)
 
+    @SemCompTracer.trace
     def ARG1_relative_clause(self,  verb_SEMENT: SEMENT, ARG1_SEMENT: SEMENT, ARG2_SEMENT: SEMENT=None):
         # :(
         # add TENSE: tensed to verb_SEMENT
@@ -52,7 +55,7 @@ class BaseConstructionsMixin:
 
         return self.semantic_algebra.op_non_scopal_argument_hook(verb_and_ARG2, ARG1_SEMENT, "ARG1")
 
-
+    @SemCompTracer.trace
     def ARG2_relative_clause(self, verb_SEMENT: SEMENT, ARG2_SEMENT: SEMENT, ARG1_SEMENT: SEMENT=None):
         # :(
         # add TENSE: tensed to verb_SEMENT
@@ -69,6 +72,7 @@ class BaseConstructionsMixin:
 
         return self.semantic_algebra.op_non_scopal_argument_hook(verb_and_ARG1, ARG2_SEMENT, "ARG2")
 
+    @SemCompTracer.trace
     def prenominal_adjective(self, adjective_SEMENT: SEMENT, nominal_SEMENT: SEMENT) -> SEMENT:
         """
         Performs composition with an adjective SEMENT and a nominal SEMENT
@@ -88,10 +92,12 @@ class BaseConstructionsMixin:
 
         return self.semantic_algebra.op_non_scopal_argument_hook(adjective_SEMENT, nominal_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def nonrestrictive_adjectival_relative_clause(self, adjective_SEMENT: SEMENT, nominal_SEMENT: SEMENT):
         POGGSEMENTUtil.add_intrinsic_variable_property(adjective_SEMENT, "TENSE", "tensed")
         return self.semantic_algebra.op_non_scopal_argument_hook(adjective_SEMENT, nominal_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def compound_noun(self, head_noun_SEMENT: SEMENT, non_head_noun_SEMENT: SEMENT) -> SEMENT:
         """
         Performs composition with two noun SEMENTs to get a compound noun SEMENT.
@@ -123,6 +129,7 @@ class BaseConstructionsMixin:
 
         return arg1_plugged
 
+    @SemCompTracer.trace
     def negation(self, negated_SEMENT: SEMENT) -> SEMENT:
         # introduce neg SEMENT
 
@@ -141,6 +148,7 @@ class BaseConstructionsMixin:
         neg = self.semantic_algebra.create_base_SEMENT("neg", {'TENSE': 'tensed'}, neg_synopsis)
         return self.semantic_algebra.op_scopal_functor_index_argument_slots(neg, negated_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def object_of_noun(self, head_noun_SEMENT: SEMENT, object_noun_SEMENT: SEMENT):
         if not POGGSEMENTUtil.check_if_quantified(object_noun_SEMENT):
             if not POGGSEMENTUtil.check_if_quantified(object_noun_SEMENT):
@@ -150,6 +158,7 @@ class BaseConstructionsMixin:
 
             return self.semantic_algebra.op_non_scopal_functor_hook(head_noun_SEMENT, quantified_object, "ARG1")
 
+    @SemCompTracer.trace
     def object_of_verb(self, verb_SEMENT: SEMENT, object_SEMENT: SEMENT) -> SEMENT:
         # check if ground is quantified and quantify generically if not
         if not POGGSEMENTUtil.check_if_quantified(object_SEMENT):
@@ -159,10 +168,12 @@ class BaseConstructionsMixin:
 
         return self.semantic_algebra.op_non_scopal_functor_hook(verb_SEMENT, quantified_object, "ARG2")
 
+    @SemCompTracer.trace
     def cardinal_modifier(self, number_SEMENT: SEMENT, modified_SEMENT: SEMENT):
         # TODO: needs support for more than 1-9
         return self.semantic_algebra.op_non_scopal_argument_hook(number_SEMENT, modified_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def ordinal_modifier(self, number_SEMENT: SEMENT, modified_SEMENT: SEMENT):
         # TODO: needs support for more than 1-9
         # get the CARG from the number_SEMENT and just make a new ordinal SEMENT
@@ -173,6 +184,7 @@ class BaseConstructionsMixin:
         ordinal_number = self.semantic_algebra.create_CARG_SEMENT("ord", digit)
         return self.semantic_algebra.op_non_scopal_argument_hook(ordinal_number, modified_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def subject_of_verb(self, verb_SEMENT: SEMENT, subject_SEMENT: SEMENT) -> SEMENT:
         # check if ground is quantified and quantify generically if not
         if not POGGSEMENTUtil.check_if_quantified(subject_SEMENT):
@@ -182,6 +194,7 @@ class BaseConstructionsMixin:
 
         return self.semantic_algebra.op_non_scopal_functor_hook(verb_SEMENT, quantified_subject, "ARG1")
 
+    @SemCompTracer.trace
     def passive_participle_modifier(self, participle_SEMENT: SEMENT, modified_SEMENT: SEMENT) -> SEMENT:
         # add variable property [PERF -] per https://delphinqa.ling.washington.edu/t/constraining-passive-participles/1156
         POGGSEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PERF", "-")
@@ -196,12 +209,14 @@ class BaseConstructionsMixin:
 
         return passive_SEMENT
 
+    @SemCompTracer.trace
     def present_participle_modifier(self, participle_SEMENT: SEMENT, modified_SEMENT: SEMENT) -> SEMENT:
         # e.g. "glowing flower"
         # make sure index of participle_SEMENT has PROG: +
         POGGSEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PROG", "+")
         return self.semantic_algebra.op_non_scopal_argument_hook(participle_SEMENT, modified_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def prepositional_relationship(self, preposition_predicate: str, figure_SEMENT: SEMENT, ground_SEMENT: SEMENT) -> SEMENT:
         """
         Performs composition between two SEMENTs and an introduced prepositional predicate
@@ -265,7 +280,7 @@ class BaseConstructionsMixin:
     #     # "the person whose recipe was used to bake cookies" :(
     #     return self.semantic_algebra.op_non_scopal_argument_hook(relative_clause_SEMENT, nominal_SEMENT, "ARG2")
 
-
+    @SemCompTracer.trace
     def relative_direction(self, direction_predicate: str, figure_SEMENT: SEMENT, ground_SEMENT: SEMENT) -> SEMENT:
         """
         1. introduce necessary SEMENTs
@@ -316,6 +331,7 @@ class BaseConstructionsMixin:
         loc_nonsp_ARG1_plugged = self.semantic_algebra.op_non_scopal_argument_hook(loc_nonsp_ARG2_plugged, figure_SEMENT, "ARG1")
         return loc_nonsp_ARG1_plugged
 
+    @SemCompTracer.trace
     def possessive(self, possessor_SEMENT: SEMENT, possessed_SEMENT: SEMENT) -> SEMENT:
         # check that possessor_SEMENT is quantified
         if not POGGSEMENTUtil.check_if_quantified(possessor_SEMENT):
@@ -331,9 +347,11 @@ class BaseConstructionsMixin:
         # plug ARG1 of poss with possessed and return
         return self.semantic_algebra.op_non_scopal_argument_hook(poss_ARG1_plugged, possessed_SEMENT, "ARG1")
 
+    @SemCompTracer.trace
     def quantify(self, quantifier_SEMENT: SEMENT, quantified_SEMENT: SEMENT) -> SEMENT:
         return self.semantic_algebra.op_scopal_quantifier(quantifier_SEMENT, quantified_SEMENT)
 
+    @SemCompTracer.trace
     def un_prefix(self, negated_SEMENT: SEMENT) -> SEMENT:
         """
         Creates a negated version of a SEMENT with the prefix "un", e.g. "unconscious".

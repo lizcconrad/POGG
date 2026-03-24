@@ -9,6 +9,8 @@ from pogg.my_delphin.my_delphin import SEMENT
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 from pogg.pogg_config import POGGConfig
 
+from pogg.semantic_composition.call_tracer import SemAlgTracer
+
 
 class SemanticAlgebra:
     """
@@ -52,7 +54,7 @@ class SemanticAlgebra:
                 slots[arg] = ep.args[arg]
         return slots
 
-
+    @SemAlgTracer.trace
     def create_base_SEMENT(self, predicate, intrinsic_variable_properties=None, synopsis_dict=None):
         """
         Make the base case SEMENT.
@@ -94,7 +96,7 @@ class SemanticAlgebra:
         # send in empty lists for eqs, hcons, and icons for ease of composition
         return SEMENT(ltop, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties})
 
-
+    @SemAlgTracer.trace
     def create_CARG_SEMENT(self, predicate, carg_value, intrinsic_variable_properties={}):
         """
         Make a base case SEMENT for an EP with a CARG argument.
@@ -129,6 +131,7 @@ class SemanticAlgebra:
         # send in empty lists for eqs, hcons, and icons for ease of composition
         return SEMENT(lbl, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties})
 
+    @SemAlgTracer.trace
     def op_non_scopal_argument_hook(self, functor, argument, slot_label):
         """
         Perform non-scopal composition on two SEMENTs. The hook (i.e. the `LTOP` and `INDEX`) of the resulting SEMENT comes from the argument.
@@ -187,7 +190,7 @@ class SemanticAlgebra:
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
-
+    @SemAlgTracer.trace
     def op_non_scopal_functor_hook(self, functor, argument, slot_label):
         """
         Perform non-scopal composition on two SEMENTs. The hook of the resulting SEMENT comes from the functor.
@@ -248,7 +251,7 @@ class SemanticAlgebra:
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
-
+    @SemAlgTracer.trace
     def op_scopal_argument_index(self, functor, argument, slot_label):
         """
         Perform scopal composition where the INDEX comes from the argument, but the LTOP comes from the functor.
@@ -312,7 +315,7 @@ class SemanticAlgebra:
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
-
+    @SemAlgTracer.trace
     def op_scopal_functor_index(self, functor, argument, slot_label):
         """
         Perform scopal composition where the INDEX comes from the functor (as does the LTOP, but this is true for all versions of scopal composition).
@@ -376,6 +379,7 @@ class SemanticAlgebra:
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
+    @SemAlgTracer.trace
     def op_scopal_functor_index_argument_slots(self, functor, argument, slot_label):
         """
         Perform scopal composition where the INDEX comes from the functor (as does the LTOP, but this is true for all versions of scopal composition)
@@ -439,6 +443,7 @@ class SemanticAlgebra:
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons,
                       result_variables)
 
+    @SemAlgTracer.trace
     def op_scopal_quantifier(self, functor, argument):
         """
         Perform scopal composition between a quantifier SEMENT and a quantified SEMENT (e.g. *the cookie*).
@@ -497,7 +502,7 @@ class SemanticAlgebra:
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
-
+    @SemAlgTracer.trace
     def prepare_for_generation(self, sement):
         """
         Prepare the given SEMENT for generation.

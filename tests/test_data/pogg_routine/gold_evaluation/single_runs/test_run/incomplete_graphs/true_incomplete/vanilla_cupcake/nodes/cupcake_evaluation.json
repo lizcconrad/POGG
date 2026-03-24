@@ -5,7 +5,8 @@
         "lexicon_key": "cupcake"
     },
     "generated_SEMENT_string": null,
-    "sem_comp_fxns_used": [],
+    "sem_alg_fxns_used": {},
+    "sem_comp_fxns_used": {},
     "node_covered": false,
     "node_included": false,
     "generation_comment": "'cupcake' not in lexicon's node entries",

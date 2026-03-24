@@ -8,9 +8,18 @@
     "parent_node_name": "cake",
     "child_node_name": "vanilla",
     "generated_SEMENT_string": "[ TOP: h2\n  INDEX: x1\n  RELS: < [ compound LBL: h13 ARG0: e10 [ e PROG: - ] ARG1: u11 ARG2: u12 ]\n          [ udef_q LBL: h8 ARG0: x5 RSTR: h6 BODY: h7 ]\n          [ _vanilla_n_1 LBL: h4 ARG0: x3 ]\n          [ _cake_n_1 LBL: h2 ARG0: x1 ] >\n  HCONS: < h6 qeq h4 >\n  EQS: < x5 eq x3 h13 eq h9 u12 eq x5 h13 eq h2 u11 eq x1 > ]",
-    "sem_comp_fxns_used": [
-        "compound_noun"
-    ],
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 2,
+        "op_non_scopal_argument_hook": 1,
+        "op_non_scopal_functor_hook": 1,
+        "op_scopal_quantifier": 1
+    },
+    "sem_comp_fxns_used": {
+        "basic": 1,
+        "compound_noun": 1,
+        "quantifier": 1,
+        "quantify": 1
+    },
     "edge_covered": true,
     "edge_included": true,
     "generation_comment": null,

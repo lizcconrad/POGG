@@ -6,12 +6,16 @@ The `single_word_constructions` module contains the Mixin class for creating SEM
 
 from pogg.my_delphin.my_delphin import SEMENT
 
+from pogg.semantic_composition.call_tracer import SemCompTracer
+
+
 class SingleWordConstructionsMixin:
     """
     The `SingleWordConstructionsMixin` contains functions for creating "starter" SEMENTs
     (typically containing only one predicate and roughly mapping to one English word) from scratch
     """
 
+    @SemCompTracer.trace
     def manual_synopsis(self, predicate: str, synopsis_dict: dict, intrinsic_variable_properties: dict = None) -> SEMENT:
         """
         Wrapper around `create_base_SEMENT` from the `SemanticAlgebra` class. Includes a parameter for inserting a manual argument synopsis dict
@@ -32,6 +36,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties, synopsis_dict)
 
+    @SemCompTracer.trace
     def basic(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Wrapper around `create_base_SEMENT` from the `SemanticAlgebra` class. Used in fallback cases where part-of-speech guessing fails.
@@ -51,6 +56,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def adjective(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just an adjective EP in it.
@@ -71,6 +77,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def comparative_adjective(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT for a comparative adjective.
@@ -94,6 +101,7 @@ class SingleWordConstructionsMixin:
         comparative = self.semantic_algebra.create_base_SEMENT("more_comp")
         return self.semantic_algebra.op_non_scopal_argument_hook(comparative, adj, "ARG1")
 
+    @SemCompTracer.trace
     def determiner(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a determiner EP in it.
@@ -114,6 +122,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def proper_noun(self, name: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT for a named entity, e.g. a person ("Liz").
@@ -133,6 +142,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def noun(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a noun EP in it.
@@ -153,6 +163,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def number(self, digit: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a number EP in it.
@@ -175,6 +186,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_CARG_SEMENT("card", digit, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def preposition(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a preposition EP in it.
@@ -195,6 +207,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def pronoun(self, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT for a pronoun.
@@ -229,6 +242,7 @@ class SingleWordConstructionsMixin:
         # scopal composition between pronoun quantifier and the pron EP
         return self.semantic_algebra.op_scopal_quantifier(pronoun_q_EP, pron_EP)
 
+    @SemCompTracer.trace
     def quantifier(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a quantifier EP in it.
@@ -249,6 +263,7 @@ class SingleWordConstructionsMixin:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
+    @SemCompTracer.trace
     def verb(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a verb EP in it.

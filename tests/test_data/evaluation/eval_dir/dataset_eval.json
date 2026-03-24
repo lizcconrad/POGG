@@ -8,16 +8,23 @@
     "graphs_with_gold_text_coverage": 0.7,
     "graphs_with_complete_gold_text_count": 6,
     "graphs_with_complete_gold_text_coverage": 0.6,
-    "sem_alg_fxns_available": [],
+    "sem_alg_fxns_available": [
+        "fxn0"
+    ],
     "sem_comp_fxns_available": [
         "fxn1",
         "fxn2"
     ],
-    "sem_comp_fxns_used": [
-        "fxn1"
-    ],
+    "sem_alg_fxns_used": {
+        "fxn0": 1
+    },
+    "sem_comp_fxns_used": {
+        "fxn1": 1
+    },
+    "sem_alg_fxns_used_count": 1,
     "sem_comp_fxns_used_count": 1,
     "sem_comp_fxns_used_coverage": 0.5,
+    "sem_alg_fxns_used_coverage": 1.0,
     "full_node_count": 100,
     "full_nodes_covered": 90,
     "full_nodes_included": 80,

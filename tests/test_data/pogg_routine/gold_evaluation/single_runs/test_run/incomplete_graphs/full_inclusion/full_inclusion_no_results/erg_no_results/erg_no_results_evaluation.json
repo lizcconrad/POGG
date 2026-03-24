@@ -1,8 +1,11 @@
 {
     "graph_name": "erg_no_results",
-    "sem_comp_fxns_used": [
-        "adjective"
-    ],
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 1
+    },
+    "sem_comp_fxns_used": {
+        "adjective": 1
+    },
     "node_count": 1,
     "nodes_covered": 1,
     "nodes_included": 1,

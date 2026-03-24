@@ -7,6 +7,9 @@
     "sem_comp_fxns_used": [
         "noun"
     ],
+    "sem_alg_fxns_used": [
+        "create_base_SEMENT"
+    ],
     "node_covered": true,
     "node_included": true,
     "generation_comment": "me when i'm a comment",

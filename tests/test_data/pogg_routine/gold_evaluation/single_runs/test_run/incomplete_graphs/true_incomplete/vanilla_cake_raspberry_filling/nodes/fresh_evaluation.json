@@ -5,9 +5,12 @@
         "lexicon_key": "fresh"
     },
     "generated_SEMENT_string": "[ TOP: h40\n  INDEX: e38\n  RELS: < [ _fresh_a_1 LBL: h40 ARG0: e38 ARG1: u39 ] >\n  SLOTS: < ARG1: u39 > ]",
-    "sem_comp_fxns_used": [
-        "adjective"
-    ],
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 1
+    },
+    "sem_comp_fxns_used": {
+        "adjective": 1
+    },
     "node_covered": true,
     "node_included": false,
     "generation_comment": null,

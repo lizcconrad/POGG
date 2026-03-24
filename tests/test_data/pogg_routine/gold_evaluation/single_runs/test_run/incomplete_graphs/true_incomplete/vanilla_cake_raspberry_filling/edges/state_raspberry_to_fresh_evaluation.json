@@ -8,9 +8,12 @@
     "parent_node_name": "raspberry",
     "child_node_name": "fresh",
     "generated_SEMENT_string": "[ TOP: h37\n  INDEX: x36\n  RELS: < [ _fresh_a_1 LBL: h40 ARG0: e38 ARG1: u39 ]\n          [ _raspberry_n_1 LBL: h37 ARG0: x36 ] >\n  EQS: < h40 eq h37 u39 eq x36 > ]",
-    "sem_comp_fxns_used": [
-        "prenominal_adjective"
-    ],
+    "sem_alg_fxns_used": {
+        "op_non_scopal_argument_hook": 1
+    },
+    "sem_comp_fxns_used": {
+        "prenominal_adjective": 1
+    },
     "edge_covered": true,
     "edge_included": false,
     "generation_comment": null,

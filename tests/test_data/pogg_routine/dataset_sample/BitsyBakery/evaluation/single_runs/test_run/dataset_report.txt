@@ -1,32 +1,32 @@
 DATASET: BitsyBakery
 
-+------------------------------------------------------------------+
-|                        EVALUATION METRICS                        |
-+--------------------------------------------+---------------------+
-| Metric                                     | Value               |
-+--------------------------------------------+---------------------+
-| Graph Count                                | 8                   |
-| Graphs that produced SEMENTs               | 5                   |
-| Graphs w/ SEMENTs coverage                 | 0.625               |
-| Graphs that generated text                 | 4                   |
-| Graphs w/ text coverage                    | 0.5                 |
-+--------------------------------------------+---------------------+
-| Total Node Count                           | 17                  |
-| Total Nodes Covered                        | 12                  |
-| Total Nodes Included                       | 9                   |
-| Total Node Coverage                        | 0.7058823529411765  |
-| Total Node Inclusion                       | 0.5294117647058824  |
-+--------------------------------------------+---------------------+
-| Total Edge Count                           | 9                   |
-| Total Edges Covered                        | 5                   |
-| Total Edges Included                       | 4                   |
-| Total Edge Coverage                        | 0.5555555555555556  |
-| Total Edge Inclusion                       | 0.4444444444444444  |
-+--------------------------------------------+---------------------+
-| # Semantic Composition Functions Available | 37                  |
-| # Semantic Composition Functions Used      | 4                   |
-| # Semantic Composition Function Coverage   | 0.10810810810810811 |
-+--------------------------------------------+---------------------+
++-----------------------------------------------------------------+
+|                        EVALUATION METRICS                       |
++--------------------------------------------+--------------------+
+| Metric                                     | Value              |
++--------------------------------------------+--------------------+
+| Graph Count                                | 8                  |
+| Graphs that produced SEMENTs               | 5                  |
+| Graphs w/ SEMENTs coverage                 | 0.625              |
+| Graphs that generated text                 | 4                  |
+| Graphs w/ text coverage                    | 0.5                |
++--------------------------------------------+--------------------+
+| Total Node Count                           | 17                 |
+| Total Nodes Covered                        | 12                 |
+| Total Nodes Included                       | 9                  |
+| Total Node Coverage                        | 0.7058823529411765 |
+| Total Node Inclusion                       | 0.5294117647058824 |
++--------------------------------------------+--------------------+
+| Total Edge Count                           | 9                  |
+| Total Edges Covered                        | 5                  |
+| Total Edges Included                       | 4                  |
+| Total Edge Coverage                        | 0.5555555555555556 |
+| Total Edge Inclusion                       | 0.4444444444444444 |
++--------------------------------------------+--------------------+
+| # Semantic Composition Functions Available | 37                 |
+| # Semantic Composition Functions Used      | 7                  |
+| # Semantic Composition Function Coverage   | 0.1891891891891892 |
++--------------------------------------------+--------------------+
 
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                                               GRAPH SUMMARIES                                                                               |

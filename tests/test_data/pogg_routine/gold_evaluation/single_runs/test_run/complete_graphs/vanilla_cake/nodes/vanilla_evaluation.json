@@ -5,9 +5,12 @@
         "lexicon_key": "vanilla"
     },
     "generated_SEMENT_string": "[ TOP: h4\n  INDEX: x3\n  RELS: < [ _vanilla_n_1 LBL: h4 ARG0: x3 ] > ]",
-    "sem_comp_fxns_used": [
-        "noun"
-    ],
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 1
+    },
+    "sem_comp_fxns_used": {
+        "noun": 1
+    },
     "node_covered": true,
     "node_included": true,
     "generation_comment": null,

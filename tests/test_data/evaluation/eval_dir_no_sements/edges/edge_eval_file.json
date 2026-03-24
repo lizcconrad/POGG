@@ -6,9 +6,13 @@
     "parent_node_name": "parent",
     "child_node_name": "child",
     "generated_SEMENT_string": null,
-    "sem_comp_fxns_used": [
-        "prenominal_adjective"
-    ],
+    "sem_comp_fxns_used": {
+        "prenominal_adjective": 1
+    },
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT":  2,
+        "op_non_scopal_argument_hook": 1
+    },
     "edge_covered": true,
     "edge_included": true,
     "generation_comment": "me when i'm a comment",

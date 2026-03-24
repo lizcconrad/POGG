@@ -4,9 +4,12 @@
         "lexicon_key": "node"
     },
     "generated_SEMENT_string": null,
-    "sem_comp_fxns_used": [
-        "noun"
-    ],
+    "sem_comp_fxns_used": {
+        "noun": 1
+    },
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 1
+    },
     "node_covered": true,
     "node_included": true,
     "generation_comment": "me when i'm a comment",

@@ -5,6 +5,10 @@
         "noun",
         "prenominal_adjective"
     ],
+    "sem_alg_fxns_used": [
+        "create_base_SEMENT",
+        "op_non_scopal_argument_hook"
+    ],
     "node_count": 2,
     "nodes_covered": 2,
     "nodes_included": 2,

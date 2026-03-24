@@ -1,11 +1,20 @@
 {
     "graph_name": "vanilla_cake_raspberry_filling",
-    "sem_comp_fxns_used": [
-        "adjective",
-        "compound_noun",
-        "noun",
-        "prenominal_adjective"
-    ],
+    "sem_alg_fxns_used": {
+        "create_base_SEMENT": 6,
+        "op_non_scopal_argument_hook": 2,
+        "op_non_scopal_functor_hook": 1,
+        "op_scopal_quantifier": 1
+    },
+    "sem_comp_fxns_used": {
+        "adjective": 1,
+        "basic": 1,
+        "compound_noun": 1,
+        "noun": 3,
+        "prenominal_adjective": 1,
+        "quantifier": 1,
+        "quantify": 1
+    },
     "node_count": 4,
     "nodes_covered": 4,
     "nodes_included": 2,
