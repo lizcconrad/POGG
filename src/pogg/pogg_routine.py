@@ -84,7 +84,7 @@ class POGG:
         self.evaluation = POGGEvaluation(self.dataset.dataset_name)
         self.semantic_algebra = SemanticAlgebra(self.pogg_config)
         self.semantic_composition = SemanticComposition(self.semantic_algebra)
-        self.graph_converter = POGGGraphConverter(self.semantic_composition, self.dataset)
+        self.graph_converter = POGGGraphConverter(self.semantic_composition, self.dataset.lexicon)
 
 
     def run_POGG_data_to_text_algorithm_on_single_graph(self, given_graph_name, graph_object=None):
@@ -446,16 +446,27 @@ class POGG:
             nodes_dir = Path(graph_eval_dir, "nodes")
             Path.mkdir(nodes_dir, parents=True, exist_ok=True)
             for node_evaluation_key in graph_evaluation.node_evaluations:
-                with open(Path(nodes_dir, node_evaluation_key + "_evaluation.json"), "w") as file:
+
+                # TODO: make this more robust...
+                # remove slashes from node_key if they're there
+                file_name_node_key = re.sub(r"[\./\"]", "_", node_evaluation_key)
+                with open(Path(nodes_dir, file_name_node_key + "_evaluation.json"), "w") as file:
                     file.write(json.dumps(graph_evaluation.node_evaluations[node_evaluation_key].get_dict_representation(), indent=4))
 
             # store json file for the edges
             # create directory for edge_evaluation jsons
             edges_dir = Path(graph_eval_dir, "edges")
             Path.mkdir(edges_dir, parents=True, exist_ok=True)
+
             for edge_evaluation in graph_evaluation.edge_evaluations:
-                with open(Path(edges_dir, edge_evaluation.edge_name + "_" + edge_evaluation.parent_node_name
-                                          + "_to_" + edge_evaluation.child_node_name + "_evaluation.json"), "w") as file:
+                # TODO: make this more robust...
+                # remove slashes from node_key if they're there
+                file_name_edge_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
+                file_name_parent_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
+                file_name_child_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
+
+                with open(Path(edges_dir, file_name_edge_name + "_" + file_name_parent_name
+                                          + "_to_" + file_name_child_name + "_evaluation.json"), "w") as file:
                     file.write(json.dumps(edge_evaluation.get_dict_representation(), indent=4))
 
             # write dot file

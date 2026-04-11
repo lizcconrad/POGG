@@ -21,7 +21,7 @@ class POGGGraphConverter:
     A `POGGGraphConverter` object has `SemanticComposition` and `POGGDataset` objects as instance attributes and
     has instance methods for converting graphs in the dataset to SEMENTs.
     """
-    def __init__(self, semantic_composition, dataset):
+    def __init__(self, semantic_composition, lexicon=None):
         """
         Initialize the `POGGGraphConverter` object.
 
@@ -31,9 +31,10 @@ class POGGGraphConverter:
         | Parameter | Type | Description |
         | --------- | ---- | ----------- |
         | `semantic_composition` | `SemanticComposition` | `SemanticComposition` object that has functions for creating and composing SEMENTs |
+        | `dataset` | `POGGLexicon` | `POGGLexicon` object that is consulted during conversions |
         """
         self.sem_comp = semantic_composition
-        self.lexicon = dataset.lexicon
+        self.lexicon = lexicon
 
     def get_SEMENT(self, comp_fxn_name, given_parameters):
         """

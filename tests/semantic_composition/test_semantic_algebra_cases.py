@@ -117,10 +117,10 @@ class CreateCARGSement:
 class OpNonScopalArgumentHook:
     """
     FUNCTIONS BEING TESTED:
-        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_non_scopal_argument_hook
+        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_non_scopal_argument_hook_slots
 
     GENERAL DESCRIPTION OF TEST CASES:
-        Provide two SEMENTs to be passed into op_non_scopal_argument_hook, the slot to be plugged, and the expected result
+        Provide two SEMENTs to be passed into op_non_scopal_argument_hook_slots, the slot to be plugged, and the expected result
         test should compare result of call with expected result
     """
 
@@ -165,10 +165,10 @@ class OpNonScopalArgumentHook:
 class OpNonScopalFunctorHook:
     """
     FUNCTIONS BEING TESTED:
-        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_non_scopal_functor_hook
+        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_non_scopal_functor_hook_slots
 
     GENERAL DESCRIPTION OF TEST CASES:
-        Provide two SEMENTs to be passed into op_non_scopal_functor_hook, the slot to be plugged, and the expected result
+        Provide two SEMENTs to be passed into op_non_scopal_functor_hook_slots, the slot to be plugged, and the expected result
         test should compare result of call with expected result
     """
 
@@ -240,10 +240,10 @@ class OpScopalQuantifier:
 class OpScopalArgumentIndex:
     """
     FUNCTIONS BEING TESTED:
-        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_argument_index
+        - pogg.semantic_composition.semantic_algebra.SemanticAlgebra.op_scopal_argument_index_slots
 
     GENERAL DESCRIPTION OF TEST CASES:
-        Provide two SEMENTs to be passed into op_scopal_argument_index, the slot to be plugged, and the expected result
+        Provide two SEMENTs to be passed into op_scopal_argument_index_slots, the slot to be plugged, and the expected result
         test should compare result of call with expected result
     """
 

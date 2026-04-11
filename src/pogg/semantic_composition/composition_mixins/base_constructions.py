@@ -51,9 +51,9 @@ class BaseConstructionsMixin:
                 quantified_ARG2 = self.quantify_generic(ARG2_SEMENT)
             else:
                 quantified_ARG2 = ARG2_SEMENT
-            verb_and_ARG2 = self.semantic_algebra.op_non_scopal_functor_hook(verb_SEMENT, quantified_ARG2, "ARG2")
+            verb_and_ARG2 = self.semantic_algebra.op_non_scopal_functor_hook_slots(verb_SEMENT, quantified_ARG2, "ARG2")
 
-        return self.semantic_algebra.op_non_scopal_argument_hook(verb_and_ARG2, ARG1_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(verb_and_ARG2, ARG1_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def ARG2_relative_clause(self, verb_SEMENT: SEMENT, ARG2_SEMENT: SEMENT, ARG1_SEMENT: SEMENT=None):
@@ -68,9 +68,9 @@ class BaseConstructionsMixin:
                 quantified_ARG1 = self.quantify_generic(ARG1_SEMENT)
             else:
                 quantified_ARG1 = ARG1_SEMENT
-            verb_and_ARG1 = self.semantic_algebra.op_non_scopal_functor_hook(verb_SEMENT, quantified_ARG1, "ARG1")
+            verb_and_ARG1 = self.semantic_algebra.op_non_scopal_functor_hook_slots(verb_SEMENT, quantified_ARG1, "ARG1")
 
-        return self.semantic_algebra.op_non_scopal_argument_hook(verb_and_ARG1, ARG2_SEMENT, "ARG2")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(verb_and_ARG1, ARG2_SEMENT, "ARG2")
 
     @SemCompTracer.trace
     def prenominal_adjective(self, adjective_SEMENT: SEMENT, nominal_SEMENT: SEMENT) -> SEMENT:
@@ -90,12 +90,12 @@ class BaseConstructionsMixin:
         | `SEMENT` | SEMENT composed of an adjective and the elements it modifies |
         """
 
-        return self.semantic_algebra.op_non_scopal_argument_hook(adjective_SEMENT, nominal_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(adjective_SEMENT, nominal_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def nonrestrictive_adjectival_relative_clause(self, adjective_SEMENT: SEMENT, nominal_SEMENT: SEMENT):
         POGGSEMENTUtil.add_intrinsic_variable_property(adjective_SEMENT, "TENSE", "tensed")
-        return self.semantic_algebra.op_non_scopal_argument_hook(adjective_SEMENT, nominal_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(adjective_SEMENT, nominal_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def compound_noun(self, head_noun_SEMENT: SEMENT, non_head_noun_SEMENT: SEMENT) -> SEMENT:
@@ -123,9 +123,9 @@ class BaseConstructionsMixin:
         udef_non_head_noun = self.quantify(udef_q, non_head_noun_SEMENT)
 
         # plug ARG2 of compound (non_head)
-        arg2_plugged = self.semantic_algebra.op_non_scopal_functor_hook(compound, udef_non_head_noun, "ARG2")
+        arg2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(compound, udef_non_head_noun, "ARG2")
         # plug ARG1 of compound (head)
-        arg1_plugged = self.semantic_algebra.op_non_scopal_argument_hook(arg2_plugged, head_noun_SEMENT, "ARG1")
+        arg1_plugged = self.semantic_algebra.op_non_scopal_argument_hook_slots(arg2_plugged, head_noun_SEMENT, "ARG1")
 
         return arg1_plugged
 
@@ -156,7 +156,7 @@ class BaseConstructionsMixin:
             else:
                 quantified_object = object_noun_SEMENT
 
-            return self.semantic_algebra.op_non_scopal_functor_hook(head_noun_SEMENT, quantified_object, "ARG1")
+            return self.semantic_algebra.op_non_scopal_functor_hook_slots(head_noun_SEMENT, quantified_object, "ARG1")
 
     @SemCompTracer.trace
     def object_of_verb(self, verb_SEMENT: SEMENT, object_SEMENT: SEMENT) -> SEMENT:
@@ -166,12 +166,12 @@ class BaseConstructionsMixin:
         else:
             quantified_object = object_SEMENT
 
-        return self.semantic_algebra.op_non_scopal_functor_hook(verb_SEMENT, quantified_object, "ARG2")
+        return self.semantic_algebra.op_non_scopal_functor_hook_slots(verb_SEMENT, quantified_object, "ARG2")
 
     @SemCompTracer.trace
     def cardinal_modifier(self, number_SEMENT: SEMENT, modified_SEMENT: SEMENT):
         # TODO: needs support for more than 1-9
-        return self.semantic_algebra.op_non_scopal_argument_hook(number_SEMENT, modified_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(number_SEMENT, modified_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def ordinal_modifier(self, number_SEMENT: SEMENT, modified_SEMENT: SEMENT):
@@ -182,7 +182,7 @@ class BaseConstructionsMixin:
                 digit = rel.carg
 
         ordinal_number = self.semantic_algebra.create_CARG_SEMENT("ord", digit)
-        return self.semantic_algebra.op_non_scopal_argument_hook(ordinal_number, modified_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(ordinal_number, modified_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def subject_of_verb(self, verb_SEMENT: SEMENT, subject_SEMENT: SEMENT) -> SEMENT:
@@ -192,7 +192,7 @@ class BaseConstructionsMixin:
         else:
             quantified_subject = subject_SEMENT
 
-        return self.semantic_algebra.op_non_scopal_functor_hook(verb_SEMENT, quantified_subject, "ARG1")
+        return self.semantic_algebra.op_non_scopal_functor_hook_slots(verb_SEMENT, quantified_subject, "ARG1")
 
     @SemCompTracer.trace
     def passive_participle_modifier(self, participle_SEMENT: SEMENT, modified_SEMENT: SEMENT) -> SEMENT:
@@ -200,7 +200,7 @@ class BaseConstructionsMixin:
         POGGSEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PERF", "-")
 
         # e.g. "broken window"
-        passive_SEMENT = self.semantic_algebra.op_non_scopal_argument_hook(participle_SEMENT, modified_SEMENT, "ARG2")
+        passive_SEMENT = self.semantic_algebra.op_non_scopal_argument_hook_slots(participle_SEMENT, modified_SEMENT, "ARG2")
 
         # add icons topic relation between verb's ARG0 and ARG2
         # get the ARG2 variable from the participle_SEMENT's slots (???)
@@ -214,7 +214,7 @@ class BaseConstructionsMixin:
         # e.g. "glowing flower"
         # make sure index of participle_SEMENT has PROG: +
         POGGSEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PROG", "+")
-        return self.semantic_algebra.op_non_scopal_argument_hook(participle_SEMENT, modified_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(participle_SEMENT, modified_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def prepositional_relationship(self, preposition_predicate: str, figure_SEMENT: SEMENT, ground_SEMENT: SEMENT) -> SEMENT:
@@ -245,9 +245,9 @@ class BaseConstructionsMixin:
             quantified_ground = ground_SEMENT
 
         # plug preposition's ARG2 with ground
-        prep_arg2_plugged = self.semantic_algebra.op_non_scopal_functor_hook(preposition_SEMENT, quantified_ground, "ARG2")
+        prep_arg2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(preposition_SEMENT, quantified_ground, "ARG2")
         # plug result of that's ARG1 with figure
-        prep_arg1_plugged = self.semantic_algebra.op_non_scopal_argument_hook(prep_arg2_plugged, figure_SEMENT, "ARG1")
+        prep_arg1_plugged = self.semantic_algebra.op_non_scopal_argument_hook_slots(prep_arg2_plugged, figure_SEMENT, "ARG1")
         return prep_arg1_plugged
 
 
@@ -315,20 +315,20 @@ class BaseConstructionsMixin:
             quantified_ground = ground_SEMENT
 
         # 3. plug ARG2 of direction_SEMENT with quantified_ground, result has functor as hook (result is "...west of the school")
-        direction_ARG2_plugged = self.semantic_algebra.op_non_scopal_functor_hook(direction_SEMENT, quantified_ground, "ARG2")
+        direction_ARG2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(direction_SEMENT, quantified_ground, "ARG2")
 
         # 4. plug ARG1 of (3) with place_n, result has argument hook (appx. "'place' west of the school")
-        direction_ARG1_plugged = self.semantic_algebra.op_non_scopal_argument_hook(direction_ARG2_plugged, place_n, "ARG1")
+        direction_ARG1_plugged = self.semantic_algebra.op_non_scopal_argument_hook_slots(direction_ARG2_plugged, place_n, "ARG1")
 
         # 5. quantify (4) with `def_implicit_q`
         def_imp = self.quantifier('def_implicit_q')
         quantified_direction_and_place = self.quantify(def_imp, direction_ARG1_plugged)
 
         # 6. plug ARG2 of loc_nonsp with (5), result has functor hook
-        loc_nonsp_ARG2_plugged = self.semantic_algebra.op_non_scopal_functor_hook(loc_nonsp, quantified_direction_and_place, "ARG2")
+        loc_nonsp_ARG2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(loc_nonsp, quantified_direction_and_place, "ARG2")
 
         # 7. plug ARG1 of loc_nonsp with figure_SEMENT, result has argument hook (appx. "house west of the school")
-        loc_nonsp_ARG1_plugged = self.semantic_algebra.op_non_scopal_argument_hook(loc_nonsp_ARG2_plugged, figure_SEMENT, "ARG1")
+        loc_nonsp_ARG1_plugged = self.semantic_algebra.op_non_scopal_argument_hook_slots(loc_nonsp_ARG2_plugged, figure_SEMENT, "ARG1")
         return loc_nonsp_ARG1_plugged
 
     @SemCompTracer.trace
@@ -343,9 +343,9 @@ class BaseConstructionsMixin:
         poss_SEMENT = self.basic("poss")
 
         # plug ARG2 of poss with possessor
-        poss_ARG1_plugged = self.semantic_algebra.op_non_scopal_functor_hook(poss_SEMENT, quantified_possessor, "ARG2")
+        poss_ARG1_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(poss_SEMENT, quantified_possessor, "ARG2")
         # plug ARG1 of poss with possessed and return
-        return self.semantic_algebra.op_non_scopal_argument_hook(poss_ARG1_plugged, possessed_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(poss_ARG1_plugged, possessed_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def quantify(self, quantifier_SEMENT: SEMENT, quantified_SEMENT: SEMENT) -> SEMENT:
@@ -368,5 +368,5 @@ class BaseConstructionsMixin:
         | `SEMENT` | newly created SEMENT |
         """
         un_SEMENT = self.basic("_un-_a_neg")
-        return self.semantic_algebra.op_non_scopal_argument_hook(un_SEMENT, negated_SEMENT, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(un_SEMENT, negated_SEMENT, "ARG1")
 

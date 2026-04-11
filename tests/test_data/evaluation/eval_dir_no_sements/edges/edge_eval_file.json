@@ -11,7 +11,7 @@
     },
     "sem_alg_fxns_used": {
         "create_base_SEMENT":  2,
-        "op_non_scopal_argument_hook": 1
+        "op_non_scopal_argument_hook_slots": 1
     },
     "edge_covered": true,
     "edge_included": true,

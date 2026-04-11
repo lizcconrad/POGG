@@ -11,9 +11,9 @@
     "sem_alg_fxns_available": [
         "create_CARG_SEMENT",
         "create_base_SEMENT",
-        "op_non_scopal_argument_hook",
-        "op_non_scopal_functor_hook",
-        "op_scopal_argument_index",
+        "op_non_scopal_argument_hook_slots",
+        "op_non_scopal_functor_hook_slots",
+        "op_scopal_argument_index_slots",
         "op_scopal_functor_index",
         "op_scopal_functor_index_argument_slots",
         "op_scopal_quantifier"
@@ -59,8 +59,8 @@
     ],
     "sem_alg_fxns_used": {
         "create_base_SEMENT": 20,
-        "op_non_scopal_argument_hook": 5,
-        "op_non_scopal_functor_hook": 4,
+        "op_non_scopal_argument_hook_slots": 5,
+        "op_non_scopal_functor_hook_slots": 4,
         "op_scopal_quantifier": 4
     },
     "sem_alg_fxns_used_count": 4,

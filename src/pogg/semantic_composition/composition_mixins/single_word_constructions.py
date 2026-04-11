@@ -99,7 +99,7 @@ class SingleWordConstructionsMixin:
 
         adj = self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
         comparative = self.semantic_algebra.create_base_SEMENT("more_comp")
-        return self.semantic_algebra.op_non_scopal_argument_hook(comparative, adj, "ARG1")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(comparative, adj, "ARG1")
 
     @SemCompTracer.trace
     def determiner(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:

@@ -2,8 +2,8 @@
     "graph_name": "vanilla_cake",
     "sem_alg_fxns_used": {
         "create_base_SEMENT": 4,
-        "op_non_scopal_argument_hook": 1,
-        "op_non_scopal_functor_hook": 1,
+        "op_non_scopal_argument_hook_slots": 1,
+        "op_non_scopal_functor_hook_slots": 1,
         "op_scopal_quantifier": 1
     },
     "sem_comp_fxns_used": {

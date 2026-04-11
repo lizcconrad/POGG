@@ -8,9 +8,10 @@ import re
 
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
+from pogg.my_delphin import my_util
 import pogg.my_delphin.sementcodecs as sementcodecs
 import tabulate
-
+import copy
 
 class POGGSEMENTUtil:
     """Provides static functions for manipulating, comparing, and printing SEMENT structures."""
@@ -57,10 +58,10 @@ class POGGSEMENTUtil:
         new_index = sement.index
 
         # make copies of everything except hcons
-        new_rels = sement.rels.copy()
-        new_slots = sement.slots.copy()
-        new_eqs = sement.eqs.copy()
-        new_variables = sement.variables.copy()
+        new_rels = copy.deepcopy(sement.rels)
+        new_slots = copy.deepcopy(sement.slots)
+        new_eqs = copy.deepcopy(sement.eqs)
+        new_variables = copy.deepcopy(sement.variables)
 
         # TODO: ignoring lnk, surface, and identifier for now
 
@@ -356,7 +357,7 @@ class POGGSEMENTUtil:
 
     # per delphinqa communication
     @staticmethod
-    def is_sement_isomorphic(s1: SEMENT, s2: SEMENT) -> bool:
+    def is_sement_isomorphic(s1: SEMENT, s2: SEMENT, properties=True) -> bool:
         """
         Check whether two SEMENTs are isomorphic.
 
@@ -401,7 +402,58 @@ class POGGSEMENTUtil:
         s2_copy.hcons.append(mrs.HCons.qeq("*top*", s2_copy.top))
 
 
-        mrs_isomorphism = mrs.is_isomorphic(s1_copy, s2_copy)
+        mrs_isomorphism = mrs.is_isomorphic(s1_copy, s2_copy, properties)
+        # check that both SEMENTs have the same slot keys (not vals tho)
+        slots_equivalent = s1_copy.slots.keys() == s2_copy.slots.keys()
+        # return isomorphism check
+        return mrs_isomorphism and slots_equivalent
+
+    # per delphinqa communication
+    @staticmethod
+    def is_sement_isomorphic_ignore_predicate_labels(s1: SEMENT, s2: SEMENT) -> bool:
+        """
+        Check whether two SEMENTs are isomorphic.
+
+        If two SEMENTs are isomorphic, they have the same directed graph structure, but might not be literally identical.
+        For example, the EPs in the RELS list may be in different orders.
+
+        **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `s1` | `SEMENT` | first SEMENT |
+        | `s2` | `SEMENT` | second SEMENT |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `bool` | whether the two SEMENTs are isomorphic |
+        """
+
+        # overwrite EQs in both SEMENTs for ease of checking isomorphism
+        s1_ovrwrit = POGGSEMENTUtil.overwrite_eqs(s1)
+        s2_ovrwrit = POGGSEMENTUtil.overwrite_eqs(s2)
+
+        # deepcopy broken right now
+        # s1_copy = deepcopy(s1_eq_overwritten)  # don't modify the original
+        # s2_copy = deepcopy(s2_eq_overwritten)
+
+        # recreate copies by hand ...
+        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
+        s1_copy = SEMENT(s1_ovrwrit.top, s1_ovrwrit.index, s1_ovrwrit.rels, s1_ovrwrit.slots,
+                         s1_ovrwrit.eqs, s1_ovrwrit.hcons, s1_ovrwrit.icons, s1_ovrwrit.variables,
+                         s1_ovrwrit.lnk, s1_ovrwrit.surface, s1_ovrwrit.identifier)
+        s2_copy = SEMENT(s2_ovrwrit.top, s2_ovrwrit.index, s2_ovrwrit.rels, s2_ovrwrit.slots,
+                         s2_ovrwrit.eqs, s2_ovrwrit.hcons, s2_ovrwrit.icons, s2_ovrwrit.variables,
+                         s2_ovrwrit.lnk, s2_ovrwrit.surface, s2_ovrwrit.identifier)
+
+        # add *top* as a variable
+        s1_copy.variables["*top*"] = None
+        s2_copy.variables["*top*"] = None
+
+        s1_copy.hcons.append(mrs.HCons.qeq("*top*", s1_copy.top))
+        s2_copy.hcons.append(mrs.HCons.qeq("*top*", s2_copy.top))
+
+        mrs_isomorphism = my_util.is_isomorphic_ignore_predicate_labels(s1_copy, s2_copy)
         # check that both SEMENTs have the same slot keys (not vals tho)
         slots_equivalent = s1_copy.slots.keys() == s2_copy.slots.keys()
         # return isomorphism check

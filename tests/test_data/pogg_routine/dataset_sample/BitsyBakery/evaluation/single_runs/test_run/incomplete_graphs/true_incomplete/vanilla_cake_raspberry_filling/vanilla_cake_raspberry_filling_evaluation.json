@@ -2,8 +2,8 @@
     "graph_name": "vanilla_cake_raspberry_filling",
     "sem_alg_fxns_used": {
         "create_base_SEMENT": 6,
-        "op_non_scopal_argument_hook": 2,
-        "op_non_scopal_functor_hook": 1,
+        "op_non_scopal_argument_hook_slots": 2,
+        "op_non_scopal_functor_hook_slots": 1,
         "op_scopal_quantifier": 1
     },
     "sem_comp_fxns_used": {

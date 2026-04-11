@@ -94,11 +94,9 @@ print(sementcodecs.encode(cookie, indent=True))
       INDEX: x8
       RELS: < [ _cookie_n_1 LBL: h9 ARG0: x8 ] > ]
 
-
-
 ```python
 # perform composition
-tasty_cookie = semantic_algebra.op_non_scopal_argument_hook(tasty, cookie, "ARG1")
+tasty_cookie = semantic_algebra.op_non_scopal_argument_hook_slots(tasty, cookie, "ARG1")
 
 # print result
 print(sementcodecs.encode(tasty_cookie, indent=True))
@@ -142,12 +140,10 @@ print(sementcodecs.encode(a_cookie, indent=True))
       EQS: < x14 eq x19 >
       SLOTS: < BODY: h16 > ]
 
-
-
 ```python
 # perform composition
 # plug ARG2 since that's the slot associated with the object of the verb
-eat_a_cookie = semantic_algebra.op_non_scopal_functor_hook(eat, a_cookie, "ARG2")
+eat_a_cookie = semantic_algebra.op_non_scopal_functor_hook_slots(eat, a_cookie, "ARG2")
 
 # print result
 print(sementcodecs.encode(eat_a_cookie, indent=True))
@@ -187,11 +183,9 @@ print(sementcodecs.encode(sleep, indent=True))
       RELS: < [ _sleep_v_1 LBL: h26 ARG0: e24 ARG1: i25 ] >
       SLOTS: < ARG1: i25 > ]
 
-
-
 ```python
 # perform composition
-probably_sleeps = semantic_algebra.op_scopal_argument_index(probably, sleep, "ARG1")
+probably_sleeps = semantic_algebra.op_scopal_argument_index_slots(probably, sleep, "ARG1")
 
 # print result
 print(sementcodecs.encode(probably_sleeps, indent=True))
@@ -207,7 +201,6 @@ print(sementcodecs.encode(probably_sleeps, indent=True))
 ## `op_scopal_functor_index` example
 Composing a SEMENT for *know the kitten snores*.
 
-
 ```python
 # make base SEMENTs
 know = semantic_algebra.create_base_SEMENT("_know_v_1")
@@ -217,7 +210,7 @@ snore = semantic_algebra.create_base_SEMENT("_snore_v_1")
 
 # compose "the kitten snores"
 the_kitten = semantic_algebra.op_scopal_quantifier(the, kitten)
-the_kitten_snores = semantic_algebra.op_non_scopal_functor_hook(snore, the_kitten, "ARG1")
+the_kitten_snores = semantic_algebra.op_non_scopal_functor_hook_slots(snore, the_kitten, "ARG1")
 
 # print the SEMENTs before scopal composition
 print(sementcodecs.encode(know, indent=True))
@@ -236,11 +229,9 @@ print(sementcodecs.encode(the_kitten_snores, indent=True))
       HCONS: < h32 qeq h37 >
       EQS: < x31 eq x36 h40 eq h35 i39 eq x31 > ]
 
-
-
 ```python
 # perform composition
-know_the_kitten_snores = semantic_algebra.op_scopal_functor_index(know, the_kitten_snores, "ARG2")
+know_the_kitten_snores = semantic_algebra.op_scopal_functor_index_slots(know, the_kitten_snores, "ARG2")
 
 # print result
 print(sementcodecs.encode(know_the_kitten_snores, indent=True))

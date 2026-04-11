@@ -588,7 +588,7 @@ class POGGGraphEvaluationInit:
                 "generation_comment": "me when i'm a comment",
                 "inclusion_comment": "me when i'm also a comment",
                 "sem_comp_fxns_used": ["prenominal_adjective"],
-                "sem_alg_fxns_used": ["create_base_SEMENT", "op_non_scopal_argument_hook"]
+                "sem_alg_fxns_used": ["create_base_SEMENT", "op_non_scopal_argument_hook_slots"]
             }
         )
 
@@ -681,7 +681,7 @@ class POGGGraphEvaluationInit:
                 "generation_comment": "me when i'm a comment",
                 "inclusion_comment": "me when i'm also a comment",
                 "sem_comp_fxns_used": {"prenominal_adjective": 1},
-                "sem_alg_fxns_used": {"create_base_SEMENT": 2, "op_non_scopal_argument_hook": 1}
+                "sem_alg_fxns_used": {"create_base_SEMENT": 2, "op_non_scopal_argument_hook_slots": 1}
             }
         )
 

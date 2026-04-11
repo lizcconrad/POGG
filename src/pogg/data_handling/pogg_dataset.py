@@ -33,11 +33,12 @@ class POGGDataset:
         data_dir: "/absolute/path/to/dataset/directory"
 
         # subdirectories
-        data_chunk: "BitsyBakery"       # this is optional and only applies if the dataset is divided into chunks
         graph_json_dir: "graph_jsons"
         graph_dot_dir: "dot"
+        graph_png_dor: "png"
         lexicon_dir: "lexicon"
         evaluation_dir: "evaluation"
+        gold_outputs_dir: "gold_outputs"
 
         # other data information
         dataset_name: "BitsyBakery"
@@ -50,7 +51,6 @@ class POGGDataset:
         | Attribute | Description |
         | --------- | ----------- |
         | `data_dir` | directory where the dataset is stored |
-        | `data_chunk` | optional subdirectory where the particular data chunk is stored |
         | `graph_json_dir` | subdirectory where the graphs are stored in JSON format |
         | `graph_dot_dir` | subdirectory where the graphs are stored in DOT format |
         | `lexicon_dir` | subdirectory where the lexicon information is stored |
@@ -69,13 +69,12 @@ class POGGDataset:
 
 
         self.data_dir = self._store_path_value("data_dir")
-        self.data_chunk = self._store_path_value("data_chunk", self.data_dir, True)
-        self.graph_json_dir = self._store_path_value("graph_json_dir", self.data_chunk)
-        self.graph_dot_dir = self._store_path_value("graph_dot_dir", self.data_chunk)
-        self.graph_png_dir = self._store_path_value("graph_png_dir", self.data_chunk, True)
-        self.lexicon_dir = self._store_path_value("lexicon_dir", self.data_chunk)
-        self.evaluation_dir = self._store_path_value("evaluation_dir", self.data_chunk)
-        self.gold_outputs_dir = self._store_path_value("gold_outputs_dir", self.data_chunk)
+        self.graph_json_dir = self._store_path_value("graph_json_dir", self.data_dir)
+        self.graph_dot_dir = self._store_path_value("graph_dot_dir", self.data_dir)
+        self.graph_png_dir = self._store_path_value("graph_png_dir", self.data_dir, True)
+        self.lexicon_dir = self._store_path_value("lexicon_dir", self.data_dir)
+        self.evaluation_dir = self._store_path_value("evaluation_dir", self.data_dir)
+        self.gold_outputs_dir = self._store_path_value("gold_outputs_dir", self.data_dir)
 
         # initialize lexicon in case no files exist yet (skipping ones that do)
         POGGLexiconUtil.initialize_lexicon_directory(self.dataset_name, self.lexicon_dir)

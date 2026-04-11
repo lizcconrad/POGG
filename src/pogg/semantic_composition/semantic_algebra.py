@@ -132,7 +132,7 @@ class SemanticAlgebra:
         return SEMENT(lbl, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties})
 
     @SemAlgTracer.trace
-    def op_non_scopal_argument_hook(self, functor, argument, slot_label):
+    def op_non_scopal_argument_hook_slots(self, functor, argument, slot_label):
         """
         Perform non-scopal composition on two SEMENTs. The hook (i.e. the `LTOP` and `INDEX`) of the resulting SEMENT comes from the argument.
         Typically used when the functor is a modifier (e.g. *tasty cookie*).
@@ -191,7 +191,7 @@ class SemanticAlgebra:
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
     @SemAlgTracer.trace
-    def op_non_scopal_functor_hook(self, functor, argument, slot_label):
+    def op_non_scopal_functor_hook_slots(self, functor, argument, slot_label):
         """
         Perform non-scopal composition on two SEMENTs. The hook of the resulting SEMENT comes from the functor.
         Typically used when the argument is a complement (e.g. *give a cookie*) or preposition (*in the park*).
@@ -252,7 +252,7 @@ class SemanticAlgebra:
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
     @SemAlgTracer.trace
-    def op_scopal_argument_index(self, functor, argument, slot_label):
+    def op_scopal_argument_index_slots(self, functor, argument, slot_label):
         """
         Perform scopal composition where the INDEX comes from the argument, but the LTOP comes from the functor.
         Used when the argument is a scopal modifier (e.g. *probably sleeps*).
@@ -293,9 +293,7 @@ class SemanticAlgebra:
 
         result_eqs = functor.eqs + argument.eqs
 
-        result_slots = functor.slots.copy()
-        # delete the slot that's been plugged
-        del result_slots[slot_label]
+        result_slots = argument.slots.copy()
 
         result_hcons = functor.hcons + argument.hcons
         result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
@@ -316,7 +314,7 @@ class SemanticAlgebra:
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
 
     @SemAlgTracer.trace
-    def op_scopal_functor_index(self, functor, argument, slot_label):
+    def op_scopal_functor_index_slots(self, functor, argument, slot_label):
         """
         Perform scopal composition where the INDEX comes from the functor (as does the LTOP, but this is true for all versions of scopal composition).
         Used when the argument is a complement (e.g. *believes it's raining*).
@@ -537,7 +535,9 @@ class SemanticAlgebra:
         # duplicate sement to avoid editing the original
         unprepared_sement = POGGSEMENTUtil.duplicate_sement(sement)
 
-        if sement.index[0] != "e":
+
+        # TODO: this seems risky... what if the top level variable is i and we DO want an unknown wrapper?
+        if sement.index[0] == "x":
             # check if quantified, wrap in one if not
             if not POGGSEMENTUtil.check_if_quantified(unprepared_sement):
                 # if the top level predicate is "named," use "proper_q"
@@ -557,7 +557,7 @@ class SemanticAlgebra:
 
             # wrap in "unknown" event
             unknown_sement = self.create_base_SEMENT("unknown")
-            e_type_sement = self.op_non_scopal_functor_hook(unknown_sement, quantified_sement, "ARG")
+            e_type_sement = self.op_non_scopal_functor_hook_slots(unknown_sement, quantified_sement, "ARG")
         else:
             e_type_sement = unprepared_sement
 
@@ -591,6 +591,45 @@ class SemanticAlgebra:
 
         final_sement = POGGSEMENTUtil.overwrite_eqs(e_type_sement)
         return final_sement
+
+    @SemAlgTracer.trace
+    def decompose_MRS(self, mrs):
+        # strip an MRS that came out of the ERG of its "wrapper" material
+        # return a new SEMENT that can participate in composition
+
+        # duplicate because i don't like modifying arguments...
+        updated_mrs = POGGSEMENTUtil.duplicate_sement(mrs)
+
+        # strip the GTOP if present
+        hcons_to_remove = None
+        for hcon in updated_mrs.hcons:
+            if updated_mrs.top == hcon.hi:
+                # set TOP to the lo handle
+                updated_mrs.top = hcon.lo
+                to_remove = hcon
+                break
+        updated_mrs.hcons.remove(hcons_to_remove)
+
+        # delete "unknown" predicate if present
+        key_rel = POGGSEMENTUtil.get_key_rel(updated_mrs)
+
+        if key_rel.predicate == "unknown":
+            hcons_to_remove = None
+            rels_to_remove = None
+
+            # mark "unknown" rel for removal
+            rels_to_remove.append(key_rel)
+
+            key_variable = key_rel.args['ARG']
+            for rel in updated_mrs.rels:
+                # candidate for key_rel
+                if rel.args['ARG0'] == key_variable:
+                    # if it's a quantifier, mark it as to_remove and also remove associated HCon
+                    pass
+
+
+
+
 
 
 

@@ -31,14 +31,14 @@ class TestAlgebraFunctions:
 
     @staticmethod
     @parametrize_with_cases("functor, argument, slot_label, gold_sement", cases=OpNonScopalArgumentHook)
-    def test_op_non_scopal_argument_hook(functor, argument, slot_label, gold_sement, sem_alg_obj):
-        test_sement = sem_alg_obj.op_non_scopal_argument_hook(functor, argument, slot_label)
+    def test_op_non_scopal_argument_hook_slots(functor, argument, slot_label, gold_sement, sem_alg_obj):
+        test_sement = sem_alg_obj.op_non_scopal_argument_hook_slots_slots(functor, argument, slot_label)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_sement, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_sement, test_sement)
 
     @staticmethod
     @parametrize_with_cases("functor, argument, slot_label, gold_sement", cases=OpNonScopalFunctorHook)
-    def test_op_non_scopal_functor_hook(functor, argument, slot_label, gold_sement, sem_alg_obj):
-        test_sement = sem_alg_obj.op_non_scopal_functor_hook(functor, argument, slot_label)
+    def test_op_non_scopal_functor_hook_slots(functor, argument, slot_label, gold_sement, sem_alg_obj):
+        test_sement = sem_alg_obj.op_non_scopal_functor_hook_slots_slots(functor, argument, slot_label)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_sement, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_sement, test_sement)
 
     @staticmethod
@@ -49,14 +49,14 @@ class TestAlgebraFunctions:
 
     @staticmethod
     @parametrize_with_cases("functor, argument, slot_label, gold_sement", cases=OpScopalArgumentIndex)
-    def test_op_scopal_argument_index(functor, argument, slot_label, gold_sement, sem_alg_obj):
-        test_sement = sem_alg_obj.op_scopal_argument_index(functor, argument, slot_label)
+    def test_op_scopal_argument_index_slots(functor, argument, slot_label, gold_sement, sem_alg_obj):
+        test_sement = sem_alg_obj.op_scopal_argument_index_slots_slots(functor, argument, slot_label)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_sement, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_sement, test_sement)
 
     @staticmethod
     @parametrize_with_cases("functor, argument, slot_label, gold_sement", cases=OpScopalFunctorIndex)
-    def test_op_scopal_functor_index(functor, argument, slot_label, gold_sement, sem_alg_obj):
-        test_sement = sem_alg_obj.op_scopal_functor_index(functor, argument, slot_label)
+    def test_op_scopal_functor_index_slots(functor, argument, slot_label, gold_sement, sem_alg_obj):
+        test_sement = sem_alg_obj.op_scopal_functor_index_slots(functor, argument, slot_label)
         assert POGGSEMENTUtil.is_sement_isomorphic(gold_sement, test_sement), POGGSEMENTUtil.build_isomorphism_report(gold_sement, test_sement)
 
     @staticmethod

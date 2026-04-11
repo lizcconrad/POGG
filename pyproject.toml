@@ -120,6 +120,7 @@ features = [
 
 [tool.coverage.run]
 source_pkgs = ["pogg", "tests"]
+#source_pkgs = ["pogg"]
 branch = true
 parallel = true
 omit = [
@@ -136,4 +137,9 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+]
+omit = [
+  "*/src/pogg/__about__.py",
+  "*/__init__.py",
+  "*/tests/*"
 ]
