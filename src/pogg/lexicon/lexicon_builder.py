@@ -108,6 +108,8 @@ class POGGLexicon:
     # all_entries_file: str = os.path.join(directory, f"{name}_lexicon_all_entries.json")
 
 
+
+
 class POGGLexiconUtil:
     """Provides static functions for initializing, updating, and outputting lexicon information."""
     @staticmethod
@@ -140,6 +142,8 @@ class POGGLexiconUtil:
         files.append(os.path.join(lexicon_directory, f"{lexicon_name}_lexicon_incomplete_entries.json"))
         files.append(os.path.join(lexicon_directory, f"{lexicon_name}_lexicon_invalid_entries.json"))
         files.append(os.path.join(lexicon_directory, f"{lexicon_name}_lexicon_all_entries.json"))
+
+        files.append(os.path.join(lexicon_directory, f"{lexicon_name}_lexicon_auto_entries.json"))
 
         starter_dict = {
             "node_keys": {},
@@ -368,7 +372,33 @@ class POGGLexiconUtil:
         | `POGGLexicon` | the `POGGLexicon` object created from the data in the lexicon directory |
         """
 
-        lexicon = POGGLexicon(lexicon_name, lexicon_directory, {}, {})
+        try:
+            lexicon_filepath = glob.glob(os.path.join(lexicon_directory, "*_complete_entries.json"))[0]
+        except IndexError as err:
+            raise IndexError(f"No files in {os.path.abspath(lexicon_directory)} end in the pattern _complete_entries.json") from err
+
+
+        return POGGLexiconUtil.read_lexicon_from_file(lexicon_name, lexicon_filepath)
+
+    @staticmethod
+    def read_lexicon_from_file(lexicon_name, lexicon_filepath):
+        """
+        Given a file containing lexicon information, read it in and store it in a `POGGLexicon` object
+
+        **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `lexicon_name` | `str` | name of the lexicon |
+        | `lexicon_filepath` | `str` | path to the lexicon file |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `POGGLexicon` | the `POGGLexicon` object created from the data in the lexicon directory |
+        """
+
+        # ignore the lexicon directory when just reading from a file
+        lexicon = POGGLexicon(lexicon_name, None, {}, {})
 
         # use this if a file is empty and JSON object can't be loaded
         empty_lexicon = {
@@ -377,19 +407,20 @@ class POGGLexiconUtil:
         }
 
         try:
-            with open(glob.glob(os.path.join(lexicon_directory, "*_complete_entries.json"))[0], "r") as complete_lexicon_file:
+            with open(lexicon_filepath, "r") as lexicon_file:
                 try:
-                    complete_lexicon = json.load(complete_lexicon_file)
+                    lexicon_json = json.load(lexicon_file)
                 except json.decoder.JSONDecodeError:
-                    complete_lexicon = empty_lexicon.copy()
+                    lexicon_json = empty_lexicon.copy()
         except IndexError as err:
-            raise IndexError(f"No files in {os.path.abspath(lexicon_directory)} end in the pattern _complete_entries.json") from err
+            raise IndexError(
+                f"No such file {lexicon_filepath}") from err
 
-        node_entries = complete_lexicon["node_keys"]
+        node_entries = lexicon_json["node_keys"]
         for key in node_entries.keys():
             lexicon.node_entries[key] = POGGLexiconUtil.convert_dict_entry_to_POGGLexiconEntry(key, node_entries[key])
 
-        edge_entries = complete_lexicon["edge_keys"]
+        edge_entries = lexicon_json["edge_keys"]
         for key in edge_entries.keys():
             lexicon.edge_entries[key] = POGGLexiconUtil.convert_dict_entry_to_POGGLexiconEntry(key, edge_entries[key])
 
@@ -439,7 +470,7 @@ class POGGLexiconUtil:
 
             # check that the parameters in the node_entry are legitimate
             for key in node_entry.keys():
-                if key != "comp_fxn":
+                if key != "comp_fxn" and key != "auto":
                     if key not in parameters:
                         node_entry["failure_msg"] = f"{key} is not a parameter of {comp_fxn_name}"
                         raise KeyError(node_entry["failure_msg"], node_entry)
@@ -1025,6 +1056,21 @@ class POGGLexiconUtil:
 
             json.dump(all_entries, all_file, indent=4)
 
+        # find auto entries
+        auto_entries = {
+            "node_keys": {},
+            "edge_keys": {}
+        }
+        for node_key, entry in all_entries['node_keys'].items():
+            if "auto" in entry and entry["auto"]:
+                auto_entries["node_keys"][node_key] = entry
+        for edge_key, entry in all_entries['edge_keys'].items():
+            if "auto" in entry and entry["auto"]:
+                auto_entries["edge_keys"][edge_key] = entry
+        # dump auto entries to auto file -- this is not to be edited, just to have a place to look for auto generated entries
+        with open(glob.glob(os.path.join(lexicon_directory, "*_auto_entries.json"))[0], "w") as auto_file:
+            json.dump(auto_entries, auto_file, indent=4)
+
     @staticmethod
     def add_new_graph_data_to_lexicon(lexicon_name, lexicon_directory, new_lexicon_skeleton):
         """
@@ -1073,7 +1119,19 @@ class POGGLexiconUtil:
             json.dump(curr_all, all_file, indent=4)
 
     @staticmethod
-    def update_lexicon_files(lexicon_directory):
+    def augment_from_existing_lexicon(existing_lexicon_directory, lexicon_dict_to_augment):
+        with open(glob.glob(os.path.join(existing_lexicon_directory, "*_complete_entries.json"))[0], "r") as complete_entries_file:
+            existing_complete_lexicon_json = json.load(complete_entries_file)
+            for key in existing_complete_lexicon_json["node_keys"]:
+                if key not in lexicon_dict_to_augment:
+                    lexicon_dict_to_augment["node_keys"][key] = existing_complete_lexicon_json["node_keys"][key]
+
+            for key in existing_complete_lexicon_json["edge_keys"]:
+                if key not in lexicon_dict_to_augment:
+                    lexicon_dict_to_augment["edge_keys"][key] = existing_complete_lexicon_json["edge_keys"][key]
+
+    @staticmethod
+    def update_lexicon_files(lexicon_directory, existing_lexicon_paths=None):
         """
         Update the files in the lexicon directory based on new information provided by the user.
         For example, if the user added information to the incomplete entries they may need to be expanded or marked as complete and moved to `lexicon_complete_entries.json`.
@@ -1147,6 +1205,14 @@ class POGGLexiconUtil:
                 new_incomplete_entries['edge_keys'][edge_key] = POGGLexiconUtil.expand_edge_entry(edge_entry)
 
 
+        # if existing lexicon paths are provided, augment the new_complete_entries with complete_entries from those lexicons
+        try:
+            for existing_path in existing_lexicon_paths:
+                POGGLexiconUtil.augment_from_existing_lexicon(existing_path, new_complete_entries)
+        except TypeError:
+            pass
+
+
         POGGLexiconUtil.dump_lexicon_json_data(lexicon_directory, new_complete_entries, new_incomplete_entries,
                                                new_invalid_entries)
 
@@ -1185,4 +1251,5 @@ class POGGLexiconUtil:
 
         with open(lexicon_dump_file_path, "w") as lexicon_file:
             lexicon_file.write(json.dumps(lexicon_json, indent=4))
+
 
