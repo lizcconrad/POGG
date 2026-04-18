@@ -1,3 +1,0 @@
-strict digraph {
-cool [node_type=entity, lexicon_key=cool];
-}

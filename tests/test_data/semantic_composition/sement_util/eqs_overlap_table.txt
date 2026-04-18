@@ -1,4 +1,0 @@
-Role Set                     Gold Var    Actual Var    Properties
----------------------------  ----------  ------------  ------------
-['role0', 'role1', 'role2']  x1          x01           { 'NUM': 'sg' }
-['role3', 'role4']           x2          x02           {}

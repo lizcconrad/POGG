@@ -1,4 +1,0 @@
-Left Role Set          Right Role Set      Gold Constraint
----------------------  ------------------  ----------------
-['role0', 'role1']     ['role2', 'role3']  e1 topic x2
-['role4']              ['role5']           e3 topic x4

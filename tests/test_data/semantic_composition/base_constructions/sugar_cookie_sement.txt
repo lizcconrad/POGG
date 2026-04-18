@@ -1,9 +1,0 @@
-[ TOP: h2
-    INDEX: x11
-    RELS: <
-        [ _sugar_n_1 LBL: h0 ARG0: x1 ]
-        [ compound LBL: h2 ARG0: e3 [ PROG: - ] ARG1: x4 ARG2: x5 ]
-        [ udef_q LBL: h6 ARG0: x7 RSTR: h8 BODY: h9 ]
-        [ _cookie_n_1 LBL: h10 ARG0: x11 ] >
-    EQS: < x1 eq x7 x5 eq x1 x4 eq x11 h2 eq h10 >
-    HCONS: < h8 qeq h0 > ]

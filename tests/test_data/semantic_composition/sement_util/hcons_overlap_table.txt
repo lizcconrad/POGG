@@ -1,4 +1,0 @@
-Hi Role Set            Lo Role Set         Gold QEQ       Actual QEQ
----------------------  ------------------  -------------  ------------
-['role0', 'role1']     ['role2', 'role3']  h0 qeq h1      h00 qeq h01
-['role4']               ['role5']          h2 qeq h3      h02 qeq h03

@@ -1,7 +1,0 @@
-strict digraph {
-cake [node_type=entity, lexicon_key=cake];
-vanilla [node_type=property, lexicon_key=vanilla];
-chocolate [node_type=property, lexicon_key=chocolate];
-cake -> vanilla [label=flavor, edge_type=property, lexicon_key=flavor];
-cake -> chocolate [label=scent, edge_type=property, lexicon_key=scent];
-}

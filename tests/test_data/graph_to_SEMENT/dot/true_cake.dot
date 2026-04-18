@@ -1,5 +1,0 @@
-strict digraph {
-cake [node_type=entity, lexicon_key=cake];
-true [node_type=property, lexicon_key=true];
-cake -> true [label=boolean_color, edge_type=property, lexicon_key=boolean_color];
-}

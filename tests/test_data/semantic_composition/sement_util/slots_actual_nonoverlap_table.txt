@@ -1,4 +1,0 @@
-Slot Name              Actual Var
----------------------  ----------
-['slot1']              x1
-['slot2']              x2

@@ -1,4 +1,0 @@
-digraph {
-cake [node_type=entity, lexicon_key=cake];
-cake -> cake [label=flavor, edge_type=property, lexicon_key=flavor];
-}
