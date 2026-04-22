@@ -436,7 +436,7 @@ class POGGExperiment:
 
 
         # print graph_notes file
-        with open(Path(run_eval_dir, self.evaluation.run_id + "_graph_notes.json"), "w") as file:
+        with open(Path(run_eval_dir, "graph_notes.json"), "w") as file:
             # sort the graph names
             sorted_graph_notes = dict(sorted(graph_notes.items()))
             file.write(json.dumps(sorted_graph_notes, indent=4))
