@@ -1,12 +1,15 @@
 """
-This module contains the POGGConfig class, which stores configuration information such as the location of the grammar used for generation.
+This module contains the POGGCompositionConfig class, which stores configuration information such as the location of the grammar used for generation.
 
 [See usage examples here.](project:/usage_nbs/pogg/pogg_config_usage.ipynb)
 """
 import os
 import warnings
-import yaml
+import json
+from pathlib import Path
 from delphin import semi
+
+
 
 class _VarIterator:
     """
@@ -106,28 +109,25 @@ class _VarLabeler:
         """
         self.varIt.reset()
 
-class POGGConfig:
+
+class POGGCompositionConfig:
     """
-    Holds configuration information necessary to run the data-to-text algorithm,
-    such as the location of the Semantic Interface (SEMI) and the grammar.
+    Holds configuration information necessary to create and perform composition with SEMENT objects.
     """
-    def __init__(self, yaml_filepath):
+    def __init__(self, config_filepath):
         """
          **Parameters**
         | Parameter | Type | Description |
         | --------- | ---- | ------------ |
-        | `yaml_filepath` | `str` | path to the YAML file which contains the configuration information |
+        | `config_filepath` | `str` | path to the JSON file which contains the configuration information |
 
-        :::{example} YAML config example
+        :::{example} JSON config example
         :collapsible:
         ```
-        # top level directory
-        data_dir: "/absolute/path/to/dataset/directory"
-
-        # subdirectories
-        # Grammar information
-        grammar_location: ./ERG/ERG_2023/erg-2023.dat
-        SEMI: ./ERG/ERG_2023/trunk/etc/erg.smi
+        {
+            "grammar_location": "/Users/lizcconrad/Documents/PhD/POGG/ERG/ERG_2023/erg-2023.dat",
+            "SEMI": "/Users/lizcconrad/Documents/PhD/POGG/ERG/ERG_2023/trunk/etc/erg.smi"
+        }
         ```
         :::
 
@@ -136,31 +136,29 @@ class POGGConfig:
         **Instance Attributes**
         | Attribute | Type | Description |
         | --------- | ---- | ------------ |
-        | `yaml_config` | `YAMLObject` | loaded from parameter `yaml_filepath` |
         | `grammar_location` | `str` | location of the grammar used for generation |
         | `SEMI_location` | `str` | location of the SEM-I (Semantic Interface) |
         | `SEMI` | `delphin.SEMI` | PyDelphin SEM-I object, loaded from SEMI_location |
         | `var_labeler` | `_VarLabeler` |  _VarLabeler object used to provide a label for each new variable in a semantic structure |
         """
-        yaml_file = open(yaml_filepath, 'r')
-        self.yaml_config = yaml.safe_load(yaml_file)
-        yaml_file.close()
+        with open(config_filepath, 'r') as config_file:
+            json_config = json.load(config_file)
 
         self.grammar_location = None
         self.SEMI_location = None
         self.SEMI = None
         self.var_labeler = None
 
-        # save grammar_location in the POGGConfig object
+        # save grammar_location in the POGGCompositionConfig object
         try:
-            self.grammar_location = self.yaml_config['grammar_location']
+            self.grammar_location = json_config['grammar_location']
         except KeyError:
             raise KeyError("'grammar_location' is missing in the config file")
 
-        # save SEMI_location in the POGGConfig object and load the SEMI object
+        # save SEMI_location in the POGGCompositionConfig object and load the SEMI object
         try:
 
-            self.SEMI_location = self.yaml_config['SEMI']
+            self.SEMI_location = json_config['SEMI']
             # suppress SEMI warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")

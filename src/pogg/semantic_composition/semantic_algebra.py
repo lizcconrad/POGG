@@ -4,10 +4,11 @@ The semantic_algebra module contains the SemanticAlgebra class which contains me
 [See usage examples here.](project:/usage_nbs/pogg/semantic_composition/SemanticAlgebra_usage.ipynb)
 """
 
+from pathlib import Path
 from delphin import mrs
 from pogg.my_delphin.my_delphin import SEMENT
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
-from pogg.pogg_config import POGGConfig
+from pogg.pogg_config import POGGCompositionConfig
 
 from pogg.semantic_composition.call_tracer import SemAlgTracer
 
@@ -16,7 +17,7 @@ class SemanticAlgebra:
     """
     A `SemanticAlgebra` object contains functions for performing basic semantic composition.
     """
-    def __init__(self, pogg_config: POGGConfig):
+    def __init__(self, composition_config: POGGCompositionConfig | Path | str):
         """
         Initialize the `SemanticAlgebra` object.
 
@@ -25,9 +26,12 @@ class SemanticAlgebra:
         **Parameters / Instance Attributes**
         | Parameter | Type | Description |
         | --------- | ---- | ----------- |
-        | `pogg_config` | `POGGConfig` | `POGGConfig` object that contains information about the SEMI and variable labeler |
+        | `composition_config` | `POGGCompositionConfig` | `POGGCompositionConfig` object that contains information about the SEMI and variable labeler |
         """
-        self.pogg_config = pogg_config
+        if not isinstance(composition_config, POGGCompositionConfig):
+            self.composition_config = POGGCompositionConfig(composition_config)
+        else:
+            self.composition_config = composition_config
 
 
     def _get_slots(self, ep):
@@ -76,18 +80,18 @@ class SemanticAlgebra:
             intrinsic_variable_properties = {}
 
         # get semantic arguments for given predicate
-        args = self.pogg_config.concretize(predicate, synopsis_dict)
+        args = self.composition_config.concretize(predicate, synopsis_dict)
 
         # create EP
         # create a handle that will serve as the LBL for the EP
-        lbl = self.pogg_config.var_labeler.get_var_name('h')
+        lbl = self.composition_config.var_labeler.get_var_name('h')
         ep = mrs.EP(predicate, lbl, args)
 
 
         # if the predicate ends in "_q" it's a quantifier, so a new handle needs to be created to serve as the LTOP
         # otherwise, use the LBL as LTOP
         if predicate.endswith("_q"):
-            ltop = self.pogg_config.var_labeler.get_var_name('h')
+            ltop = self.composition_config.var_labeler.get_var_name('h')
         else:
             ltop = lbl
 
@@ -117,10 +121,10 @@ class SemanticAlgebra:
         """
 
         # get semantic arguments for given predicate
-        args = self.pogg_config.concretize(predicate)
+        args = self.composition_config.concretize(predicate)
         # create EP
         # create a handle that will serve as the LBL for the EP
-        lbl = self.pogg_config.var_labeler.get_var_name('h')
+        lbl = self.composition_config.var_labeler.get_var_name('h')
         ep = mrs.EP(predicate, lbl, args)
         # add CARG as an argument and set the value
         ep.args['CARG'] = carg_value
@@ -306,7 +310,7 @@ class SemanticAlgebra:
 
         # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
         # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
-        new_h = self.pogg_config.var_labeler.get_var_name("h")
+        new_h = self.composition_config.var_labeler.get_var_name("h")
         result_variables.update({new_h: {}})
         result_eqs.append((new_h, functor.slots[slot_label]))
 
@@ -370,7 +374,7 @@ class SemanticAlgebra:
 
         # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
         # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
-        new_h = self.pogg_config.var_labeler.get_var_name("h")
+        new_h = self.composition_config.var_labeler.get_var_name("h")
         result_variables.update({new_h: {}})
         result_eqs.append((new_h, functor.slots[slot_label]))
 
@@ -433,7 +437,7 @@ class SemanticAlgebra:
 
         # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
         # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
-        new_h = self.pogg_config.var_labeler.get_var_name("h")
+        new_h = self.composition_config.var_labeler.get_var_name("h")
         result_variables.update({new_h: {}})
         result_eqs.append((new_h, functor.slots[slot_label]))
 
@@ -536,8 +540,11 @@ class SemanticAlgebra:
         unprepared_sement = POGGSEMENTUtil.duplicate_sement(sement)
 
 
-        # TODO: this seems risky... what if the top level variable is i and we DO want an unknown wrapper?
-        if sement.index[0] == "x":
+        # TODO: i can't get "the cat probably sleeps" bc the top lvl INDEX is i
+        # TODO: BUT if i set this check to be only 'x' then it doesn't wrap stand-alone adjs like "black"
+        # TODO: a more complex check could be like ,,, if it's i THEN see if the ARG1 of the rel who has that as ARG0 is in a qeq
+        # TODO: i guess this depends tho like why the hell is probably's 'i' okay as the top level INDEX is that even real
+        if sement.index[0] != "e":
             # check if quantified, wrap in one if not
             if not POGGSEMENTUtil.check_if_quantified(unprepared_sement):
                 # if the top level predicate is "named," use "proper_q"
@@ -569,7 +576,7 @@ class SemanticAlgebra:
                 has_gtop = True
 
         if not has_gtop:
-            gtop = self.pogg_config.var_labeler.get_var_name("h")
+            gtop = self.composition_config.var_labeler.get_var_name("h")
             new_hcon = mrs.HCons(gtop, "qeq", e_type_sement.top)
 
             # change top and add hcon
@@ -581,51 +588,51 @@ class SemanticAlgebra:
         # then when EQs are overwritten the most specific one, h2, is chosen
         for hcon in e_type_sement.hcons:
             if hcon.hi[0] != "h":
-                new_h = self.pogg_config.var_labeler.get_var_name("h")
+                new_h = self.composition_config.var_labeler.get_var_name("h")
                 e_type_sement.eqs.append((new_h, hcon.hi))
                 e_type_sement.variables[new_h] = {}
             if hcon.lo[0] != "h":
-                new_h = self.pogg_config.var_labeler.get_var_name("h")
+                new_h = self.composition_config.var_labeler.get_var_name("h")
                 e_type_sement.eqs.append((new_h, hcon.lo))
                 e_type_sement.variables[new_h] = {}
 
         final_sement = POGGSEMENTUtil.overwrite_eqs(e_type_sement)
         return final_sement
 
-    @SemAlgTracer.trace
-    def decompose_MRS(self, mrs):
-        # strip an MRS that came out of the ERG of its "wrapper" material
-        # return a new SEMENT that can participate in composition
-
-        # duplicate because i don't like modifying arguments...
-        updated_mrs = POGGSEMENTUtil.duplicate_sement(mrs)
-
-        # strip the GTOP if present
-        hcons_to_remove = None
-        for hcon in updated_mrs.hcons:
-            if updated_mrs.top == hcon.hi:
-                # set TOP to the lo handle
-                updated_mrs.top = hcon.lo
-                to_remove = hcon
-                break
-        updated_mrs.hcons.remove(hcons_to_remove)
-
-        # delete "unknown" predicate if present
-        key_rel = POGGSEMENTUtil.get_key_rel(updated_mrs)
-
-        if key_rel.predicate == "unknown":
-            hcons_to_remove = None
-            rels_to_remove = None
-
-            # mark "unknown" rel for removal
-            rels_to_remove.append(key_rel)
-
-            key_variable = key_rel.args['ARG']
-            for rel in updated_mrs.rels:
-                # candidate for key_rel
-                if rel.args['ARG0'] == key_variable:
-                    # if it's a quantifier, mark it as to_remove and also remove associated HCon
-                    pass
+    # @SemAlgTracer.trace
+    # def decompose_MRS(self, mrs):
+    #     # strip an MRS that came out of the ERG of its "wrapper" material
+    #     # return a new SEMENT that can participate in composition
+    #
+    #     # duplicate because i don't like modifying arguments...
+    #     updated_mrs = POGGSEMENTUtil.duplicate_sement(mrs)
+    #
+    #     # strip the GTOP if present
+    #     hcons_to_remove = None
+    #     for hcon in updated_mrs.hcons:
+    #         if updated_mrs.top == hcon.hi:
+    #             # set TOP to the lo handle
+    #             updated_mrs.top = hcon.lo
+    #             to_remove = hcon
+    #             break
+    #     updated_mrs.hcons.remove(hcons_to_remove)
+    #
+    #     # delete "unknown" predicate if present
+    #     key_rel = POGGSEMENTUtil.get_key_rel(updated_mrs)
+    #
+    #     if key_rel.predicate == "unknown":
+    #         hcons_to_remove = None
+    #         rels_to_remove = None
+    #
+    #         # mark "unknown" rel for removal
+    #         rels_to_remove.append(key_rel)
+    #
+    #         key_variable = key_rel.args['ARG']
+    #         for rel in updated_mrs.rels:
+    #             # candidate for key_rel
+    #             if rel.args['ARG0'] == key_variable:
+    #                 # if it's a quantifier, mark it as to_remove and also remove associated HCon
+    #                 pass
 
 
 

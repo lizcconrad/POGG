@@ -238,8 +238,6 @@ class POGGEdgeEvaluation:
             self.inclusion_comment = edge_json["inclusion_comment"]
 
 
-
-
 class POGGGraphEvaluation:
     """
     A `POGGGraphEvaluation` object stores evaluation information about a graph.
@@ -680,12 +678,13 @@ class POGGGraphEvaluation:
         for item in os.listdir(evaluation_directory):
             if item.endswith(".dot"):
                 self.graph = POGGGraphUtil.read_graph_from_dot(Path(evaluation_directory, item))
-
-        # find the json file
-        for item in os.listdir(evaluation_directory):
-            if item.endswith(".json"):
-                with open(Path(evaluation_directory, item)) as json_file:
-                    graph_evaluation_json = json.load(json_file)
+            elif item.endswith(".json"):
+                if item.endswith("evaluation.json"):
+                    with open(Path(evaluation_directory, item)) as json_file:
+                        graph_evaluation_json = json.load(json_file)
+                # else:
+                #     with open(Path(evaluation_directory, item)) as json_file:
+                #         graph = json.load(json_file)
 
         self.graph_name = graph_evaluation_json['graph_name']
 
@@ -737,7 +736,7 @@ class POGGEvaluation:
     """
     A `POGGEvaluation` object stores evaluation information about dataset.
     """
-    def __init__(self, dataset_name=None, evaluation_dir=None):
+    def __init__(self, experiment_name=None, evaluation_dir=None):
         """
         Initialize the `POGGEvaluation` object by providing the name of the dataset.
 
@@ -773,11 +772,14 @@ class POGGEvaluation:
         """
 
 
-        if dataset_name is None and evaluation_dir is None:
-            raise ValueError("Must provide dataset name if not reading evaluation from existing report.")
+        if experiment_name is None and evaluation_dir is None:
+            raise ValueError("Must provide experiment name if not reading evaluation from existing report.")
 
-        self.dataset_name = dataset_name
+        self.experiment_name = experiment_name
         self.graph_evaluations = {}
+
+        self.dataset_location = None
+        self.lexicon = None
 
         # calculations made over all graphs
         self.graph_count = None
@@ -814,14 +816,13 @@ class POGGEvaluation:
         self.sem_comp_fxns_used_coverage = None
 
         # metadata about the run itself for reporting/comparing evaluations between runs
-        self.run_complete = False
         self.run_id = None
 
         if evaluation_dir:
             self.create_evaluation_object_from_directory(evaluation_dir)
 
 
-    def add_graph(self, graph, graph_name):
+    def add_graph(self, graph, graph_name, graph_evaluation=None):
         """
         Create a graph evaluation object given a graph and add it to the dictionary of graph evaluation objects.
 
@@ -838,7 +839,10 @@ class POGGEvaluation:
         """
 
         # create graph evaluation object
-        self.graph_evaluations[graph_name] = POGGGraphEvaluation(graph, graph_name)
+        if graph_evaluation:
+            self.graph_evaluations[graph_name] = graph_evaluation
+        else:
+            self.graph_evaluations[graph_name] = POGGGraphEvaluation(graph, graph_name)
 
     def get_graph_evaluation(self, graph_name):
         """
@@ -1122,7 +1126,7 @@ class POGGEvaluationDiff:
     """
     A `POGGEvaluationDiff` object stores information comparing evaluation metrics between two runs on the same dataset.
     """
-    def __init__(self, base_eval, comparison_eval):
+    def __init__(self, base_eval, comparison_eval, diff_path=None):
         """
         Initialize the `POGGEvaluation` object by providing the name of the dataset.
 
@@ -1135,14 +1139,16 @@ class POGGEvaluationDiff:
         
         self.base_eval = base_eval
         self.comparison_eval = comparison_eval
+        if diff_path:
+            self.diff_path = diff_path
         
         # check that run was performed on the same dataset 
         # TODO: right now just using dataset name as the check for this
         # TODO: a better check would actually confirm the graphs are the same 
-        if self.base_eval.dataset_name != self.comparison_eval.dataset_name:
+        if self.base_eval.experiment_name != self.comparison_eval.experiment_name:
             raise ValueError("Dataset names do not match; runs were not performed on the same dataset, so a diff report can't be created")
 
-        self.dataset_name = self.base_eval.dataset_name
+        self.experiment_name = self.base_eval.experiment_name
         
         # TODO: first key is graph name and has previous_run:POGGGraphEvaluation and current_run:POGGGraphEvaluation
         self.graph_evaluations = {}
@@ -1237,3 +1243,76 @@ class POGGEvaluationDiff:
             'sem_comp_fxns_used_count_delta': self.sem_comp_fxns_used_count_delta,
             'sem_comp_fxns_used_coverage_delta': self.sem_comp_fxns_used_coverage_delta
         }
+
+
+class POGGEvaluationDiffConfig:
+    def __init__(self, diff_config_path: Path | str):
+        with open(diff_config_path, 'r') as f:
+            config_json = json.load(f)
+
+        for key in config_json:
+            if key != "diffs":
+                setattr(self, key, config_json[key])
+
+        self.diff_setups = {}
+        self._create_diff_objects(config_json, self.diff_setups)
+
+
+    def _create_diff_objects(self, current_json_split, current_dict):
+        subsplit_diffs = {}
+        if "splits" in current_json_split:
+            current_dict["splits"] = {}
+            for subsplit_key, subsplit in current_json_split["splits"].items():
+
+                current_dict["splits"][subsplit_key] = {}
+
+
+                # recurse down to sub-splits
+                result = self._create_diff_objects(subsplit, current_dict["splits"][subsplit_key])
+                for key in result:
+                    if key in subsplit_diffs:
+                        subsplit_diffs[key].extend(result[key])
+                    else:
+                        subsplit_diffs[key] = result[key]
+
+        # use results to build aggregate-level diffs
+        if "diffs" in current_json_split:
+            for diff_key, diff in current_json_split["diffs"].items():
+                # read in eval object from baseline_dir and comparison_dir
+                baseline_eval_dir = Path(diff["baseline_dir"], diff["eval_dir_name"])
+                comparison_eval_dir = Path(diff["comparison_dir"], diff["eval_dir_name"])
+
+                basline_eval = POGGEvaluation(evaluation_dir=baseline_eval_dir)
+                comparison_eval = POGGEvaluation(evaluation_dir=comparison_eval_dir)
+
+                eval_diff = POGGEvaluationDiff(basline_eval, comparison_eval, diff["diff_dir"])
+
+                # if it's NOT a leaf diff, aggregate diff objects from subsplits
+                if not diff["leaf"]:
+                    # add to the diff_dict
+                    current_dict[diff_key] = eval_diff
+                else:
+                    # add to the diff_dict
+                    current_dict[diff_key] = eval_diff
+
+                    # add to collection of subsplit_diffs
+                    if diff_key not in subsplit_diffs:
+                        subsplit_diffs[diff_key] = [eval_diff]
+                    else:
+                        subsplit_diffs[diff_key].append(eval_diff)
+                        
+        return subsplit_diffs
+
+    def get_all_diffs(self, current_dict_level=None, diffs=None):
+        if current_dict_level is None:
+            current_dict_level = self.diff_setups
+        if diffs is None:
+            diffs = []
+
+        for key, val in current_dict_level.items():
+            if isinstance(val, POGGEvaluationDiff):
+                diffs.append(val)
+            else:
+                self.get_all_diffs(val, diffs)
+
+        return diffs

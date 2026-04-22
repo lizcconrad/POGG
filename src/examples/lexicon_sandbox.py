@@ -4,11 +4,11 @@ import os
 import pogg.semantic_composition.base_constructions
 from pogg.lexicon.lexicon_builder import POGGLexiconUtil, POGGLexicon
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.pogg_config import POGGConfig
+from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.base_constructions import SemanticComposition
 import inspect
 
-pogg_config = POGGConfig("../data/config.yml")
+pogg_config = POGGCompositionConfig("../data/config.yml")
 
 lexicon_directory = "/Users/lizcconrad/Documents/PhD/POGG/data_handling/perplexity/development/lexicons/HealTheTrees/"
 

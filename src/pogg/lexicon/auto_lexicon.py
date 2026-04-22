@@ -1,8 +1,14 @@
+import copy
 import re
 from itertools import permutations
 import json
+import yaml
 import inspect
-from delphin import ace
+from pathlib import Path
+from typing import overload
+from delphin import ace, mrs
+
+from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
 from pogg.semantic_composition.semantic_composition import SemanticComposition
 from pogg.graph_to_SEMENT.graph_to_SEMENT import POGGGraphConverter
@@ -10,25 +16,22 @@ from pogg.my_delphin import sementcodecs
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 from pogg.lexicon.lexicon_builder import POGGLexiconEntry, POGGLexiconUtil
 
-# TODO: i don't like this here but it's fine for now...
-NOUN_SYNOPSES = [
-    {"roles": [{"name": "ARG0", "value": "x"}]},
-    {"roles": [{"name": "ARG0", "value": "x"}, {"name": "ARG1", "value": "i"}]},
-]
-
 
 class POGGLexiconAutoFiller:
-    def __init__(self, pogg_config, template_file):
+    def __init__(self, composition_config, template_file):
         self.templates = {}
 
-        self.pogg_config = pogg_config
-        self.semantic_algebra = SemanticAlgebra(pogg_config)
-        self.semantic_composition = SemanticComposition(self.semantic_algebra)
-        self.converter = POGGGraphConverter(self.semantic_composition)
-        
+        self.semantic_composition = SemanticComposition(composition_config)
+        self.semantic_algebra = self.semantic_composition.semantic_algebra
+        if isinstance(composition_config, POGGCompositionConfig):
+            self.composition_config = composition_config
+        else:
+            self.composition_config = self.semantic_composition.composition_config
+
         self.template_file = template_file
-        
         self.read_templates_from_file(template_file)
+
+        self.converter = POGGGraphConverter(self.composition_config, None)
 
     def read_templates_from_file(self, template_file: str):
         with open(template_file) as f:
@@ -74,10 +77,15 @@ class POGGLexiconAutoFiller:
     def get_ERG_parse_MRSes(self, to_parse):
         # get the ERG parse for a node to attempt to match against a template
         # just return the first result
-        with ace.ACEParser(self.pogg_config.grammar_location) as parser:
+        with ace.ACEParser(self.composition_config.grammar_location) as parser:
             parser_response = parser.interact(to_parse)
 
-            mrs_objs = [sementcodecs.decode(r['mrs']) for r in parser_response.results()]
+            # if there's a parser issue, just skip it
+            try:
+                mrs_objs = [sementcodecs.decode(r['mrs']) for r in parser_response.results()]
+            except mrs._exceptions.MRSSyntaxError as e:
+                return []
+
             for mrs_obj in mrs_objs:
                 # replace all quantifiers with abstract_q
                 # the generic quantifiers i use do not match the ERG output usually
@@ -285,8 +293,9 @@ class POGGLexiconAutoFiller:
 
         return new_templates
 
-    def dump_new_templates(self, lexicon_json):
-        new_templates = self.look_for_new_templates(lexicon_json)
+    def dump_new_templates(self, lexicon):
+        complete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.complete_entries)
+        new_templates = self.look_for_new_templates(complete_entries)
         for new_template_name, new_template in new_templates.items():
             self.templates[new_template_name] = {
                 "example": "",
@@ -294,3 +303,42 @@ class POGGLexiconAutoFiller:
             }
 
         self.dump_templates_to_file(self.template_file)
+
+
+    def attempt_auto_filling(self, lexicon, processing_fxn=None):
+
+        complete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.complete_entries)
+        incomplete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.incomplete_entries)
+        auto_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.auto_entries)
+
+
+        for node_key, node_entry in copy.deepcopy(incomplete_entries['node_keys']).items():
+
+            # check for auto notes
+            # if you want to skip parsing certain nodes, add auto notes and this will skip it
+            if "auto" in node_entry:
+                continue
+
+            if processing_fxn:
+                string_to_parse = processing_fxn(node_key)
+            else:
+                string_to_parse = node_key
+            print(string_to_parse)
+
+            completed_lexical_entry = self.find_and_fill_template(string_to_parse)
+            if completed_lexical_entry:
+                print(f"AUTO FILLING {node_key}...")
+                complete_entries['node_keys'][node_key] = completed_lexical_entry
+                auto_entries['node_keys'][node_key] = completed_lexical_entry
+                incomplete_entries['node_keys'].pop(node_key, None)
+
+        # # TODO: not auto-filling edges yet
+        # for edge_key in incomplete_json['edge_keys']:
+        #     new_complete['edge_keys'][edge_key] = incomplete_json['edge_keys'][edge_key]
+
+
+        lexicon.complete_entries = POGGLexiconUtil.convert_json_to_POGGLexiconEntries(complete_entries)
+        lexicon.incomplete_entries = POGGLexiconUtil.convert_json_to_POGGLexiconEntries(incomplete_entries)
+        lexicon.auto_entries = POGGLexiconUtil.convert_json_to_POGGLexiconEntries(auto_entries)
+        lexicon.dump_lexicon_to_directory()
+

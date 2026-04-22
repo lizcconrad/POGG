@@ -5,6 +5,7 @@ prints graphs to various filetypes (`.dot`, `.png`, and `.svg`)
 [See usage examples here.](project:/usage_nbs/pogg/data_handling/graph_util_usage.ipynb)
 """
 import json
+import copy
 
 import networkx as nx
 
@@ -257,7 +258,7 @@ class POGGGraphUtil:
         png_graph.write_svg(filepath)
 
     @staticmethod
-    def write_graph_to_json(graph, filepath):
+    def write_graph_to_json(graph, gold_outputs, filepath):
         """
         Write the graph to a `.json` file in the POGG format.
 
@@ -310,11 +311,12 @@ class POGGGraphUtil:
 
         graph_json = {
             "nodes": {},
-            "edges": []
+            "edges": [],
+            "gold_outputs": gold_outputs
         }
         for node in graph.nodes(data=True):
             node_name = node[0]
-            node_props = node[1]
+            node_props = copy.deepcopy(node[1])
 
             graph_json["nodes"][node_name] = {
                 "lexicon_key": node_props["lexicon_key"],
@@ -325,7 +327,7 @@ class POGGGraphUtil:
         for edge in graph.edges(data=True):
             parent = edge[0]
             child = edge[1]
-            edge_props = edge[2]
+            edge_props = copy.deepcopy(edge[2])
 
             edge_dict = {
                 "edge_name": edge_props["label"],

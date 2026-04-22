@@ -7,13 +7,14 @@ The `graph_to_SEMENT` module contains the `POGGGraphConverter` class used to con
 import copy
 import inspect
 import networkx as nx
-
+from pathlib import Path
 from pogg.semantic_composition.call_tracer import SemCompTracer, SemAlgTracer
 
 import pogg.lexicon.lexicon_builder
 from pogg.my_delphin.my_delphin import SEMENT
 from pogg.data_handling.graph_util import POGGGraphUtil
 from pogg.lexicon.lexicon_builder import POGGLexicon
+from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_composition import SemanticComposition
 
 class POGGGraphConverter:
@@ -21,7 +22,7 @@ class POGGGraphConverter:
     A `POGGGraphConverter` object has `SemanticComposition` and `POGGDataset` objects as instance attributes and
     has instance methods for converting graphs in the dataset to SEMENTs.
     """
-    def __init__(self, semantic_composition, lexicon=None):
+    def __init__(self, composition_config, lexicon=None):
         """
         Initialize the `POGGGraphConverter` object.
 
@@ -33,7 +34,15 @@ class POGGGraphConverter:
         | `semantic_composition` | `SemanticComposition` | `SemanticComposition` object that has functions for creating and composing SEMENTs |
         | `dataset` | `POGGLexicon` | `POGGLexicon` object that is consulted during conversions |
         """
-        self.sem_comp = semantic_composition
+
+        self.semantic_composition = SemanticComposition(composition_config)
+        self.semantic_algebra = self.semantic_composition.semantic_algebra
+
+        if isinstance(composition_config, POGGCompositionConfig):
+            self.composition_config = composition_config
+        else:
+            self.composition_config = self.semantic_composition.composition_config
+
         self.lexicon = lexicon
 
     def get_SEMENT(self, comp_fxn_name, given_parameters):
@@ -52,7 +61,7 @@ class POGGGraphConverter:
         | `SEMENT` | SEMENT produced by calling the composition function |
         """
 
-        comp_fxn_obj = getattr(self.sem_comp, comp_fxn_name)
+        comp_fxn_obj = getattr(self.semantic_composition, comp_fxn_name)
 
         # get parameters for the comp_fxn
         defined_parameter_keys = inspect.signature(comp_fxn_obj).parameters

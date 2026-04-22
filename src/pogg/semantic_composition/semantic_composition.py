@@ -4,7 +4,8 @@ The base_constructions module contains classes that help in creating SEMENTs fro
 [See usage examples here.](project:/usage_nbs/pogg/semantic_composition/SemanticComposition_usage.ipynb)
 """
 
-
+from pathlib import Path
+from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
 from pogg.semantic_composition.composition_mixins.single_word_constructions import SingleWordConstructionsMixin
 from pogg.semantic_composition.composition_mixins.base_constructions import BaseConstructionsMixin
@@ -26,7 +27,7 @@ class SemanticComposition(SingleWordConstructionsMixin,
 
     All functions from the base Mixins can be accessed as instance methods on a `SemanticComposition` object.
     """
-    def __init__(self, semantic_algebra: SemanticAlgebra):
+    def __init__(self, composition_config: Path | str | POGGCompositionConfig):
         """
         Initialize the `SemanticComposition` object
 
@@ -37,5 +38,9 @@ class SemanticComposition(SingleWordConstructionsMixin,
         | --------- | ---- | ----------- |
         | `semantic_algebra` | `SemanticAlgebra` | SemanticAlgebra object that contains functions that perform semantic composition directly |
         """
-        self.semantic_algebra = semantic_algebra
+
+        self.semantic_algebra = SemanticAlgebra(composition_config)
+        self.composition_config = self.semantic_algebra.composition_config
+
+
 

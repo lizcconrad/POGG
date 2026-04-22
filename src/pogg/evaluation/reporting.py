@@ -530,7 +530,7 @@ class POGGDatasetReporting:
         return graphs_summary_table
 
     @staticmethod
-    def build_ASCII_dataset_report(dataset_eval):
+    def build_ASCII_dataset_report(eval_metadata, dataset_eval):
         """
         Build a report for a dataset that includes a table of evaluation metrics for the whole dataset and a table
         summarizing metrics for each graph in the dataset.
@@ -546,7 +546,8 @@ class POGGDatasetReporting:
         | `str` | string that concatenates all relevant tables for the dataset can be printed to a file |
         """
 
-        report = f"DATASET: {dataset_eval.dataset_name}\n\n"
+        report = f"DATASET: {eval_metadata["dataset_name"]}\n"
+        report += f"EXPERIMENT: {eval_metadata["experiment_name"]}\n\n"
         report += str(POGGDatasetReporting.build_ASCII_dataset_metrics_table(dataset_eval)) + "\n\n"
         report += str(POGGDatasetReporting.build_ASCII_graphs_report_summary(dataset_eval)) + "\n\n"
         return report
@@ -631,7 +632,7 @@ class POGGDatasetDiffReporting:
             "Graphs that produced text results (% coverage)",
             base_run_dataset_eval.graphs_with_text_coverage,
             comparison_run_dataset_eval.graphs_with_text_coverage,
-            evaluation_diff.graph_text_coverage_delta
+            evaluation_diff.graphs_with_text_coverage_delta
         ])
 
         return graph_metrics_diff_table
@@ -807,18 +808,15 @@ class POGGDatasetDiffReporting:
     #     return sem_comp_fxns_used_diff_table
 
     @staticmethod
-    def build_ASCII_dataset_diff_report(evaluation_diff):
-        report = f"DATASET: {evaluation_diff.dataset_name}\n"
+    def build_ASCII_graph_metrics_diff_report(evaluation_diff):
+        report = f"DATASET: {evaluation_diff.experiment_name}\n"
         report += f"BASE RUN ID: {evaluation_diff.base_eval.run_id}\n"
         report += f"COMPARISON RUN ID: {evaluation_diff.comparison_eval.run_id}\n\n"
         report += str(POGGDatasetDiffReporting.build_ASCII_metadata_diff_table(evaluation_diff)) + "\n\n"
         report += str(POGGDatasetDiffReporting.build_ASCII_graph_metrics_diff_table(evaluation_diff)) + "\n\n"
         report += str(POGGDatasetDiffReporting.build_ASCII_node_metrics_diff_table(evaluation_diff)) + "\n\n"
         report += str(POGGDatasetDiffReporting.build_ASCII_edge_metrics_diff_table(evaluation_diff)) + "\n\n"
-        report += str(POGGDatasetDiffReporting.build_ASCII_sem_comp_functions_available_diff_table(evaluation_diff)) + "\n\n"
-        report += str(POGGDatasetDiffReporting.build_ASCII_sem_alg_functions_available_diff_table(evaluation_diff)) + "\n\n"
         return report
-
 
     @staticmethod
     def store_diff_report(evaluation_path, base_run, comparison_run):
@@ -827,7 +825,7 @@ class POGGDatasetDiffReporting:
         # probably put this in POGGDatasetReporting ... maybe more store_evaluation_report there too
         now = datetime.datetime.now()
         diff_report_id = now.strftime("%m%d%Y_%H%M%S")
-        eval_diff_path = Path(evaluation_path, "diff_reports", diff_report_id)
+        eval_diff_path = Path(evaluation_path, "diff_report")
 
         # create the directory to store the diff report
         eval_diff_path.mkdir(parents=True, exist_ok=True)
@@ -848,8 +846,8 @@ class POGGDatasetDiffReporting:
             f.write(json.dumps(data_diff_report_json, indent=4))
 
         # 3. store readable text report of dataset deltas
-        with open(Path(eval_diff_path, "dataset_diff.txt"), 'w') as f:
-            f.write(POGGDatasetDiffReporting.build_ASCII_dataset_diff_report(eval_diff))
+        with open(Path(eval_diff_path, "graph_metrics_diff.txt"), 'w') as f:
+            f.write(POGGDatasetDiffReporting.build_ASCII_graph_metrics_diff_table(eval_diff))
 
         unchanged_graphs_path = Path(eval_diff_path, "unchanged_graphs")
         changed_graphs_path = Path(eval_diff_path, "changed_graphs")
