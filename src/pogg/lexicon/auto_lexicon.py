@@ -1,7 +1,10 @@
+import os
 import copy
 import re
 from itertools import permutations
 import json
+from json import JSONDecodeError
+
 import yaml
 import inspect
 from pathlib import Path
@@ -18,7 +21,7 @@ from pogg.lexicon.lexicon_builder import POGGLexiconEntry, POGGLexiconUtil
 
 
 class POGGLexiconAutoFiller:
-    def __init__(self, composition_config, template_file):
+    def __init__(self, composition_config, template_files, dump_file):
         self.templates = {}
 
         self.semantic_composition = SemanticComposition(composition_config)
@@ -28,14 +31,19 @@ class POGGLexiconAutoFiller:
         else:
             self.composition_config = self.semantic_composition.composition_config
 
-        self.template_file = template_file
-        self.read_templates_from_file(template_file)
+        for file in template_files:
+            self.read_templates_from_file(file)
+
+        self.dump_file = dump_file
 
         self.converter = POGGGraphConverter(self.composition_config, None)
 
     def read_templates_from_file(self, template_file: str):
         with open(template_file) as f:
-            templates_json = json.load(f)
+            try:
+                templates_json = json.load(f)
+            except JSONDecodeError:
+                templates_json = {}
 
         for template_key in templates_json:
             template  = {
@@ -55,15 +63,22 @@ class POGGLexiconAutoFiller:
                 if isinstance(template_entry[key], str):
                     placeholders_list.append(template_entry[key])
                 # if it is a dict, recurse and pass in the list
-                else:
+                elif isinstance(template_entry[key], dict):
                     self.determine_template_placeholders(template_entry[key], placeholders_list)
+                # if it's null
+                else:
+                    continue
         return placeholders_list
 
 
-    def dump_templates_to_file(self, template_file: str):
-        dumpable_json = {}
-        with open(template_file, "w") as f:
-            for template_key, template_entry in self.templates.items():
+    def dump_templates_to_file(self, templates, template_file: str):
+        with open(template_file, "w+") as f:
+            try:
+                dumpable_json = json.load(f)
+            except JSONDecodeError:
+                dumpable_json = {}
+
+            for template_key, template_entry in templates.items():
                 dumpable_entry = {
                     "example": template_entry["example"],
                     "lexical_entry_template": template_entry["lexical_entry_template"],
@@ -272,7 +287,8 @@ class POGGLexiconAutoFiller:
         new_templates = {}
 
         all_entries = lexicon_json["node_keys"]
-        all_entries.update(lexicon_json["edge_keys"])
+        # TODO: not doing edges yet
+        # all_entries.update(lexicon_json["edge_keys"])
 
 
         for entry_name, entry in all_entries.items():
@@ -280,8 +296,21 @@ class POGGLexiconAutoFiller:
             if "auto" in entry.keys():
                 continue
 
+            # try doing a temporary JSON dump -- if it fails don't use this as a new template
+            try:
+                json_string = json.dumps(entry)
+                json_temp = json.loads(json_string)
+                # also don't use it if "manual_synopsis" is in the string
+                if "manual_synopsis" in json_string or "boolean" in json_string:
+                    continue
+            except JSONDecodeError:
+                print("uh oh paskettios..")
+
             match_found = False
-            for _, template in self.templates.items():
+            # check if the template is in the existing templates OR was already found during this function call
+            merged_existing_and_new_templates = copy.deepcopy(self.templates)
+            merged_existing_and_new_templates.update(new_templates)
+            for _, template in merged_existing_and_new_templates.items():
                 template_entry = template["lexical_entry_template"]
                 if self.compare_lexical_entry_structures(template_entry, entry):
                     # match found, not new
@@ -289,20 +318,25 @@ class POGGLexiconAutoFiller:
                     break
 
             if not match_found:
-                new_templates[f"TEMPLATE_{entry_name}"] = entry
+                new_templates[f"TEMPLATE_{entry_name}"] = {
+                    "example": "",
+                    "lexical_entry_template": entry,
+                }
 
         return new_templates
 
     def dump_new_templates(self, lexicon):
         complete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.complete_entries)
         new_templates = self.look_for_new_templates(complete_entries)
-        for new_template_name, new_template in new_templates.items():
-            self.templates[new_template_name] = {
-                "example": "",
-                "lexical_entry_template": new_template,
-            }
 
-        self.dump_templates_to_file(self.template_file)
+        # dump newly found ones
+        self.dump_templates_to_file(new_templates, self.dump_file)
+
+        # update object to include the new ones
+        for new_template_name, new_template in new_templates.items():
+            self.templates[new_template_name] = new_template
+
+
 
 
     def attempt_auto_filling(self, lexicon, processing_fxn=None):

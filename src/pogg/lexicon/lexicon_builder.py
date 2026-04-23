@@ -1130,7 +1130,8 @@ class POGGLexiconUtil:
             # skip 'self' and parameters with default values that AREN'T SEMENTs (e.g. intrinsic_variable_properties dict)
             # 'advanced' users can add them if they want
             # TODO: toggle?
-            if param_name == 'self' or (param_information.annotation.__name__ != "SEMENT" and param_information.default is not inspect.Parameter.empty):
+            # if param_name == 'self' or (param_information.annotation.__name__ != "SEMENT" and param_information.default is not inspect.Parameter.empty):
+            if param_name == 'self':
                 continue
 
             if param_name in edge_entry.keys():
@@ -1326,7 +1327,8 @@ class POGGLexiconUtil:
             param_information = parameters[param_name]
 
             # skip 'self' and optional parameters that aren't SEMENTs (e.g. intrinsic_variable_properties dict)
-            if param_name == 'self' or (param_information.annotation.__name__ != "SEMENT" and param_information.default is not inspect.Parameter.empty):
+            # if param_name == 'self' or (param_information.annotation.__name__ != "SEMENT" and param_information.default is not inspect.Parameter.empty):
+            if param_name == 'self':
                 continue
             # if the param_name is not in the entry, add it with an appropriate "empty" value for the user to fill in
             elif param_information.annotation.__name__ == "dict":
