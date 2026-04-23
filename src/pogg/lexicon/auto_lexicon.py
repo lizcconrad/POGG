@@ -39,11 +39,16 @@ class POGGLexiconAutoFiller:
         self.converter = POGGGraphConverter(self.composition_config, None)
 
     def read_templates_from_file(self, template_file: str):
-        with open(template_file) as f:
-            try:
-                templates_json = json.load(f)
-            except JSONDecodeError:
-                templates_json = {}
+        try:
+            with open(template_file, "r") as f:
+                try:
+                    templates_json = json.load(f)
+                except JSONDecodeError:
+                    templates_json = {}
+        except FileNotFoundError:
+            with open(template_file, "w") as f:
+                pass
+            templates_json = {}
 
         for template_key in templates_json:
             template  = {
@@ -72,12 +77,16 @@ class POGGLexiconAutoFiller:
 
 
     def dump_templates_to_file(self, templates, template_file: str):
-        with open(template_file, "w+") as f:
-            try:
-                dumpable_json = json.load(f)
-            except JSONDecodeError:
-                dumpable_json = {}
+        try:
+            with open(template_file, "r") as f:
+                try:
+                    dumpable_json = json.load(f)
+                except JSONDecodeError:
+                    dumpable_json = {}
+        except FileNotFoundError:
+            dumpable_json = {}
 
+        with open(template_file, "w") as f:
             for template_key, template_entry in templates.items():
                 dumpable_entry = {
                     "example": template_entry["example"],
