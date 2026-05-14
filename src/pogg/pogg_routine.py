@@ -14,17 +14,14 @@ import re
 from delphin import ace
 from typing import List, Dict, overload
 
-from pogg.lexicon.auto_lexicon import POGGLexiconAutoFiller
-from pogg.lexicon.lexicon_builder import POGGLexiconUtil, POGGLexicon
-from pogg.data_handling.pogg_dataset import POGGDataset
-from pogg.evaluation.evaluation import POGGEvaluation, POGGGraphEvaluation
+from pogg.lexicon import POGGLexiconUtil, POGGLexicon, POGGLexiconAutoFiller
+from pogg.data_handling import POGGDataset, POGGGraphUtil
+from pogg.evaluation import POGGEvaluation, POGGGraphEvaluation, POGGGraphReporting, POGGDatasetReporting
 from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
 from pogg.semantic_composition.semantic_composition import SemanticComposition
-from pogg.graph_to_SEMENT.graph_to_SEMENT import POGGGraphConverter
-from pogg.data_handling.graph_util import POGGGraphUtil
+from pogg.graph_to_SEMENT import POGGGraphConverter
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
-from pogg.evaluation.reporting import POGGGraphReporting, POGGDatasetReporting
 
 
 #

@@ -9,7 +9,7 @@ import datetime
 from pathlib import Path
 import json
 from prettytable import PrettyTable
-from pogg.evaluation.evaluation import POGGEvaluationDiff, POGGGraphEvaluationDiff
+from pogg.evaluation._evaluation import POGGEvaluationDiff, POGGGraphEvaluationDiff
 
 class POGGGraphReporting:
     """

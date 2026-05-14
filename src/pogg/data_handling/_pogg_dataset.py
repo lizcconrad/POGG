@@ -11,7 +11,7 @@ import json
 import copy
 from typing import List, Dict, overload
 from pathlib import Path
-from pogg.data_handling.graph_util import POGGGraphUtil
+from pogg.data_handling._graph_util import POGGGraphUtil
 
 
 class POGGDataset:

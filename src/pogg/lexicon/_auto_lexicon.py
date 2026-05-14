@@ -14,10 +14,10 @@ from delphin import ace, mrs
 from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
 from pogg.semantic_composition.semantic_composition import SemanticComposition
-from pogg.graph_to_SEMENT.graph_to_SEMENT import POGGGraphConverter
+from pogg.graph_to_SEMENT import POGGGraphConverter
 from pogg.my_delphin import sementcodecs
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
-from pogg.lexicon.lexicon_builder import POGGLexiconEntry, POGGLexiconUtil
+from pogg.lexicon._lexicon import POGGLexiconEntry, POGGLexiconUtil
 
 
 class POGGLexiconAutoFiller:
