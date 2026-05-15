@@ -14,8 +14,8 @@ import re
 from delphin import ace
 from typing import List, Dict, overload
 
-from pogg.lexicon import POGGLexiconUtil, POGGLexicon, POGGLexiconAutoFiller
-from pogg.data_handling import POGGDataset, POGGGraphUtil
+from pogg.lexicon import POGGLexicon, POGGLexiconAutoFiller
+from pogg.data_handling import POGGDataset, POGGDataSplit, POGGGraphUtil
 from pogg.evaluation import POGGEvaluation, POGGGraphEvaluation, POGGGraphReporting, POGGDatasetReporting
 from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
@@ -116,41 +116,33 @@ from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
 
 class POGGExperiment:
-    def __init__(self, composition_config: Path | str | POGGCompositionConfig, experiment_dict: Dict, sub_experiments: List=None):
+    def __init__(self, composition_config: Path | str | POGGCompositionConfig,
+                 lexicon: POGGLexicon,
+                 data_split: POGGDataSplit,
+                 split_info: Dict,
+                 experiment_dict: Dict,
+                 sub_experiments: List = None):
+        self.data_split = data_split
+        self.lexicon = lexicon
 
         self.experiment_name = experiment_dict["experiment_name"]
-        self.full_data_split_name = experiment_dict["full_data_split_name"]
-        self.lexicon_name = experiment_dict["lexicon_name"]
-        self.leaf = experiment_dict["leaf"]
-
         self.SEMENT_processing = experiment_dict["SEMENT_processing"]
         self.result_processing = experiment_dict["result_processing"]
+        self.output_dir = Path(experiment_dict["experiment_output_dir"])
 
-        self.data_dir = Path(experiment_dict["experiment_data_dir"])
-        self.lexicon_dir = Path(experiment_dict["experiment_lex_dir"])
-        self.evaluation_dir = Path(experiment_dict["experiment_eval_dir"])
+        self.full_data_split_name = split_info["full_data_split_name"]
+        self.data_dir = Path(split_info["split_data_dir"])
+        self.leaf = split_info["leaf"]
 
         if self.leaf:
-            self.graph_dot_dir = Path(experiment_dict["graph_dot_dir"])
-            self.graph_json_dir = Path(experiment_dict["graph_json_dir"])
-            self.graph_png_dir = Path(experiment_dict["graph_png_dir"])
+            self.graph_dot_dir = Path(split_info["graph_dot_dir"])
+            self.graph_json_dir = Path(split_info["graph_json_dir"])
+            self.graph_png_dir = Path(split_info["graph_png_dir"])
 
-        if sub_experiments:
-            self.sub_experiments = copy.copy(sub_experiments)
-            graphs_to_aggregate = [x.dataset.graphs for x in self.sub_experiments]
-            self.dataset = POGGDataset(self.full_data_split_name, graphs_to_aggregate)
-        else:
-            self.sub_experiments = None
-            self.dataset = POGGDataset(self.full_data_split_name, self.graph_json_dir)
-
-        if "inherited_lexicons" in experiment_dict:
-            inherited_lexicon_paths = [Path(x) for x in experiment_dict["inherited_lexicons"]]
-        else:
-            inherited_lexicon_paths = None
-        self.lexicon = POGGLexicon(self.lexicon_name, self.lexicon_dir, self.dataset, inherited_lexicon_paths)
         self.graph_converter = POGGGraphConverter(composition_config, self.lexicon)
         self.evaluation = POGGEvaluation(self.experiment_name)
 
+        self.sub_experiments = sub_experiments
 
     def run_POGG_data_to_text_single_graph(self, graph_name, graph_dict):
         graph_obj = graph_dict["graph"]
@@ -159,10 +151,12 @@ class POGGExperiment:
         # try to find evaluation information from subexperiment
         if self.sub_experiments:
             for sub_experiment in self.sub_experiments:
-                if graph_name in sub_experiment.dataset.graphs:
-                    print(f"Found evaluation for {graph_name} in subexperiment... copying...")
-                    graph_evaluation = sub_experiment.evaluation.graph_evaluations[graph_name]
-                    return graph_evaluation
+                for sub_exp_graph_key, sub_exp_graph in sub_experiment.data_split.graphs.items():
+                    if graph_dict["graph_json"] == sub_exp_graph["graph_json"]:
+                        print(
+                            f"Found evaluation for {graph_name} in subexperiment {sub_experiment.full_data_split_name} ({sub_exp_graph_key})... copying...")
+                        graph_evaluation = sub_experiment.evaluation.graph_evaluations[sub_exp_graph_key]
+                        return graph_evaluation
 
         # if evaluation from a subexperiment was not found, proceed with conversion
         graph_evaluation = POGGGraphEvaluation(graph_obj, graph_name)
@@ -217,10 +211,10 @@ class POGGExperiment:
             [method_name for method_name in dir(SemanticComposition)
                 if callable(getattr(SemanticComposition, method_name)) and not re.match("__.*__", method_name)])
 
-        for i, graph_tuple in enumerate(self.dataset.graphs.items()):
+        for i, graph_tuple in enumerate(self.data_split.graphs.items()):
             graph_name = graph_tuple[0]
             graph_dict = graph_tuple[1]
-            print(f"Converting {graph_name} (graph {i + 1} of {len(self.dataset.graphs)})...")
+            print(f"Converting {graph_name} (graph {i + 1} of {len(self.data_split.graphs)})...")
 
             # convert graph, get eval obj back
             graph_evaluation = self.run_POGG_data_to_text_single_graph(graph_name, graph_dict)
@@ -278,7 +272,7 @@ class POGGExperiment:
        # TODO: add metadata to txt report then move metadata into the dataset_eval json
 
         # 0. create the directory for this run's evaluation
-        run_eval_dir = Path(self.evaluation_dir, f"{self.full_data_split_name}_eval")
+        run_eval_dir = Path(self.output_dir, f"{self.full_data_split_name}_eval")
         Path(run_eval_dir).mkdir(parents=True, exist_ok=True)
 
         # create a file for notes about each graph
@@ -293,9 +287,6 @@ class POGGExperiment:
             "semantic_algebra_functions_available": sorted(list(self.evaluation.sem_alg_fxns_available)),
             "semantic_composition_functions_available": sorted(list(self.evaluation.sem_comp_fxns_available)),
         }
-
-        # 2. dump the lexicon
-        POGGLexiconUtil.dump_complete_lexicon_object_to_json(Path(run_eval_dir, "lexicon.json"), self.evaluation.lexicon)
 
         with open(Path(run_eval_dir, 'eval_metadata.json'), 'w') as f:
             f.write(json.dumps(eval_metadata, indent=4))
@@ -439,7 +430,7 @@ class POGGExperiment:
             file.write(json.dumps(sorted_graph_notes, indent=4))
 
 
-class POGGExperimentConfig:
+class POGGExperimentsConfig:
     def __init__(self, composition_config_path: Path | str, experiment_config_path: Path | str, run_name: str=None):
         with open(experiment_config_path, "r") as f:
             config_json = json.load(f)
@@ -471,8 +462,17 @@ class POGGExperimentConfig:
                 setattr(self, key, config_json[key])
 
         self.composition_config = POGGCompositionConfig(composition_config_path)
+        self.dataset = POGGDataset(config_json)
+        self.lexicons = self._create_lexicon_objects(config_json)
+
         self.experiments = {}
         self._create_experiment_objects(config_json, self.experiments)
+
+    def _create_lexicon_objects(self, config_json):
+        lexicons = {}
+        for key, val in config_json["lexicons"].items():
+            lexicons[key] = POGGLexicon(config_json["dataset_name"], val["lexicon_dir"], self.dataset)
+        return lexicons
 
 
     def _create_experiment_objects(self, current_json_split, current_exp_obj_dict):
@@ -493,16 +493,24 @@ class POGGExperimentConfig:
 
         # use results to build aggregate-level experiments
         if "experiments" in current_json_split:
+            split_info = current_json_split["split_info"]
+
+            data_split = self.dataset.get_data_split(*split_info["data_split_path"])
+
             for exp_key, exp in current_json_split["experiments"].items():
+                lexicon = self.lexicons[exp["lexicon_name"]]
+
                 # if it's NOT a leaf experiment, aggregate experiment objects from subsplits
-                if not exp["leaf"]:
+                if not split_info["leaf"]:
                     # create experiment object from exp + subsplit_exps
-                    exp_obj = POGGExperiment(self.composition_config, exp, subsplit_experiments[exp_key])
+                    # comp_config, lexicon, data_split, experiment_dict, sub_experiments
+                    exp_obj = POGGExperiment(self.composition_config, lexicon, data_split,
+                                             split_info, exp, copy.copy(subsplit_experiments[exp_key]))
                     # add to the experiment_dict
                     current_exp_obj_dict[exp_key] = exp_obj
                 else:
                     # create experiment object
-                    exp_obj = POGGExperiment(self.composition_config, exp)
+                    exp_obj = POGGExperiment(self.composition_config, lexicon, data_split, split_info, exp)
                     # add to the experiment_dict
                     current_exp_obj_dict[exp_key] = exp_obj
 
@@ -514,40 +522,6 @@ class POGGExperimentConfig:
 
         return subsplit_experiments
 
-    def get_leaf_lexicons(self, experiments=None, leaf_lexicons=None):
-        if experiments is None:
-            experiments = self.experiments
-        if leaf_lexicons is None:
-            leaf_lexicons = set()
-
-        for key, obj in experiments.items():
-            if isinstance(obj, POGGExperiment):
-                if obj.leaf:
-                    leaf_lexicons.add(obj.lexicon)
-            else:
-                self.get_leaf_lexicons(obj, leaf_lexicons)
-
-        return list(leaf_lexicons)
-
-
-    def get_ancestor_lexicons(self, lexicon, experiment=None, ancestor_lexicons=None):
-        if experiment is None:
-            experiment = self.experiments
-        if ancestor_lexicons is None:
-            ancestor_lexicons = set()
-
-        if isinstance(experiment, POGGExperiment):
-            if experiment.leaf:
-                return
-            else:
-                for sub_experiment in experiment.sub_experiments:
-                   if lexicon == sub_experiment.lexicon:
-                       ancestor_lexicons.add(experiment.lexicon)
-        else:
-            for val in experiment.values():
-                self.get_ancestor_lexicons(lexicon, val, ancestor_lexicons)
-
-        return ancestor_lexicons
 
     def get_experiment(self, *args):
         args_copy = copy.copy(list(args))

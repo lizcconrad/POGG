@@ -1,49 +1,50 @@
-import os
-import copy
 import re
+import copy
 from itertools import permutations
 import json
-from json import JSONDecodeError
-
-import yaml
-import inspect
-from pathlib import Path
-from typing import overload
 from delphin import ace, mrs
 
+from pogg.my_delphin import sementcodecs
 from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.semantic_composition.semantic_composition import SemanticComposition
-from pogg.graph_to_SEMENT import POGGGraphConverter
-from pogg.my_delphin import sementcodecs
 from pogg.semantic_composition.sement_util import POGGSEMENTUtil
-from pogg.lexicon._lexicon import POGGLexiconEntry, POGGLexiconUtil
+from pogg.graph_to_SEMENT import POGGGraphConverter
+
+
+from pogg.lexicon._lexicon_entry import POGGLexiconEntry
 
 
 class POGGLexiconAutoFiller:
-    def __init__(self, composition_config, template_files, dump_file):
-        self.templates = {}
+    def __init__(self, composition_config,
+                 template_files,
+                 auto_approve=False,
+                 string_processing_fxn=None,
+                 dump_file=None,
+                 auto_create_templates=False):
 
-        self.semantic_composition = SemanticComposition(composition_config)
-        self.semantic_algebra = self.semantic_composition.semantic_algebra
         if isinstance(composition_config, POGGCompositionConfig):
             self.composition_config = composition_config
         else:
-            self.composition_config = self.semantic_composition.composition_config
+            self.composition_config = POGGCompositionConfig(composition_config)
+        self.semantic_algebra = SemanticAlgebra(self.composition_config)
+        self.converter = POGGGraphConverter(self.composition_config)
 
+        self.templates = {}
         for file in template_files:
-            self.read_templates_from_file(file)
+            self._read_templates_from_file(file)
 
+        self.auto_approve = auto_approve
+        self.string_processing_fxn = string_processing_fxn
         self.dump_file = dump_file
+        self.auto_create_templates = auto_create_templates
 
-        self.converter = POGGGraphConverter(self.composition_config, None)
 
-    def read_templates_from_file(self, template_file: str):
+    def _read_templates_from_file(self, template_file: str):
         try:
             with open(template_file, "r") as f:
                 try:
                     templates_json = json.load(f)
-                except JSONDecodeError:
+                except json.JSONDecodeError:
                     templates_json = {}
         except FileNotFoundError:
             with open(template_file, "w") as f:
@@ -54,51 +55,47 @@ class POGGLexiconAutoFiller:
             template  = {
                 "example": templates_json[template_key]["example"],
                 "lexical_entry_template": templates_json[template_key]["lexical_entry_template"],
-                "lexical_entry": POGGLexiconUtil.convert_dict_entry_to_POGGLexiconEntry(template_key, templates_json[template_key]["lexical_entry_template"]),
-                "placeholders": self.determine_template_placeholders(templates_json[template_key]["lexical_entry_template"], []),
+                "lexical_entry": POGGLexiconEntry(template_key, templates_json[template_key]["lexical_entry_template"]),
+                "placeholders": self._determine_template_placeholders(templates_json[template_key]["lexical_entry_template"], []),
                 # "SEMENT_str": templates_json[template_key]["SEMENT_str"]
             }
             self.templates[template_key] = template
 
-
-    def determine_template_placeholders(self, template_entry, placeholders_list):
+    def _determine_template_placeholders(self, template_entry, placeholders_list):
         for key in template_entry.keys():
             if key != "comp_fxn":
-                # if the value is a string 
+                # if the value is a string
                 if isinstance(template_entry[key], str):
                     placeholders_list.append(template_entry[key])
                 # if it is a dict, recurse and pass in the list
                 elif isinstance(template_entry[key], dict):
-                    self.determine_template_placeholders(template_entry[key], placeholders_list)
+                    self._determine_template_placeholders(template_entry[key], placeholders_list)
                 # if it's null
                 else:
                     continue
         return placeholders_list
 
+    def _get_template_SEMENT(self, template):
+        if "SEMENT_str" in template and template["SEMENT_str"] != "":
+            template_mrs = sementcodecs.decode(template["SEMENT_str"])
+        else:
+            template_lexent = template["lexical_entry"]
+            template_mrs = self.converter.get_SEMENT(template_lexent.composition_function_name,
+                                                         template_lexent.parameters)
+            template_mrs = self.semantic_algebra.prepare_for_generation(template_mrs)
 
-    def dump_templates_to_file(self, templates, template_file: str):
-        try:
-            with open(template_file, "r") as f:
-                try:
-                    dumpable_json = json.load(f)
-                except JSONDecodeError:
-                    dumpable_json = {}
-        except FileNotFoundError:
-            dumpable_json = {}
+            # replace all quantifiers with abstract_q
+            # the generic quantifiers i use do not match the ERG output usually
+            for rel in template_mrs.rels:
+                if rel.predicate.endswith("_q"):
+                    rel.predicate = "abstract_q"
 
-        with open(template_file, "w") as f:
-            for template_key, template_entry in templates.items():
-                dumpable_entry = {
-                    "example": template_entry["example"],
-                    "lexical_entry_template": template_entry["lexical_entry_template"],
-                    # "SEMENT_str": template_entry["SEMENT_str"]
-                }
-                dumpable_json[template_key] = dumpable_entry
+            # save the string for later
+            template["SEMENT_str"] = sementcodecs.encode(template_mrs)
 
-            json.dump(dumpable_json, f, indent=4)
+        return template_mrs
 
-
-    def get_ERG_parse_MRSes(self, to_parse):
+    def _get_ERG_parse_MRSes(self, to_parse):
         # get the ERG parse for a node to attempt to match against a template
         # just return the first result
         with ace.ACEParser(self.composition_config.grammar_location) as parser:
@@ -118,27 +115,7 @@ class POGGLexiconAutoFiller:
                         rel.predicate = "abstract_q"
             return mrs_objs
 
-    def get_template_SEMENT(self, template):
-        if "SEMENT_str" in template and template["SEMENT_str"] != "":
-            template_mrs = sementcodecs.decode(template["SEMENT_str"])
-        else:
-            template_lexent = template["lexical_entry"]
-            template_mrs = self.converter.get_SEMENT(template_lexent.composition_function_name, template_lexent.parameters)
-            template_mrs = self.semantic_algebra.prepare_for_generation(template_mrs)
-
-            # replace all quantifiers with abstract_q
-            # the generic quantifiers i use do not match the ERG output usually
-            for rel in template_mrs.rels:
-                if rel.predicate.endswith("_q"):
-                    rel.predicate = "abstract_q"
-
-            # save the string for later
-            template["SEMENT_str"] = sementcodecs.encode(template_mrs)
-
-        return template_mrs
-
-    @staticmethod
-    def get_placeholder_filler_candidates(erg_mrs):
+    def _get_filler_candidates(self, erg_mrs):
         # look through the MRS for potential candidates that could fill in placeholders in the template
         placeholder_candidates = []
 
@@ -162,8 +139,7 @@ class POGGLexiconAutoFiller:
 
         return placeholder_candidates
 
-    @staticmethod
-    def get_placeholder_to_filler_mapping_candidates(template, placeholder_filler_candidates):
+    def _get_filler_mapping_candidates(self, template, placeholder_filler_candidates):
         # get a list of possible mappings e.g.
         """[{
             "template_placeholder_1": "filler_candidate1"
@@ -196,7 +172,6 @@ class POGGLexiconAutoFiller:
                 except AttributeError:
                     candidate_filler_pos = None
 
-
                 # check that the candidate_filler from the permutation
                 # is legitimate for the placeholder in the template (i.e. pos should match)
                 if placeholder_pos == candidate_filler_pos:
@@ -208,8 +183,28 @@ class POGGLexiconAutoFiller:
 
         return mapping_candidates
 
-    @staticmethod
-    def fill_placeholders(SEMENT_obj, mapping):
+    def _find_correct_placeholder_mapping(self, template, erg_mrs):
+        if erg_mrs is not None:
+            template_SEMENT = self._get_template_SEMENT(template)
+
+            if POGGSEMENTUtil.is_sement_isomorphic_ignore_predicate_labels(template_SEMENT, erg_mrs):
+
+                placeholder_candidates = self._get_filler_candidates(erg_mrs)
+
+                # create a list of acceptable mappings
+                mapping_candidates = self._get_filler_mapping_candidates(template, placeholder_candidates)
+
+                # attempt full isomorphism with all mapping_candidates
+                for mapping in mapping_candidates:
+                    altered_template_SEMENT = self._fill_placeholders(template_SEMENT, mapping)
+
+                    # ignore var props
+                    if POGGSEMENTUtil.is_sement_isomorphic(altered_template_SEMENT, erg_mrs, False):
+                        return mapping
+
+        return  None
+
+    def _fill_placeholders(self, SEMENT_obj, mapping):
         duplicate_SEMENT = POGGSEMENTUtil.duplicate_sement(SEMENT_obj)
         for rel in duplicate_SEMENT.rels:
             if rel.predicate in mapping:
@@ -219,29 +214,7 @@ class POGGLexiconAutoFiller:
                 rel.args['CARG'] = mapping[rel.args['CARG']]
         return duplicate_SEMENT
 
-    def check_for_template_match(self, template, erg_mrs):
-        if erg_mrs is not None:
-            template_SEMENT = self.get_template_SEMENT(template)
-
-            if POGGSEMENTUtil.is_sement_isomorphic_ignore_predicate_labels(template_SEMENT, erg_mrs):
-
-                placeholder_candidates = self.get_placeholder_filler_candidates(erg_mrs)
-
-                # create a list of acceptable mappings
-                mapping_candidates = self.get_placeholder_to_filler_mapping_candidates(template, placeholder_candidates)
-
-                # attempt full isomorphism with all mapping_candidates
-                for mapping in mapping_candidates:
-                    altered_template_SEMENT = self.fill_placeholders(template_SEMENT, mapping)
-
-                    # ignore var props
-                    if POGGSEMENTUtil.is_sement_isomorphic(altered_template_SEMENT, erg_mrs, False):
-                        return self.fill_template(template, mapping)
-
-        return  None
-
-    @staticmethod
-    def fill_template(template, mapping):
+    def _fill_template(self, template, mapping):
         # hacky but easier
         template_string = json.dumps(template["lexical_entry_template"])
         for placeholder, filler in mapping.items():
@@ -250,39 +223,71 @@ class POGGLexiconAutoFiller:
 
         return filled_in_template
 
-    def find_and_fill_template(self, string_to_parse):
-        erg_MRSes = self.get_ERG_parse_MRSes(string_to_parse)
+    def _find_and_fill_template(self, lexicon_entry):
+
+        erg_MRSes = self._get_ERG_parse_MRSes(lexicon_entry.string_to_parse)
+
         for erg_MRS in erg_MRSes:
             for template_name, template in self.templates.items():
-                filled_in_template = self.check_for_template_match(template, erg_MRS)
+                # skip blocked/already attempted templates
+                if template_name in lexicon_entry.blocked_templates or template_name in lexicon_entry.attempted_templates:
+                    continue
 
-                if filled_in_template is not None:
-                    # add auto flag
-                    filled_in_template["auto"] = {
-                        "auto_filled": True,
-                        "template_used": template_name,
-                    }
-                    return filled_in_template
-        return None
+                mapping = self._find_correct_placeholder_mapping(template, erg_MRS)
+
+                # add template to attempted templates
+                lexicon_entry.attempted_templates.append(template_name)
+
+                if mapping is not None:
+                    print(f"AUTO FILLING {lexicon_entry.key} with {template_name}...")
+                    filled_template = self._fill_template(template, mapping)
+                    lexicon_entry.entry_in_dict_format = filled_template
+                    lexicon_entry.template_used = template_name
+                    lexicon_entry.auto_filled = True
+                    lexicon_entry.validate_entry()
+                    lexicon_entry.check_entry_completion()
+
+                    if self.auto_approve:
+                        print(f"...... auto-approve ON ... approved {lexicon_entry.key}...")
+                        lexicon_entry.approved = True
+
+                    return
 
 
-    def compare_lexical_entry_structures(self, template_entry, new_entry):
+    def auto_fill_entry(self, lexicon_entry: POGGLexiconEntry):
+        # skip if "blocked_templates" says "all"
+        # or skip if all templates have been marked as blocked or attempted
+        if "all" in lexicon_entry.blocked_templates or len(lexicon_entry.attempted_templates) + len(lexicon_entry.blocked_templates) == len(self.templates):
+            print(f"All templates blocked or attempted for '{lexicon_entry.key}'... skipping...")
+            return
+
+        # if a string is already provided in the entry, use that
+        if lexicon_entry.string_to_parse == "":
+            if self.string_processing_fxn:
+                lexicon_entry.string_to_parse = self.string_processing_fxn(lexicon_entry.key)
+            else:
+                lexicon_entry.string_to_parse = lexicon_entry.key
+
+        self._find_and_fill_template(lexicon_entry)
+
+
+    def _compare_lexical_entry_structures(self, template_entry, new_entry_dict):
         # check to see if a lexical entry matches an existing template already
         # if it doesn't it can be added as a new template
 
         for key in template_entry.keys():
-            if key in new_entry.keys():
+            if key in new_entry_dict.keys():
                 # check comp_fxn
                 if key == "comp_fxn":
                     # False if no match
-                    if new_entry[key] != template_entry[key]:
+                    if new_entry_dict[key] != template_entry[key]:
                         return False
                 # if the key isn't comp_fxn, check if they're both the same type
-                elif type(template_entry[key]) == type(new_entry[key]):
+                elif type(template_entry[key]) == type(new_entry_dict[key]):
                     # both dicts, recurse
                     if isinstance(template_entry[key], dict):
                         # if this doesn't return True, return False, otherwise keep going
-                        if not self.compare_lexical_entry_structures(template_entry[key], new_entry[key]):
+                        if not self._compare_lexical_entry_structures(template_entry[key], new_entry_dict[key]):
                             return False
                 # if not comp_fxn or matching types, then False
                 else:
@@ -291,97 +296,71 @@ class POGGLexiconAutoFiller:
             else:
                 return False
         return True
-            
-    def look_for_new_templates(self, lexicon_json):
+
+    def _look_for_new_templates(self, entries):
         new_templates = {}
 
-        all_entries = lexicon_json["node_keys"]
-        # TODO: not doing edges yet
-        # all_entries.update(lexicon_json["edge_keys"])
-
-
-        for entry_name, entry in all_entries.items():
-            # if already marked as auto, skip
-            if "auto" in entry.keys():
-                continue
+        for entry_key, entry in entries.items():
+            potential_template = {
+                "example": "",
+                "lexical_entry_template": entry.entry_in_dict_format
+            }
 
             # try doing a temporary JSON dump -- if it fails don't use this as a new template
             try:
-                json_string = json.dumps(entry)
+                json_string = json.dumps(potential_template)
                 json_temp = json.loads(json_string)
-                # also don't use it if "manual_synopsis" is in the string
-                if "manual_synopsis" in json_string or "boolean" in json_string:
-                    continue
-            except JSONDecodeError:
-                print("uh oh paskettios..")
+            except json.JSONDecodeError:
+                continue
 
-            match_found = False
-            # check if the template is in the existing templates OR was already found during this function call
-            merged_existing_and_new_templates = copy.deepcopy(self.templates)
-            merged_existing_and_new_templates.update(new_templates)
-            for _, template in merged_existing_and_new_templates.items():
-                template_entry = template["lexical_entry_template"]
-                if self.compare_lexical_entry_structures(template_entry, entry):
-                    # match found, not new
-                    match_found = True
-                    break
+            # if the entry was manually marked as a new template, add to new_templates
+            if entry.create_template_from:
+                new_templates[f"TEMPLATE_{entry_key}"] = potential_template
+                self.templates[f"TEMPLATE_{entry_key}"] = potential_template
 
-            if not match_found:
-                new_templates[f"TEMPLATE_{entry_name}"] = {
-                    "example": "",
-                    "lexical_entry_template": entry,
-                }
+            # if auto_create_templates is on, look for new ones via comparison
+            # downside of this is that it won't catch cases where the lexical entry template has the same structure
+            # but the resulting MRS has different ARG structures
+            # e.g. _cat_n_1 vs. _bag_n_of ... look the same in the lexicon but the MRS is different
+            if self.auto_create_templates:
+                match_found = False
+                for _, template in self.templates.items():
+                    template_entry = template["lexical_entry_template"]
+                    if self._compare_lexical_entry_structures(template_entry, entry.entry_in_dict_format):
+                        # match found, not new
+                        match_found = True
+                        break
+
+                # no match found i.e. new template
+                if not match_found:
+                    entry.create_template_from = True
+                    new_templates[f"TEMPLATE_{entry_key}"] = potential_template
+                    self.templates[f"TEMPLATE_{entry_key}"] = potential_template
 
         return new_templates
 
-    def dump_new_templates(self, lexicon):
-        complete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.complete_entries)
-        new_templates = self.look_for_new_templates(complete_entries)
+    def _dump_templates_to_file(self):
+        try:
+            with open(self.dump_file, "r") as f:
+                try:
+                    dumpable_json = json.load(f)
+                except json.JSONDecodeError:
+                    dumpable_json = {}
+        except FileNotFoundError:
+            dumpable_json = {}
+
+        with open(self.dump_file, "w") as f:
+            for template_key, template in self.templates.items():
+                dumpable_entry = {
+                    "example": template["example"],
+                    "lexical_entry_template": template["lexical_entry_template"],
+                    # "SEMENT_str": template_entry["SEMENT_str"]
+                }
+                dumpable_json[template_key] = dumpable_entry
+            json.dump(dumpable_json, f, indent=4)
+
+    def dump_new_templates(self, entries):
+        self._look_for_new_templates(entries)
 
         # dump newly found ones
-        self.dump_templates_to_file(new_templates, self.dump_file)
-
-        # update object to include the new ones
-        for new_template_name, new_template in new_templates.items():
-            self.templates[new_template_name] = new_template
-
-
-
-
-    def attempt_auto_filling(self, lexicon, processing_fxn=None):
-
-        complete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.complete_entries)
-        incomplete_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.incomplete_entries)
-        auto_entries = POGGLexiconUtil.convert_POGGLexicon_entries_to_json(lexicon.auto_entries)
-
-
-        for node_key, node_entry in copy.deepcopy(incomplete_entries['node_keys']).items():
-
-            # check for auto notes
-            # if you want to skip parsing certain nodes, add auto notes and this will skip it
-            if "auto" in node_entry:
-                continue
-
-            if processing_fxn:
-                string_to_parse = processing_fxn(node_key)
-            else:
-                string_to_parse = node_key
-            print(string_to_parse)
-
-            completed_lexical_entry = self.find_and_fill_template(string_to_parse)
-            if completed_lexical_entry:
-                print(f"AUTO FILLING {node_key}...")
-                complete_entries['node_keys'][node_key] = completed_lexical_entry
-                auto_entries['node_keys'][node_key] = completed_lexical_entry
-                incomplete_entries['node_keys'].pop(node_key, None)
-
-        # # TODO: not auto-filling edges yet
-        # for edge_key in incomplete_json['edge_keys']:
-        #     new_complete['edge_keys'][edge_key] = incomplete_json['edge_keys'][edge_key]
-
-
-        lexicon.complete_entries = POGGLexiconUtil.convert_json_to_POGGLexiconEntries(complete_entries)
-        lexicon.incomplete_entries = POGGLexiconUtil.convert_json_to_POGGLexiconEntries(incomplete_entries)
-        lexicon.auto_entries = POGGLexiconUtil.convert_json_to_POGGLexiconEntries(auto_entries)
-        lexicon.dump_lexicon_to_directory()
-
+        self._dump_templates_to_file()

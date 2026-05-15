@@ -12,7 +12,7 @@ from pogg.semantic_composition.call_tracer import SemCompTracer, SemAlgTracer
 
 from pogg.my_delphin.my_delphin import SEMENT
 from pogg.data_handling import POGGGraphUtil
-from pogg.lexicon import POGGLexicon, POGGLexiconEntry
+from pogg.lexicon import POGGLexiconEntry
 from pogg.pogg_config import POGGCompositionConfig
 from pogg.semantic_composition.semantic_composition import SemanticComposition
 
