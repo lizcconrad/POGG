@@ -194,6 +194,9 @@ class POGGLexicon:
         with open(file, "w") as f:
             json.dump(json_only, f, indent=4)
 
+    def dump_all_lexicon_entries_to_file(self, file):
+        self._dump_to_file(self.all_node_entries, self.all_edge_entries, file)
+
 
     def set_workspace_split(self, split: POGGDataSplit):
         new_workspace = {

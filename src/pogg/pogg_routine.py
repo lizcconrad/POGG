@@ -291,6 +291,9 @@ class POGGExperiment:
         with open(Path(run_eval_dir, 'eval_metadata.json'), 'w') as f:
             f.write(json.dumps(eval_metadata, indent=4))
 
+        # 2. dump all entries
+        self.lexicon.dump_all_lexicon_entries_to_file(Path(run_eval_dir, f"{self.lexicon.name}_lexicon_all_entries.json"))
+
         # 3. store eval files for whole dataset
         with open(Path(run_eval_dir, 'dataset_eval.json'), 'w') as f:
             f.write(json.dumps(self.evaluation.get_top_level_dict_representation(), indent=4))
