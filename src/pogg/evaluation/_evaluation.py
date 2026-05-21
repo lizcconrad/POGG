@@ -16,7 +16,7 @@ class POGGNodeEvaluation:
     """
     A `POGGNodeEvaluation` object stores evaluation information about a particular node in a graph.
     """
-    def __init__(self, node_name, node_props, evaluation_file_path=None):
+    def __init__(self, node_name, node_props):
         """
         Initialize the `POGGNodeEvaluation` object by providing the node's name and its properties.
 
@@ -64,10 +64,6 @@ class POGGNodeEvaluation:
         # explanation in the event of not being included in the final result
         self.inclusion_comment = None
 
-        # set some of the values if there's a given file
-        if evaluation_file_path:
-            self.create_evaluation_object_from_file(evaluation_file_path)
-
     def set_SEMENT(self, sement):
         """
         Set the SEMENT properties (`generated_SEMENT` and `generated_SEMENT_string`) for the evaluation object.
@@ -104,28 +100,25 @@ class POGGNodeEvaluation:
             'inclusion_comment': self.inclusion_comment
         }
 
-    def create_evaluation_object_from_file(self, file_path):
-        with open(file_path, 'r') as f:
-            node_json_obj = json.load(f)
+    @classmethod
+    def create_from_json(cls, node_json):
+        node_eval = POGGNodeEvaluation(node_json["node_name"], node_json["node_props"])
+        for key, val in node_json.items():
+            if key != "node_name" and key != "node_props":
+                setattr(node_eval, key, val)
 
-            self.node_name = node_json_obj['node_name']
-            self.node_props = node_json_obj['node_props']
-            self.generated_SEMENT_string = node_json_obj['generated_SEMENT_string']
-            if self.generated_SEMENT_string is not None:
-                self.generated_SEMENT = sementcodecs.decode(self.generated_SEMENT_string)
-            self.sem_alg_fxns_used = node_json_obj['sem_alg_fxns_used']
-            self.sem_comp_fxns_used = node_json_obj['sem_comp_fxns_used']
-            self.node_covered = node_json_obj['node_covered']
-            self.node_included = node_json_obj['node_included']
-            self.generation_comment = node_json_obj['generation_comment']
-            self.inclusion_comment = node_json_obj['inclusion_comment']
+        # set SEMENT object
+        if node_eval.generated_SEMENT_string is not None:
+            node_eval.set_SEMENT(sementcodecs.decode(node_eval.generated_SEMENT_string))
+
+        return node_eval
 
 
 class POGGEdgeEvaluation:
     """
     A `POGGEdgeEvaluation` object stores evaluation information about a particular edge in a graph.
     """
-    def __init__(self, edge_name, edge_props, parent_name, child_name, evaluation_file_path=None):
+    def __init__(self, edge_name, edge_props, parent_name, child_name):
         """
         Initialize the `POGGEdgeEvaluation` object by providing the edge's name, its properties, its parent node name, and its child node name.
 
@@ -178,9 +171,6 @@ class POGGEdgeEvaluation:
         # explanation in the event of not being included in the final result
         self.inclusion_comment = None
 
-        if evaluation_file_path:
-            self.create_evaluation_object_from_file(evaluation_file_path)
-
     def set_SEMENT(self, sement):
         """
         Set the SEMENT properties (`generated_SEMENT` and `generated_SEMENT_string`) for the evaluation object.
@@ -219,30 +209,29 @@ class POGGEdgeEvaluation:
             'inclusion_comment': self.inclusion_comment,
         }
 
-    def create_evaluation_object_from_file(self, file_path):
-        with open(file_path, 'r') as f:
-            edge_json = json.load(f)
+    @classmethod
+    def create_from_json(cls, edge_json):
+        edge_name = edge_json["edge_name"]
+        edge_props = edge_json["edge_props"]
+        parent_node_name = edge_json["parent_node_name"]
+        child_node_name = edge_json["child_node_name"]
+        edge_eval = POGGEdgeEvaluation(edge_name, edge_props, parent_node_name, child_node_name)
 
-            self.edge_name = edge_json["edge_name"]
-            self.edge_props = edge_json["edge_props"]
-            self.parent_node_name = edge_json["parent_node_name"]
-            self.child_node_name = edge_json["child_node_name"]
-            self.generated_SEMENT_string = edge_json["generated_SEMENT_string"]
-            if self.generated_SEMENT_string is not None:
-                self.generated_SEMENT = sementcodecs.decode(self.generated_SEMENT_string)
-            self.sem_alg_fxns_used = edge_json["sem_alg_fxns_used"]
-            self.sem_comp_fxns_used = edge_json["sem_comp_fxns_used"]
-            self.edge_covered = edge_json["edge_covered"]
-            self.edge_included = edge_json["edge_included"]
-            self.generation_comment = edge_json["generation_comment"]
-            self.inclusion_comment = edge_json["inclusion_comment"]
+        for key, val in edge_json.items():
+            if key != "edge_name" and key != "edge_props" and key != "parent_node_name" and key != "child_node_name":
+                setattr(edge_eval, key, val)
+
+        if edge_eval.generated_SEMENT_string is not None:
+            edge_eval.set_SEMENT(sementcodecs.decode(edge_eval.generated_SEMENT_string))
+
+        return edge_eval
 
 
 class POGGGraphEvaluation:
     """
     A `POGGGraphEvaluation` object stores evaluation information about a graph.
     """
-    def __init__(self, graph, graph_name, evaluation_dir=None):
+    def __init__(self, graph_name, graph_info):
         """
         Initialize the `POGGGraphEvaluation` object by providing the graph and its name.
 
@@ -282,8 +271,11 @@ class POGGGraphEvaluation:
         | `generated_results` | list of text results generated from the `SEMENT` for this graph |
         """
 
-        self.graph = graph
         self.graph_name = graph_name
+        self.graph = graph_info["graph"]
+        self.graph_json = graph_info["graph_json"]
+        self.gold_outputs = graph_info["gold_outputs"]
+
         # initialize self.node_evaluations (list of node evaluation objects)
         self.node_evaluations = {}
         self.create_node_evaluations()
@@ -308,7 +300,6 @@ class POGGGraphEvaluation:
         self.sem_comp_fxns_used = {}
 
         # gold output information
-        self.gold_outputs = set()
         self.generated_gold_outputs = set()
         # no. of gold outputs generated / no. of gold outputs in list
         self.gold_output_generation_coverage = None
@@ -321,10 +312,72 @@ class POGGGraphEvaluation:
         self.collapsed_SEMENT_string = None
         self.prepped_SEMENT = None
         self.prepped_SEMENT_string = None
-        self.generated_results = []
+        self.generated_results = set()
 
-        if evaluation_dir is not None:
-            self.create_evaluation_object_from_directory(evaluation_dir)
+    @classmethod
+    def read_from_directory(cls, graph_evaluation_directory):
+        # read in graph_json
+        for item in os.listdir(graph_evaluation_directory):
+            if item.endswith("_outputs.json"):
+                with open(Path(graph_evaluation_directory, item), "r") as f:
+                    outputs_json = json.load(f)
+            elif item.endswith("_metrics.json"):
+                with open(Path(graph_evaluation_directory, item), "r") as f:
+                    metrics_json = json.load(f)
+            elif item.endswith(".json"):
+                with open(Path(graph_evaluation_directory, item), "r") as f:
+                    graph_json = json.load(f)
+            else:
+                pass
+
+        graph_name = metrics_json["graph_name"]
+        graph_dict = {
+            "graph_json": graph_json,
+            "graph": POGGGraphUtil.build_graph(graph_json),
+            "gold_outputs": set(outputs_json["gold_outputs"]),
+        }
+        eval_obj = POGGGraphEvaluation(graph_name, graph_dict)
+
+        # set outputs attributes
+        eval_obj.generated_gold_outputs = set(outputs_json["generated_gold_outputs"])
+        eval_obj.generated_results = set(outputs_json["generated_results"])
+
+        # set metrics attributes
+        for key, val in metrics_json.items():
+            if key == "nodes":
+                eval_obj._create_node_evaluations_from_json(val)
+            elif key == "edges":
+                eval_obj._create_edge_evaluations_from_json(val)
+            else:
+                setattr(eval_obj, key, val)
+
+        if eval_obj.generated_SEMENT_string is not None:
+            eval_obj.set_SEMENT(sementcodecs.decode(eval_obj.generated_SEMENT_string))
+        if eval_obj.collapsed_SEMENT_string is not None:
+            eval_obj.set_collapsed_SEMENT(sementcodecs.decode(eval_obj.collapsed_SEMENT_string))
+        if eval_obj.prepped_SEMENT_string is not None:
+            eval_obj.set_prepped_SEMENT(sementcodecs.decode(eval_obj.prepped_SEMENT_string))
+
+        # TODO: once that's done... make diffs
+        # TODO: then reports ...
+        # TODO: then remove semcomp from this repo
+        # TODO: then FINALLY WebNLG.............
+
+        return eval_obj
+
+
+    def _create_node_evaluations_from_json(self, nodes_json):
+        for key, val in nodes_json.items():
+            node_eval = POGGNodeEvaluation.create_from_json(val)
+            self.node_evaluations[key] = node_eval
+
+    def _create_edge_evaluations_from_json(self, edges_json):
+        # clear out edge_evaluations list
+        # because this is a list and not a dict appending will create duplicates
+        self.edge_evaluations = []
+        for edge_json in edges_json:
+            self.edge_evaluations.append(POGGEdgeEvaluation.create_from_json(edge_json))
+
 
     def create_node_evaluations(self):
         """
@@ -572,8 +625,6 @@ class POGGGraphEvaluation:
             node_eval = self.node_evaluations[node]
 
             # add the functions used to the set for the whole graph
-            # self.sem_alg_fxns_used.update(node_eval.sem_alg_fxns_used)
-            # self.sem_comp_fxns_used.update(node_eval.sem_comp_fxns_used)
             self.sem_alg_fxns_used = {
                 k: self.sem_alg_fxns_used.get(k, 0) + node_eval.sem_alg_fxns_used.get(k, 0)
                 for k in self.sem_alg_fxns_used.keys() | node_eval.sem_alg_fxns_used.keys()}
@@ -594,9 +645,6 @@ class POGGGraphEvaluation:
         self.edges_included = 0
         for edge_eval in self.edge_evaluations:
             # add the functions used to the set for the whole graph
-            # self.sem_alg_fxns_used.update(edge_eval.sem_alg_fxns_used)
-            # self.sem_comp_fxns_used.update(edge_eval.sem_comp_fxns_used)
-
             self.sem_alg_fxns_used = {
                 k: self.sem_alg_fxns_used.get(k, 0) + edge_eval.sem_alg_fxns_used.get(k, 0)
                 for k in self.sem_alg_fxns_used.keys() | edge_eval.sem_alg_fxns_used.keys()}
@@ -617,43 +665,14 @@ class POGGGraphEvaluation:
 
 
         # gold outputs metrics
-        lowercase_results = [result.lower() for result in self.generated_results]
+        lowercase_results = [result.lower() for result in sorted(list(self.generated_results))]
+        # results = [result for result in sorted(list(self.generated_results))]
         for gold_output in self.gold_outputs:
             if gold_output.lower() in lowercase_results:
+            # if gold_output in results:
                 self.generated_gold_outputs.add(gold_output)
 
         self.gold_output_generation_coverage = len(self.gold_outputs) and len(self.generated_gold_outputs) / len(self.gold_outputs)
-
-
-    def get_top_level_dict_representation(self):
-        return {
-            'graph_name': self.graph_name,
-
-            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
-            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
-
-            'node_count': self.node_count,
-            'nodes_covered': self.nodes_covered,
-            'nodes_included': self.nodes_included,
-            'node_coverage': self.node_coverage,
-            'node_inclusion': self.node_inclusion,
-
-            'edge_count': self.edge_count,
-            'edges_covered': self.edges_covered,
-            'edges_included': self.edges_included,
-            'edge_coverage': self.edge_coverage,
-            'edge_inclusion': self.edge_inclusion,
-
-            'gold_outputs': sorted(list(self.gold_outputs)),
-            'generated_gold_outputs': sorted(list(self.generated_gold_outputs)),
-            'gold_output_generation_coverage': self.gold_output_generation_coverage,
-
-            'generation_comment': self.generation_comment,
-            'generated_SEMENT_string': self.generated_SEMENT_string,
-            'collapsed_SEMENT_string': self.collapsed_SEMENT_string,
-            'prepped_SEMENT_string': self.prepped_SEMENT_string,
-            'generated_results': sorted(self.generated_results)
-        }
 
     def mark_all_uncovered(self):
         """
@@ -672,6 +691,38 @@ class POGGGraphEvaluation:
         for edge in self.edge_evaluations:
             edge.edge_covered = False
             edge.edge_included = False
+
+    def get_POGG_metrics_dict(self):
+        return {
+            'graph_name': self.graph_name,
+
+            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
+            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
+
+            'node_count': self.node_count,
+            'nodes_covered': self.nodes_covered,
+            'nodes_included': self.nodes_included,
+
+            'edge_count': self.edge_count,
+            'edges_covered': self.edges_covered,
+            'edges_included': self.edges_included,
+
+            'generation_comment': self.generation_comment,
+            'generated_SEMENT_string': self.generated_SEMENT_string,
+            'collapsed_SEMENT_string': self.collapsed_SEMENT_string,
+            'prepped_SEMENT_string': self.prepped_SEMENT_string,
+
+            'nodes': {key: val.get_dict_representation() for key, val in self.node_evaluations.items()},
+            'edges': [edge.get_dict_representation() for edge in self.edge_evaluations],
+        }
+
+    def get_text_outputs_dict(self):
+        return {
+            'gold_outputs': sorted(list(self.gold_outputs)),
+            'generated_gold_outputs': sorted(list(self.generated_gold_outputs)),
+            'generated_results': sorted(list(self.generated_results))
+        }
+
 
     def create_evaluation_object_from_directory(self, evaluation_directory):
         # find the dot file
@@ -736,7 +787,7 @@ class POGGEvaluation:
     """
     A `POGGEvaluation` object stores evaluation information about dataset.
     """
-    def __init__(self, experiment_name=None, evaluation_dir=None):
+    def __init__(self, experiment_name):
         """
         Initialize the `POGGEvaluation` object by providing the name of the dataset.
 
@@ -767,13 +818,8 @@ class POGGEvaluation:
         | `full_edges_included` | total number of edges included in all final graph SEMENTs in the dataset |
         | `full_edge_coverage` | percentage of edges that generated a SEMENT across all graphs in the dataset  |
         | `full_edges_inclusion` | percentage of edges included in all final graph SEMENTs in the dataset |
-        | `run_complete` | flag to mark whether a full run of the data-to-text algorithm was complete; prevents storing eval reports if False |
         | `run_id` | ID for the run, used to distinguish runs from each other for comparative analysis |
         """
-
-
-        if experiment_name is None and evaluation_dir is None:
-            raise ValueError("Must provide experiment name if not reading evaluation from existing report.")
 
         self.experiment_name = experiment_name
         self.graph_evaluations = {}
@@ -806,23 +852,51 @@ class POGGEvaluation:
         self.full_edge_coverage = None
         self.full_edge_inclusion = None
 
-        self.sem_alg_fxns_available = set()
-        self.sem_comp_fxns_available = set()
+        self.sem_alg_fxns_available = set(),
+        self.sem_comp_fxns_available = set(),
+
         self.sem_alg_fxns_used = {}
-        self.sem_alg_fxns_used_count = None
         self.sem_alg_fxns_used_coverage = None
+
         self.sem_comp_fxns_used = {}
-        self.sem_comp_fxns_used_count = None
         self.sem_comp_fxns_used_coverage = None
 
         # metadata about the run itself for reporting/comparing evaluations between runs
         self.run_id = None
 
-        if evaluation_dir:
-            self.create_evaluation_object_from_directory(evaluation_dir)
+    @classmethod
+    def read_from_directory(cls, evaluation_directory):
+        # read eval_metadata.json file
+        try:
+            with open(Path(evaluation_directory, "run_metadata.json"), 'r') as metadata_file:
+                metadata = json.load(metadata_file)
+                eval_obj = POGGEvaluation(metadata["experiment_name"])
+
+                for key, val in metadata.items():
+                    setattr(eval_obj, key, val)
+        except FileNotFoundError as e:
+            raise e
+
+        # read dataset_eval.json file
+        try:
+            with open(Path(evaluation_directory, "dataset_metrics.json"), 'r') as dataset_eval_file:
+                dataset_eval = json.load(dataset_eval_file)
+
+                for key, val in dataset_eval.items():
+                    setattr(eval_obj, key, val)
+        except FileNotFoundError as e:
+            raise e
+
+        eval_obj.graph_evaluations = {}
+
+        graph_dir = Path(evaluation_directory, "graphs")
+        for item in os.listdir(graph_dir):
+            eval_obj.graph_evaluations[item] = POGGGraphEvaluation.read_from_directory(Path(graph_dir, item))
+
+        return eval_obj
 
 
-    def add_graph(self, graph, graph_name, graph_evaluation=None):
+    def add_graph(self, graph_name, graph_info):
         """
         Create a graph evaluation object given a graph and add it to the dictionary of graph evaluation objects.
 
@@ -839,10 +913,10 @@ class POGGEvaluation:
         """
 
         # create graph evaluation object
-        if graph_evaluation:
-            self.graph_evaluations[graph_name] = graph_evaluation
+        if isinstance(graph_info, POGGGraphEvaluation):
+            self.graph_evaluations[graph_name] = graph_info
         else:
-            self.graph_evaluations[graph_name] = POGGGraphEvaluation(graph, graph_name)
+            self.graph_evaluations[graph_name] = POGGGraphEvaluation(graph_name, graph_info)
 
     def get_graph_evaluation(self, graph_name):
         """
@@ -886,13 +960,11 @@ class POGGEvaluation:
         self.full_edges_covered = 0
         self.full_edges_included = 0
 
+        self.sem_alg_fxns_used_coverage = 0
         self.sem_comp_fxns_used_coverage = 0
 
         for graph_name in self.graph_evaluations.keys():
             graph_eval = self.graph_evaluations[graph_name]
-
-            # self.sem_alg_fxns_used.update(graph_eval.sem_alg_fxns_used)
-            # self.sem_comp_fxns_used.update(graph_eval.sem_comp_fxns_used)
 
             self.sem_alg_fxns_used = {
                 k: self.sem_alg_fxns_used.get(k, 0) + graph_eval.sem_alg_fxns_used.get(k, 0)
@@ -928,391 +1000,28 @@ class POGGEvaluation:
         self.full_edge_coverage = self.full_edge_count and self.full_edges_covered / self.full_edge_count
         self.full_edge_inclusion = self.full_edge_count and self.full_edges_included / self.full_edge_count
 
-        self.sem_comp_fxns_used_coverage = len(self.sem_comp_fxns_available) and len(self.sem_comp_fxns_used) / len(self.sem_comp_fxns_available)
-        self.sem_alg_fxns_used_coverage = len(self.sem_alg_fxns_available) and len(self.sem_alg_fxns_used) / len(self.sem_alg_fxns_available)
+        self.sem_alg_fxns_used_coverage = len([x for x in self.sem_alg_fxns_used if self.sem_alg_fxns_used[x] > 0]) / len(self.sem_alg_fxns_available)
+        self.sem_comp_fxns_used_coverage = len([x for x in self.sem_comp_fxns_used if self.sem_comp_fxns_used[x] > 0]) / len(self.sem_comp_fxns_available)
 
-
-
-
-    def get_top_level_dict_representation(self):
+    def get_POGG_metrics_dict(self):
         return {
             'graph_count': self.graph_count,
             'graph_SEMENT_count': self.graph_SEMENT_count,
-            'graph_SEMENT_coverage': self.graph_SEMENT_coverage,
-
             'graphs_with_text_count': self.graphs_with_text_count,
-            'graphs_with_text_coverage': self.graphs_with_text_coverage,
-
             'graphs_with_gold_text_count': self.graphs_with_gold_text_count,
-            'graphs_with_gold_text_coverage': self.graphs_with_gold_text_coverage,
-
             'graphs_with_complete_gold_text_count': self.graphs_with_complete_gold_text_count,
-            'graphs_with_complete_gold_text_coverage': self.graphs_with_complete_gold_text_coverage,
 
             'sem_alg_fxns_available': sorted(list(self.sem_alg_fxns_available)),
             'sem_comp_fxns_available': sorted(list(self.sem_comp_fxns_available)),
+
             'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
-            'sem_alg_fxns_used_count': len(self.sem_alg_fxns_used),
             'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
-            'sem_comp_fxns_used_count': len(self.sem_comp_fxns_used),
-            'sem_alg_fxns_used_coverage': self.sem_alg_fxns_used_coverage,
-            'sem_comp_fxns_used_coverage': self.sem_comp_fxns_used_coverage,
 
             'full_node_count': self.full_node_count,
             'full_nodes_covered': self.full_nodes_covered,
             'full_nodes_included': self.full_nodes_included,
-            'full_node_coverage': self.full_node_coverage,
-            'full_node_inclusion': self.full_node_inclusion,
 
             'full_edge_count': self.full_edge_count,
             'full_edges_covered': self.full_edges_covered,
             'full_edges_included': self.full_edges_included,
-            'full_edge_coverage': self.full_edge_coverage,
-            'full_edge_inclusion': self.full_edge_inclusion,
         }
-
-    def create_evaluation_object_from_directory(self, evaluation_directory):
-        # read eval_metadata.json file
-        try:
-            with open(Path(evaluation_directory, "eval_metadata.json"), 'r') as metadata_file:
-                metadata = json.load(metadata_file)
-        except FileNotFoundError as e:
-            raise e
-
-        # read dataset_eval.json file
-        try:
-            with open(Path(evaluation_directory, "dataset_eval.json"), 'r') as dataset_eval_file:
-                dataset_eval = json.load(dataset_eval_file)
-        except FileNotFoundError as e:
-            raise e
-
-
-        # set instance variables related to metadata
-        self.dataset_name = metadata["dataset_name"]
-        self.run_id = metadata["run_id"]
-        self.run_complete = True
-
-        self.sem_alg_fxns_available = set(metadata["semantic_algebra_functions_available"])
-        self.sem_comp_fxns_available = set(metadata["semantic_composition_functions_available"])
-
-        # set instance variables related to the run metrics
-        self.graph_count = dataset_eval["graph_count"]
-        self.graph_SEMENT_count = dataset_eval["graph_SEMENT_count"]
-        self.graph_SEMENT_coverage = dataset_eval["graph_SEMENT_coverage"]
-
-        self.graphs_with_text_count = dataset_eval["graphs_with_text_count"]
-        self.graphs_with_text_coverage = dataset_eval["graphs_with_text_coverage"]
-
-        self.graphs_with_gold_text_count = dataset_eval["graphs_with_gold_text_count"]
-        self.graphs_with_gold_text_coverage = dataset_eval["graphs_with_gold_text_coverage"]
-
-        self.graphs_with_complete_gold_text_count = dataset_eval["graphs_with_complete_gold_text_count"]
-        self.graphs_with_complete_gold_text_coverage = dataset_eval["graphs_with_complete_gold_text_coverage"]
-
-        self.full_node_count = dataset_eval["full_node_count"]
-        self.full_nodes_covered = dataset_eval["full_nodes_covered"]
-        self.full_nodes_included = dataset_eval["full_nodes_included"]
-        self.full_node_coverage = dataset_eval["full_node_coverage"]
-        self.full_node_inclusion = dataset_eval["full_node_inclusion"]
-        self.full_edge_count = dataset_eval["full_edge_count"]
-        self.full_edges_covered = dataset_eval["full_edges_covered"]
-        self.full_edges_included = dataset_eval["full_edges_included"]
-        self.full_edge_coverage = dataset_eval["full_edge_coverage"]
-        self.full_edge_inclusion = dataset_eval["full_edge_inclusion"]
-
-        self.sem_alg_fxns_used = dataset_eval["sem_alg_fxns_used"]
-        self.sem_alg_fxns_used_count = dataset_eval["sem_alg_fxns_used_count"]
-        self.sem_alg_fxns_used_coverage = dataset_eval["sem_alg_fxns_used_coverage"]
-
-        self.sem_comp_fxns_used = dataset_eval["sem_comp_fxns_used"]
-        self.sem_comp_fxns_used_count = dataset_eval["sem_comp_fxns_used_count"]
-        self.sem_comp_fxns_used_coverage = dataset_eval["sem_comp_fxns_used_coverage"]
-
-        self.graph_evaluations = {}
-        # (graph_name, graph_directory)
-        graph_eval_directories = [
-            Path(evaluation_directory, "complete_graphs"),
-            Path(evaluation_directory, "incomplete_graphs/full_inclusion/full_inclusion_no_results"),
-            Path(evaluation_directory, "incomplete_graphs/full_inclusion/full_inclusion_w_results"),
-            Path(evaluation_directory, "incomplete_graphs/gold_covered"),
-            Path(evaluation_directory, "incomplete_graphs/true_incomplete"),
-        ]
-        graph_info_tuples = []
-        for parent_dir in graph_eval_directories:
-            if os.path.isdir(parent_dir):
-                graph_info_tuples.extend([(x, Path(parent_dir, x)) for x in os.listdir(parent_dir)])
-
-        for name, eval_dir in graph_info_tuples:
-            self.graph_evaluations[name] = POGGGraphEvaluation(None, None, evaluation_dir=eval_dir)
-
-
-
-class POGGGraphEvaluationDiff:
-    def __init__(self, graph_name, base_graph_eval, comparison_graph_eval):
-        self.graph_name = graph_name
-
-        self.base_graph_eval = base_graph_eval
-        self.comparison_graph_eval = comparison_graph_eval
-
-        self.node_count_delta = self.comparison_graph_eval.node_count - self.base_graph_eval.node_count
-        self.nodes_covered_delta = self.comparison_graph_eval.nodes_covered - self.base_graph_eval.nodes_covered
-        self.node_coverage_delta = self.comparison_graph_eval.node_coverage - self.base_graph_eval.node_coverage
-        self.nodes_included_delta = self.comparison_graph_eval.nodes_included - self.base_graph_eval.nodes_included
-        self.node_inclusion_delta = self.comparison_graph_eval.node_inclusion - self.base_graph_eval.node_inclusion
-
-        self.edge_count_delta = self.comparison_graph_eval.edge_count - self.base_graph_eval.edge_count
-        self.edges_covered_delta = self.comparison_graph_eval.edges_covered - self.base_graph_eval.edges_covered
-        self.edge_coverage_delta = self.comparison_graph_eval.edge_coverage - self.base_graph_eval.edge_coverage
-        self.edges_included_delta = self.comparison_graph_eval.edges_included - self.base_graph_eval.edges_included
-        self.edge_inclusion_delta = self.comparison_graph_eval.edge_inclusion - self.base_graph_eval.edge_inclusion
-
-        self.sem_comp_fxns_used_delta = set(self.comparison_graph_eval.sem_comp_fxns_used) - set(self.base_graph_eval.sem_comp_fxns_used)
-        self.sem_comp_fxns_used_delta_count = len(self.sem_comp_fxns_used_delta)
-
-        # flag to determine if there was a change
-        self.metrics_changed = self.get_changed_metrics()
-        self.diff_detected = len(self.metrics_changed) > 0
-
-    def get_changed_metrics(self):
-        metrics_changed = []
-        if self.node_count_delta != 0:
-            metrics_changed.append("node_count")
-        if self.edge_count_delta != 0:
-            metrics_changed.append("edge_count")
-
-        if self.nodes_covered_delta != 0:
-            metrics_changed.append("nodes_covered")
-        if self.node_coverage_delta != 0:
-            metrics_changed.append("node_coverage")
-        if self.nodes_included_delta != 0:
-            metrics_changed.append("nodes_included")
-        if self.node_inclusion_delta != 0:
-            metrics_changed.append("node_inclusion")
-
-        if self.edges_covered_delta != 0:
-            metrics_changed.append("edges_covered")
-        if self.edge_coverage_delta != 0:
-            metrics_changed.append("edge_coverage")
-        if self.edges_included_delta != 0:
-            metrics_changed.append("edges_included")
-        if self.edge_inclusion_delta != 0:
-            metrics_changed.append("edge_inclusion")
-
-        return metrics_changed
-
-
-    def get_dict_representation(self):
-        return {
-            "graph_name": self.graph_name,
-
-            "node_count_delta": self.node_count_delta,
-            "nodes_covered_delta": self.nodes_covered_delta,
-            "node_coverage_delta": self.node_coverage_delta,
-            "nodes_included_delta": self.nodes_included_delta,
-            "node_inclusion_delta": self.node_inclusion_delta,
-
-            "edge_count_delta": self.edge_count_delta,
-            "edges_covered_delta": self.edges_covered_delta,
-            "edge_coverage_delta": self.edge_coverage_delta,
-            "edges_included_delta": self.edges_included_delta,
-            "edge_inclusion_delta": self.edge_inclusion_delta,
-
-            "sem_comp_fxns_used_delta": sorted(list(self.sem_comp_fxns_used_delta)),
-            "sem_comp_fxns_used_delta_count": self.sem_comp_fxns_used_delta_count,
-        }
-
-
-class POGGEvaluationDiff:
-    """
-    A `POGGEvaluationDiff` object stores information comparing evaluation metrics between two runs on the same dataset.
-    """
-    def __init__(self, base_eval, comparison_eval, diff_path=None):
-        """
-        Initialize the `POGGEvaluation` object by providing the name of the dataset.
-
-        **Parameters**
-        | Parameter | Type | Description | 
-        | --------- | ---- | ----------- | 
-        | `previous_run` | `POGGEvaluation` | evaluation object for one run of POGG's data-to-text algorithm | 
-        | `current_run` | `POGGEvaluation` | evaluation object for another, more recent, run of POGG's data-to-text algorithm on the same dataset | 
-        """
-        
-        self.base_eval = base_eval
-        self.comparison_eval = comparison_eval
-        if diff_path:
-            self.diff_path = diff_path
-        
-        # check that run was performed on the same dataset 
-        # TODO: right now just using dataset name as the check for this
-        # TODO: a better check would actually confirm the graphs are the same 
-        if self.base_eval.experiment_name != self.comparison_eval.experiment_name:
-            raise ValueError("Dataset names do not match; runs were not performed on the same dataset, so a diff report can't be created")
-
-        self.experiment_name = self.base_eval.experiment_name
-        
-        # TODO: first key is graph name and has previous_run:POGGGraphEvaluation and current_run:POGGGraphEvaluation
-        self.graph_evaluations = {}
-        self.graph_evaluation_diffs = {}
-        graph_names = set(self.base_eval.graph_evaluations.keys())
-        graph_names.update(set(self.comparison_eval.graph_evaluations.keys()))
-        for graph_name in graph_names:
-            previous_graph_eval = self.base_eval.graph_evaluations[graph_name]
-            current_graph_eval = self.comparison_eval.graph_evaluations[graph_name]
-            self.graph_evaluations[graph_name] = {
-                "previous_run": previous_graph_eval,
-                "current_run": current_graph_eval,
-            }
-            self.graph_evaluation_diffs[graph_name] = POGGGraphEvaluationDiff(graph_name, previous_graph_eval, current_graph_eval)
-
-
-        # deltas of evaluation metrics 
-        self.graph_count_delta = self.comparison_eval.graph_count - self.base_eval.graph_count
-        self.graph_SEMENT_count_delta = self.comparison_eval.graph_SEMENT_count - self.base_eval.graph_SEMENT_count
-        # TODO: is this how you calculate percentage changes....?
-        self.graph_SEMENT_coverage_delta = self.comparison_eval.graph_SEMENT_coverage - self.base_eval.graph_SEMENT_coverage
-        # NOT number of results, but number that generated text
-        self.graphs_with_text_count_delta = self.comparison_eval.graphs_with_text_count - self.base_eval.graphs_with_text_count
-        self.graphs_with_text_coverage_delta = self.comparison_eval.graph_SEMENT_coverage - self.base_eval.graph_SEMENT_coverage
-
-        self.full_node_count_delta = self.comparison_eval.full_node_count - self.base_eval.full_node_count
-        self.full_nodes_covered_delta = self.comparison_eval.full_nodes_covered - self.base_eval.full_nodes_covered
-        self.full_nodes_included_delta = self.comparison_eval.full_nodes_included - self.base_eval.full_nodes_included
-        self.full_node_coverage_delta = self.comparison_eval.full_node_coverage - self.base_eval.full_node_coverage
-        self.full_node_inclusion_delta = self.comparison_eval.full_node_inclusion - self.base_eval.full_node_inclusion
-        self.full_edge_count_delta = self.comparison_eval.full_edge_count - self.base_eval.full_edge_count
-        self.full_edges_covered_delta = self.comparison_eval.full_edges_covered - self.base_eval.full_edges_covered
-        self.full_edges_included_delta = self.comparison_eval.full_edges_included - self.base_eval.full_edges_included
-        self.full_edge_coverage_delta = self.comparison_eval.full_edge_coverage - self.base_eval.full_edge_coverage
-        self.full_edge_inclusion_delta = self.comparison_eval.full_edge_inclusion - self.base_eval.full_edge_inclusion
-
-
-        # TODO: should be quantitative as well as listing what new functions were added
-        self.base_only_sem_alg_fxns = set([fxn for fxn in self.base_eval.sem_alg_fxns_available if
-                                           fxn not in self.comparison_eval.sem_alg_fxns_available])
-        self.base_only_sem_alg_fxns_count = len(self.base_only_sem_alg_fxns)
-        self.comparison_only_sem_alg_fxns = set([fxn for fxn in self.comparison_eval.sem_alg_fxns_available if
-                                                 fxn not in self.base_eval.sem_alg_fxns_available])
-        self.comparison_only_sem_alg_fxns_count = len(self.comparison_only_sem_alg_fxns)
-
-
-        self.base_only_sem_comp_fxns = set([fxn for fxn in self.base_eval.sem_comp_fxns_available if
-                                            fxn not in self.comparison_eval.sem_comp_fxns_available])
-        self.base_only_sem_comp_fxns_count = len(self.base_only_sem_comp_fxns)
-        self.comparison_only_sem_comp_fxns = set([fxn for fxn in self.comparison_eval.sem_comp_fxns_available if
-                                                  fxn not in self.base_eval.sem_comp_fxns_available])
-        self.comparison_only_sem_comp_fxns_count = len(self.comparison_only_sem_comp_fxns)
-
-
-        self.sem_comp_fxns_used_base = self.base_eval.sem_comp_fxns_used
-        self.sem_comp_fxns_used_comparison = self.comparison_eval.sem_comp_fxns_used
-        self.sem_comp_fxns_used_count_delta = self.comparison_eval.sem_comp_fxns_used_count - self.base_eval.sem_comp_fxns_used_count
-        self.sem_comp_fxns_used_coverage_delta = self.comparison_eval.sem_comp_fxns_used_coverage - self.base_eval.sem_comp_fxns_used_coverage
-
-    def get_dict_representation(self):
-        return {
-            'graph_count_delta': self.graph_count_delta,
-            'graph_SEMENT_count_delta': self.graph_SEMENT_count_delta,
-            'graph_SEMENT_coverage_delta': self.graph_SEMENT_coverage_delta,
-            'graphs_with_text_count_delta': self.graphs_with_text_count_delta,
-            'graphs_with_text_coverage_delta': self.graphs_with_text_coverage_delta,
-
-            'full_node_count_delta': self.full_node_count_delta,
-            'full_nodes_covered_delta': self.full_nodes_covered_delta,
-            'full_nodes_included_delta': self.full_nodes_included_delta,
-            'full_node_coverage_delta': self.full_node_coverage_delta,
-            'full_node_inclusion_delta': self.full_node_inclusion_delta,
-
-            'full_edge_count_delta': self.full_edge_count_delta,
-            'full_edges_covered_delta': self.full_edges_covered_delta,
-            'full_edges_included_delta': self.full_edges_included_delta,
-            'full_edge_coverage_delta': self.full_edge_coverage_delta,
-            'full_edge_inclusion_delta': self.full_edge_inclusion_delta,
-
-            'base_only_sem_alg_fxns': sorted(list(self.base_only_sem_alg_fxns)),
-            'base_only_sem_alg_fxns_count': self.base_only_sem_alg_fxns_count,
-            'comparison_only_sem_alg_fxns': sorted(list(self.comparison_only_sem_alg_fxns)),
-            'comparison_only_sem_alg_fxns_count': self.comparison_only_sem_alg_fxns_count,
-
-            'base_only_sem_comp_fxns': sorted(list(self.base_only_sem_comp_fxns)),
-            'base_only_sem_comp_fxns_count': self.base_only_sem_comp_fxns_count,
-            'comparison_only_sem_comp_fxns': sorted(list(self.comparison_only_sem_comp_fxns)),
-            'comparison_only_sem_comp_fxns_count': self.comparison_only_sem_comp_fxns_count,
-
-            'sem_comp_fxns_used_base': sorted(list(self.sem_comp_fxns_used_base)),
-            'sem_comp_fxns_used_comparison': sorted(list(self.sem_comp_fxns_used_comparison)),
-            'sem_comp_fxns_used_count_delta': self.sem_comp_fxns_used_count_delta,
-            'sem_comp_fxns_used_coverage_delta': self.sem_comp_fxns_used_coverage_delta
-        }
-
-
-class POGGEvaluationDiffConfig:
-    def __init__(self, diff_config_path: Path | str):
-        with open(diff_config_path, 'r') as f:
-            config_json = json.load(f)
-
-        for key in config_json:
-            if key != "diffs":
-                setattr(self, key, config_json[key])
-
-        self.diff_setups = {}
-        self._create_diff_objects(config_json, self.diff_setups)
-
-
-    def _create_diff_objects(self, current_json_split, current_dict):
-        subsplit_diffs = {}
-        if "splits" in current_json_split:
-            current_dict["splits"] = {}
-            for subsplit_key, subsplit in current_json_split["splits"].items():
-
-                current_dict["splits"][subsplit_key] = {}
-
-
-                # recurse down to sub-splits
-                result = self._create_diff_objects(subsplit, current_dict["splits"][subsplit_key])
-                for key in result:
-                    if key in subsplit_diffs:
-                        subsplit_diffs[key].extend(result[key])
-                    else:
-                        subsplit_diffs[key] = result[key]
-
-        # use results to build aggregate-level diffs
-        if "diffs" in current_json_split:
-            for diff_key, diff in current_json_split["diffs"].items():
-                # read in eval object from baseline_dir and comparison_dir
-                baseline_eval_dir = Path(diff["baseline_dir"], diff["eval_dir_name"])
-                comparison_eval_dir = Path(diff["comparison_dir"], diff["eval_dir_name"])
-
-                basline_eval = POGGEvaluation(evaluation_dir=baseline_eval_dir)
-                comparison_eval = POGGEvaluation(evaluation_dir=comparison_eval_dir)
-
-                eval_diff = POGGEvaluationDiff(basline_eval, comparison_eval, diff["diff_dir"])
-
-                # if it's NOT a leaf diff, aggregate diff objects from subsplits
-                if not diff["leaf"]:
-                    # add to the diff_dict
-                    current_dict[diff_key] = eval_diff
-                else:
-                    # add to the diff_dict
-                    current_dict[diff_key] = eval_diff
-
-                    # add to collection of subsplit_diffs
-                    if diff_key not in subsplit_diffs:
-                        subsplit_diffs[diff_key] = [eval_diff]
-                    else:
-                        subsplit_diffs[diff_key].append(eval_diff)
-                        
-        return subsplit_diffs
-
-    def get_all_diffs(self, current_dict_level=None, diffs=None):
-        if current_dict_level is None:
-            current_dict_level = self.diff_setups
-        if diffs is None:
-            diffs = []
-
-        for key, val in current_dict_level.items():
-            if isinstance(val, POGGEvaluationDiff):
-                diffs.append(val)
-            else:
-                self.get_all_diffs(val, diffs)
-
-        return diffs

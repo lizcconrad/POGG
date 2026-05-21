@@ -129,6 +129,7 @@ class POGGExperiment:
         self.SEMENT_processing = experiment_dict["SEMENT_processing"]
         self.result_processing = experiment_dict["result_processing"]
         self.output_dir = Path(experiment_dict["experiment_output_dir"])
+        self.report_dir = Path(experiment_dict["experiment_report_dir"])
 
         self.full_data_split_name = split_info["full_data_split_name"]
         self.data_dir = Path(split_info["split_data_dir"])
@@ -159,8 +160,7 @@ class POGGExperiment:
                         return graph_evaluation
 
         # if evaluation from a subexperiment was not found, proceed with conversion
-        graph_evaluation = POGGGraphEvaluation(graph_obj, graph_name)
-        graph_evaluation.gold_outputs = gold_outputs
+        graph_evaluation = POGGGraphEvaluation(graph_name, graph_dict)
 
         # Perform graph -> SEMENT conversion and save result to evaluation object
         sement = self.graph_converter.convert_graph_to_SEMENT(graph_obj, graph_evaluation, None)
@@ -181,7 +181,7 @@ class POGGExperiment:
 
             # Store results in evaluation object
             for r in results:
-                graph_evaluation.generated_results.append(r['surface'])
+                graph_evaluation.generated_results.add(r['surface'])
 
         #Calculate evaluation metrics
         graph_evaluation.calculate_metrics()
@@ -220,7 +220,7 @@ class POGGExperiment:
             graph_evaluation = self.run_POGG_data_to_text_single_graph(graph_name, graph_dict)
 
             # add to POGGEvaluation
-            self.evaluation.add_graph(graph_dict["graph"], graph_name, graph_evaluation)
+            self.evaluation.add_graph(graph_name, graph_evaluation)
 
         # Calculate metrics for full dataset
         self.evaluation.calculate_metrics()
@@ -432,6 +432,97 @@ class POGGExperiment:
             sorted_graph_notes = dict(sorted(graph_notes.items()))
             file.write(json.dumps(sorted_graph_notes, indent=4))
 
+    def store_experiment_results(self):
+        # 0. create the directory for this run's evaluation
+        run_eval_dir = Path(self.output_dir, f"{self.full_data_split_name}_eval")
+        Path(run_eval_dir).mkdir(parents=True, exist_ok=True)
+
+        # create a file for notes about each graph
+        graph_notes = {}
+
+        # 1. store the metadata for the eval
+        eval_metadata = {
+            "run_id": self.evaluation.run_id,
+            "experiment_name": self.experiment_name,
+            "dataset_name": self.full_data_split_name,
+            "dataset_location": str(self.evaluation.dataset_location),
+            "semantic_algebra_functions_available": sorted(list(self.evaluation.sem_alg_fxns_available)),
+            "semantic_composition_functions_available": sorted(list(self.evaluation.sem_comp_fxns_available)),
+        }
+
+        with open(Path(run_eval_dir, 'run_metadata.json'), 'w') as f:
+            f.write(json.dumps(eval_metadata, indent=4))
+
+        # 2. store eval files for whole dataset
+        with open(Path(run_eval_dir, 'dataset_metrics.json'), 'w') as f:
+            f.write(json.dumps(self.evaluation.get_POGG_metrics_dict(), indent=4))
+
+        # 3. store eval files for each graph
+        for graph_name, graph_evaluation in self.evaluation.graph_evaluations.items():
+            graph_output_dir = Path(run_eval_dir, "graphs", graph_name)
+            Path.mkdir(graph_output_dir, parents=True, exist_ok=True)
+
+            with open(Path(graph_output_dir, graph_name + ".json"), "w") as f:
+                json.dump(graph_evaluation.graph_json, f, indent=4)
+
+            with open(Path(graph_output_dir, graph_name + "_metrics.json"), "w") as f:
+                json.dump(graph_evaluation.get_POGG_metrics_dict(), f, indent=4)
+
+            with open(Path(graph_output_dir, graph_name + "_text_outputs.json"), "w") as f:
+                json.dump(graph_evaluation.get_text_outputs_dict(), f, indent=4)
+
+    def _make_report_graph_directories(self):
+        graph_report_dir = Path(self.report_dir, "graphs")
+        graph_report_dir.mkdir(parents=True, exist_ok=True)
+        complete_graphs = Path(graph_report_dir, "complete")
+        complete_graphs.mkdir(parents=True, exist_ok=True)
+        incomplete_graphs = Path(graph_report_dir, "incomplete")
+        incomplete_graphs.mkdir(parents=True, exist_ok=True)
+        full_inclusion = Path(incomplete_graphs, "full_inclusion")
+        full_inclusion.mkdir(parents=True, exist_ok=True)
+        gold_covered = Path(incomplete_graphs, "gold_covered")
+        gold_covered.mkdir(parents=True, exist_ok=True)
+        full_inclusion_no_results = Path(full_inclusion, "full_inclusion_no_results")
+        full_inclusion_no_results.mkdir(parents=True, exist_ok=True)
+        full_inclusion_w_results = Path(full_inclusion, "full_inclusion_w_results")
+        full_inclusion_w_results.mkdir(parents=True, exist_ok=True)
+        true_incomplete = Path(incomplete_graphs, "true_incomplete")
+        true_incomplete.mkdir(parents=True, exist_ok=True)
+        return complete_graphs, full_inclusion_w_results, full_inclusion_no_results, gold_covered, true_incomplete
+
+    def store_experiment_report(self, dataset_report=True, graph_reports=True, dot_files=True):
+        if dataset_report:
+            Path(self.report_dir).mkdir(parents=True, exist_ok=True)
+            with open(Path(self.report_dir, "dataset_report.txt"), "w") as f:
+                f.write(POGGDatasetReporting.build_ASCII_dataset_report(self))
+
+        if graph_reports:
+            complete_graphs, full_inclusion_w_results, full_inclusion_no_results, gold_covered, true_incomplete = self._make_report_graph_directories()
+
+            for graph_name, graph_eval in self.evaluation.graph_evaluations.items():
+
+                if graph_eval.node_inclusion == 1.0 and graph_eval.edge_inclusion == 1.0:
+                    if graph_eval.gold_output_generation_coverage == 1.0:
+                        sub_dir = complete_graphs
+                    elif len(graph_eval.generated_results) > 0:
+                        sub_dir = full_inclusion_w_results
+                    else:
+                        sub_dir = full_inclusion_no_results
+                else:
+                    if graph_eval.gold_output_generation_coverage == 1.0:
+                        sub_dir = gold_covered
+                    else:
+                        sub_dir = true_incomplete
+
+                with open(Path(sub_dir, graph_name + "_report.txt"), "w") as f:
+                    f.write(POGGGraphReporting.build_ASCII_graph_report_detail(graph_eval))
+
+                if dot_files:
+                    with open(Path(sub_dir, graph_name + ".dot"), "w") as f:
+                        POGGGraphUtil.write_graph_to_dot(graph_eval.graph, f)
+
+
+
 
 class POGGExperimentsConfig:
     def __init__(self, composition_config_path: Path | str, experiment_config_path: Path | str, run_name: str=None):
@@ -573,4 +664,11 @@ class POGGExperimentsConfig:
             experiment.store_evaluation_report()
 
 
+    def store_lexicons(self):
+        for setup in self.experimental_setups:
+            # TODO: a little hacky, re-engineering the directory for the experiment run but oh well...
+            lexicon_output_dir = Path(self.evaluation_run_anchor + "_" + setup)
+            lexicon_output_dir.mkdir(parents=True, exist_ok=True)
+            self.lexicons[setup].dump_all_lexicon_entries_to_file(
+                Path(lexicon_output_dir, f"{setup}_all_entries.json"))
 

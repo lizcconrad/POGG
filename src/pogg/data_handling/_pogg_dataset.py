@@ -28,7 +28,7 @@ class POGGDataSplit:
         for data_dir in data_directories:
             self._build_graphs(data_dir)
 
-        self._set_node_and_edge_keyss()
+        self._set_node_and_edge_keys()
 
     def _build_graphs(self, graph_json_dir):
         graph_counter = len(self.graphs.keys())
@@ -45,10 +45,10 @@ class POGGDataSplit:
                     "graph_json": graph_json,
                     "graph": graph,
                     "graph_directory": dir_elem.path,
-                    "gold_outputs": graph_json["gold_outputs"],
+                    "gold_outputs": set(graph_json["gold_outputs"]),
                 }
 
-    def _set_node_and_edge_keyss(self):
+    def _set_node_and_edge_keys(self):
         nodes = set()
         edges = set()
         original_element_names = set()
