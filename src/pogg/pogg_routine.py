@@ -133,6 +133,7 @@ class POGGExperiment:
 
         self.full_data_split_name = split_info["full_data_split_name"]
         self.data_dir = Path(split_info["split_data_dir"])
+        self.root = split_info["root"]
         self.leaf = split_info["leaf"]
 
         if self.leaf:
@@ -453,11 +454,14 @@ class POGGExperiment:
         with open(Path(run_eval_dir, 'run_metadata.json'), 'w') as f:
             f.write(json.dumps(eval_metadata, indent=4))
 
-        # 2. store eval files for whole dataset
+        # 2. store lexicon (a little redundant to do this for every split but sometimes I just run one split so whatever)
+        self.lexicon.dump_all_lexicon_entries_to_file(Path(run_eval_dir, "lexicon_all_entries.json"))
+
+        # 3. store eval files for whole dataset
         with open(Path(run_eval_dir, 'dataset_metrics.json'), 'w') as f:
             f.write(json.dumps(self.evaluation.get_POGG_metrics_dict(), indent=4))
 
-        # 3. store eval files for each graph
+        # 4. store eval files for each graph
         for graph_name, graph_evaluation in self.evaluation.graph_evaluations.items():
             graph_output_dir = Path(run_eval_dir, "graphs", graph_name)
             Path.mkdir(graph_output_dir, parents=True, exist_ok=True)
@@ -662,13 +666,3 @@ class POGGExperimentsConfig:
             print(f"Running {experiment.full_data_split_name}__{experiment.experiment_name} (experiment {i + 1} of {len(experiments)})...")
             experiment.run_experiment()
             experiment.store_evaluation_report()
-
-
-    def store_lexicons(self):
-        for setup in self.experimental_setups:
-            # TODO: a little hacky, re-engineering the directory for the experiment run but oh well...
-            lexicon_output_dir = Path(self.evaluation_run_anchor + "_" + setup)
-            lexicon_output_dir.mkdir(parents=True, exist_ok=True)
-            self.lexicons[setup].dump_all_lexicon_entries_to_file(
-                Path(lexicon_output_dir, f"{setup}_all_entries.json"))
-
