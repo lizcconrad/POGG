@@ -358,10 +358,7 @@ class POGGGraphEvaluation:
         if eval_obj.prepped_SEMENT_string is not None:
             eval_obj.set_prepped_SEMENT(sementcodecs.decode(eval_obj.prepped_SEMENT_string))
 
-        # TODO: once that's done... make diffs
-        # TODO: then reports ...
-        # TODO: then remove semcomp from this repo
-        # TODO: then FINALLY WebNLG.............
+        eval_obj.calculate_metrics()
 
         return eval_obj
 
@@ -892,6 +889,8 @@ class POGGEvaluation:
         graph_dir = Path(evaluation_directory, "graphs")
         for item in os.listdir(graph_dir):
             eval_obj.graph_evaluations[item] = POGGGraphEvaluation.read_from_directory(Path(graph_dir, item))
+
+        eval_obj.calculate_metrics()
 
         return eval_obj
 

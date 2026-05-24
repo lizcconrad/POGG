@@ -15,7 +15,7 @@ class POGGGraphReporting:
     """
 
     @staticmethod
-    def build_ASCII_nodes_table(graph_eval):
+    def build_nodes_table(graph_eval):
         """
         Build an ASCII table detailing evaluation information about every node in a graph.
 
@@ -70,7 +70,7 @@ class POGGGraphReporting:
         return nodes_table
 
     @staticmethod
-    def build_ASCII_nodes_SEMENT_table(graph_eval):
+    def build_nodes_SEMENT_table(graph_eval):
         """
         Build an ASCII table showing the generated SEMENT for each node in a graph, if it exists.
 
@@ -111,7 +111,7 @@ class POGGGraphReporting:
         return nodes_table
 
     @staticmethod
-    def build_ASCII_edges_table(graph_eval):
+    def build_edges_table(graph_eval):
         """
         Build an ASCII table detailing evaluation information about every edge in a graph.
 
@@ -171,7 +171,7 @@ class POGGGraphReporting:
         return edges_table
 
     @staticmethod
-    def build_ASCII_edges_SEMENT_table(graph_eval):
+    def build_edges_SEMENT_table(graph_eval):
         """
          Build an ASCII table showing the generated SEMENT for each edge in a graph, if it exists.
 
@@ -213,7 +213,7 @@ class POGGGraphReporting:
         return edges_table
 
     @staticmethod
-    def build_ASCII_graph_metrics_table(graph_eval):
+    def build_graph_metrics_table(graph_eval):
         """
         Build an ASCII table detailing evaluation metrics for one directed graph in a dataset.
 
@@ -265,7 +265,7 @@ class POGGGraphReporting:
         return metrics_table
 
     @staticmethod
-    def build_ASCII_graph_SEMENT_table(graph_eval):
+    def build_graph_SEMENT_table(graph_eval):
         """
         Build an ASCII table showing the SEMENTs associated with a particular directed graph.
         If an error caused generation to fail, print the error instead.
@@ -309,7 +309,7 @@ class POGGGraphReporting:
 
 
     @staticmethod
-    def build_ASCII_gold_outputs_table(graph_eval):
+    def build_gold_outputs_table(graph_eval):
         """
         Build an ASCII table listing the generated English text results that the ERG generated for the SEMENT associated with the graph.
 
@@ -334,7 +334,7 @@ class POGGGraphReporting:
         return gold_text_table
 
     @staticmethod
-    def build_ASCII_graph_generated_text_table(graph_eval):
+    def build_graph_generated_text_table(graph_eval):
         """
         Build an ASCII table listing the generated English text results that the ERG generated for the SEMENT associated with the graph.
 
@@ -359,7 +359,7 @@ class POGGGraphReporting:
         return gen_text_table
 
     @staticmethod
-    def build_ASCII_graph_report_detail(graph_eval):
+    def build_graph_report_detail(graph_eval):
         """
         Build a report for an individual graph that includes tables about the nodes, edges, evaluation metrics,
         SEMENTs, and generated text results.
@@ -376,18 +376,18 @@ class POGGGraphReporting:
         """
 
         report = f"GRAPH NAME: {graph_eval.graph_name}\n\n"
-        report += str(POGGGraphReporting.build_ASCII_graph_metrics_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_graph_metrics_table(graph_eval)) + "\n\n"
 
-        report += str(POGGGraphReporting.build_ASCII_gold_outputs_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_gold_outputs_table(graph_eval)) + "\n\n"
 
-        report += str(POGGGraphReporting.build_ASCII_nodes_table(graph_eval)) + "\n\n"
-        report += str(POGGGraphReporting.build_ASCII_edges_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_nodes_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_edges_table(graph_eval)) + "\n\n"
 
-        report += str(POGGGraphReporting.build_ASCII_graph_SEMENT_table(graph_eval)) + "\n\n"
-        report += str(POGGGraphReporting.build_ASCII_nodes_SEMENT_table(graph_eval)) + "\n\n"
-        report += str(POGGGraphReporting.build_ASCII_edges_SEMENT_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_graph_SEMENT_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_nodes_SEMENT_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_edges_SEMENT_table(graph_eval)) + "\n\n"
 
-        report += str(POGGGraphReporting.build_ASCII_graph_generated_text_table(graph_eval)) + "\n\n"
+        report += str(POGGGraphReporting.build_graph_generated_text_table(graph_eval)) + "\n\n"
         return report
 
 
@@ -398,7 +398,7 @@ class POGGDatasetReporting:
     """
 
     @staticmethod
-    def build_ASCII_dataset_metrics_table(dataset_eval):
+    def build_dataset_metrics_table(dataset_eval):
         """
         Build an ASCII table detailing evaluation metrics for a dataset.
 
@@ -465,7 +465,7 @@ class POGGDatasetReporting:
         return metrics_table
 
     @staticmethod
-    def build_ASCII_graphs_report_summary(dataset_eval):
+    def build_graphs_report_summary(dataset_eval):
         """
         Build an ASCII table detailing evaluation metrics for each graph in a dataset.
 
@@ -527,7 +527,7 @@ class POGGDatasetReporting:
         return graphs_summary_table
 
     @staticmethod
-    def build_ASCII_dataset_report(experiment):
+    def build_dataset_report(experiment):
         """
         Build a report for a dataset that includes a table of evaluation metrics for the whole dataset and a table
         summarizing metrics for each graph in the dataset.
@@ -545,8 +545,8 @@ class POGGDatasetReporting:
 
         report = f"DATASET: {experiment.full_data_split_name}\n"
         report += f"EXPERIMENT: {experiment.experiment_name}\n\n"
-        report += str(POGGDatasetReporting.build_ASCII_dataset_metrics_table(experiment.evaluation)) + "\n\n"
-        report += str(POGGDatasetReporting.build_ASCII_graphs_report_summary(experiment.evaluation)) + "\n\n"
+        report += str(POGGDatasetReporting.build_dataset_metrics_table(experiment.evaluation)) + "\n\n"
+        report += str(POGGDatasetReporting.build_graphs_report_summary(experiment.evaluation)) + "\n\n"
         return report
 
 

@@ -1,4 +1,7 @@
+import json
 from pathlib import Path
+
+from pogg.evaluation._evaluation import POGGEvaluation
 
 class POGGGraphEvaluationDiff:
     def __init__(self, graph_name, base_graph_eval, comparison_graph_eval):
@@ -99,11 +102,9 @@ class POGGEvaluationDiff:
         # check that run was performed on the same dataset
         # TODO: right now just using dataset name as the check for this
         # TODO: a better check would actually confirm the graphs are the same
-        if self.base_eval.experiment_name != self.comparison_eval.experiment_name:
+        if self.base_eval.dataset_name != self.comparison_eval.dataset_name:
             raise ValueError(
                 "Dataset names do not match; runs were not performed on the same dataset, so a diff report can't be created")
-
-        self.experiment_name = self.base_eval.experiment_name
 
         # TODO: first key is graph name and has previous_run:POGGGraphEvaluation and current_run:POGGGraphEvaluation
         self.graph_evaluations = {}
@@ -155,9 +156,17 @@ class POGGEvaluationDiff:
                                                   fxn not in self.base_eval.sem_comp_fxns_available])
         self.comparison_only_sem_comp_fxns_count = len(self.comparison_only_sem_comp_fxns)
 
+        self.sem_alg_fxns_used_base = self.base_eval.sem_alg_fxns_used
+        self.sem_alg_fxns_used_comparison = self.comparison_eval.sem_alg_fxns_used
+        self.sem_alg_fxns_count_delta = len(self.comparison_eval.sem_alg_fxns_used) - len(self.base_eval.sem_alg_fxns_used)
+        self.sem_alg_fxns_available_count_delta = len(self.comparison_eval.sem_alg_fxns_available) - len(self.base_eval.sem_alg_fxns_available)
+        self.sem_alg_fxns_used_count_delta = len(self.comparison_eval.sem_alg_fxns_used) - len(self.base_eval.sem_alg_fxns_used)
+        self.sem_alg_fxns_used_coverage_delta = self.comparison_eval.sem_alg_fxns_used_coverage - self.base_eval.sem_alg_fxns_used_coverage
+
         self.sem_comp_fxns_used_base = self.base_eval.sem_comp_fxns_used
         self.sem_comp_fxns_used_comparison = self.comparison_eval.sem_comp_fxns_used
-        self.sem_comp_fxns_used_count_delta = self.comparison_eval.sem_comp_fxns_used_count - self.base_eval.sem_comp_fxns_used_count
+        self.sem_comp_fxns_available_count_delta = len(self.comparison_eval.sem_comp_fxns_available) - len(self.base_eval.sem_comp_fxns_available)
+        self.sem_comp_fxns_used_count_delta = len(self.comparison_eval.sem_comp_fxns_used) - len(self.base_eval.sem_comp_fxns_used)
         self.sem_comp_fxns_used_coverage_delta = self.comparison_eval.sem_comp_fxns_used_coverage - self.base_eval.sem_comp_fxns_used_coverage
 
     def get_dict_representation(self):
@@ -210,10 +219,15 @@ class POGGEvaluationDiffConfig:
         self._create_diff_objects(config_json, self.diff_setups)
 
     def _create_diff_objects(self, current_json_split, current_dict):
+        if "dataset_name" in current_json_split:
+            print(f"Creating diff objects for {current_json_split["dataset_name"]}...")
+
         subsplit_diffs = {}
         if "splits" in current_json_split:
             current_dict["splits"] = {}
             for subsplit_key, subsplit in current_json_split["splits"].items():
+
+                print(f"Creating diff objects for {subsplit_key}...")
 
                 current_dict["splits"][subsplit_key] = {}
 
@@ -232,8 +246,8 @@ class POGGEvaluationDiffConfig:
                 baseline_eval_dir = Path(diff["baseline_dir"], diff["eval_dir_name"])
                 comparison_eval_dir = Path(diff["comparison_dir"], diff["eval_dir_name"])
 
-                basline_eval = POGGEvaluation(evaluation_dir=baseline_eval_dir)
-                comparison_eval = POGGEvaluation(evaluation_dir=comparison_eval_dir)
+                basline_eval = POGGEvaluation.read_from_directory(baseline_eval_dir)
+                comparison_eval = POGGEvaluation.read_from_directory(comparison_eval_dir)
 
                 eval_diff = POGGEvaluationDiff(basline_eval, comparison_eval, diff["diff_dir"])
 
