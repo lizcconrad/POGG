@@ -1,7 +1,7 @@
 import copy
 import inspect
 
-from pogg.semantic_composition.semantic_composition import SemanticComposition
+from pogg_semantics.semantic_composition import SemanticComposition
 
 class POGGLexiconEntry:
     def __init__(self, lexicon_key, entry_information=None):

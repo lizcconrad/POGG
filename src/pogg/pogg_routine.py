@@ -14,14 +14,13 @@ import re
 from delphin import ace
 from typing import List, Dict, overload
 
+from pogg_semantics.pogg_config import POGGCompositionConfig
+from pogg_semantics.semantic_composition import SemanticAlgebra, SemanticComposition, SEMENTUtil
+
 from pogg.lexicon import POGGLexicon, POGGLexiconAutoFiller
 from pogg.data_handling import POGGDataset, POGGDataSplit, POGGGraphUtil
 from pogg.evaluation import POGGEvaluation, POGGGraphEvaluation, POGGGraphReporting, POGGDatasetReporting
-from pogg.pogg_config import POGGCompositionConfig
-from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.semantic_composition.semantic_composition import SemanticComposition
 from pogg.graph_to_SEMENT import POGGGraphConverter
-from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
 
 #
@@ -91,7 +90,7 @@ from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 #     #     # 4. If SEMENT is created, perform English text generation
 #     #     if sement is not None:
 #     #         # collapse EQs for easier reading
-#     #         collapsed_sement = POGGSEMENTUtil.overwrite_eqs(sement)
+#     #         collapsed_sement = SEMENTUtil.overwrite_eqs(sement)
 #     #         graph_evaluation.set_collapsed_SEMENT(collapsed_sement)
 #     #
 #     #         final_sement = self.semantic_algebra.prepare_for_generation(sement)
@@ -170,7 +169,7 @@ class POGGExperiment:
         # If SEMENT is created, perform English text generation
         if sement is not None:
             # collapse EQs for easier reading
-            collapsed_sement = POGGSEMENTUtil.overwrite_eqs(sement)
+            collapsed_sement = SEMENTUtil.overwrite_eqs(sement)
             graph_evaluation.set_collapsed_SEMENT(collapsed_sement)
 
             final_sement = self.graph_converter.semantic_algebra.prepare_for_generation(sement)
@@ -300,7 +299,7 @@ class POGGExperiment:
             f.write(json.dumps(self.evaluation.get_top_level_dict_representation(), indent=4))
 
         with open(Path(run_eval_dir, 'dataset_report.txt'), 'w') as f:
-            f.write(POGGDatasetReporting.build_ASCII_dataset_report(eval_metadata, self.evaluation))
+            f.write(POGGDatasetReporting.build_dataset_report(eval_metadata, self.evaluation))
 
 
 
@@ -358,7 +357,7 @@ class POGGExperiment:
             if graph_evaluation.generation_comment and "cycle" in graph_evaluation.generation_comment.lower():
                 graph_notes[graph_name]["tags"]["cycle"] = ""
 
-            graph_report = POGGGraphReporting.build_ASCII_graph_report_detail(graph_evaluation)
+            graph_report = POGGGraphReporting.build_graph_report_detail(graph_evaluation)
 
             # determine which subdirectory the graph's eval folder goes in
             full_gold_coverage = graph_evaluation.gold_output_generation_coverage == 1.0
@@ -498,7 +497,7 @@ class POGGExperiment:
         if dataset_report:
             Path(self.report_dir).mkdir(parents=True, exist_ok=True)
             with open(Path(self.report_dir, "dataset_report.txt"), "w") as f:
-                f.write(POGGDatasetReporting.build_ASCII_dataset_report(self))
+                f.write(POGGDatasetReporting.build_dataset_report(self))
 
         if graph_reports:
             complete_graphs, full_inclusion_w_results, full_inclusion_no_results, gold_covered, true_incomplete = self._make_report_graph_directories()
@@ -519,7 +518,7 @@ class POGGExperiment:
                         sub_dir = true_incomplete
 
                 with open(Path(sub_dir, graph_name + "_report.txt"), "w") as f:
-                    f.write(POGGGraphReporting.build_ASCII_graph_report_detail(graph_eval))
+                    f.write(POGGGraphReporting.build_graph_report_detail(graph_eval))
 
                 if dot_files:
                     with open(Path(sub_dir, graph_name + ".dot"), "w") as f:

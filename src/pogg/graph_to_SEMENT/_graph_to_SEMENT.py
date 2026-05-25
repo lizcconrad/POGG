@@ -8,13 +8,14 @@ import copy
 import inspect
 import networkx as nx
 from pathlib import Path
-from pogg.semantic_composition.call_tracer import SemCompTracer, SemAlgTracer
 
-from pogg.my_delphin.my_delphin import SEMENT
+
+from pogg_semantics.pogg_config import POGGCompositionConfig
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.semantic_composition import SemanticComposition, SemCompTracer, SemAlgTracer
+
 from pogg.data_handling import POGGGraphUtil
 from pogg.lexicon import POGGLexiconEntry
-from pogg.pogg_config import POGGCompositionConfig
-from pogg.semantic_composition.semantic_composition import SemanticComposition
 
 class POGGGraphConverter:
     """

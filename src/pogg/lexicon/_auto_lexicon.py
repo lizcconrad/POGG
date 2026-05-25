@@ -4,10 +4,10 @@ from itertools import permutations
 import json
 from delphin import ace, mrs
 
-from pogg.my_delphin import sementcodecs
-from pogg.pogg_config import POGGCompositionConfig
-from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.semantic_composition.sement_util import POGGSEMENTUtil
+from pogg_semantics.pogg_config import POGGCompositionConfig
+from pogg_semantics.my_delphin import sementcodecs
+from pogg_semantics.semantic_composition import SemanticAlgebra, SEMENTUtil
+
 from pogg.graph_to_SEMENT import POGGGraphConverter
 
 
@@ -187,7 +187,7 @@ class POGGLexiconAutoFiller:
         if erg_mrs is not None:
             template_SEMENT = self._get_template_SEMENT(template)
 
-            if POGGSEMENTUtil.is_sement_isomorphic_ignore_predicate_labels(template_SEMENT, erg_mrs):
+            if SEMENTUtil.is_sement_isomorphic_ignore_predicate_labels(template_SEMENT, erg_mrs):
 
                 placeholder_candidates = self._get_filler_candidates(erg_mrs)
 
@@ -199,13 +199,13 @@ class POGGLexiconAutoFiller:
                     altered_template_SEMENT = self._fill_placeholders(template_SEMENT, mapping)
 
                     # ignore var props
-                    if POGGSEMENTUtil.is_sement_isomorphic(altered_template_SEMENT, erg_mrs, False):
+                    if SEMENTUtil.is_sement_isomorphic(altered_template_SEMENT, erg_mrs, False):
                         return mapping
 
         return  None
 
     def _fill_placeholders(self, SEMENT_obj, mapping):
-        duplicate_SEMENT = POGGSEMENTUtil.duplicate_sement(SEMENT_obj)
+        duplicate_SEMENT = SEMENTUtil.duplicate_sement(SEMENT_obj)
         for rel in duplicate_SEMENT.rels:
             if rel.predicate in mapping:
                 rel.predicate = mapping[rel.predicate]

@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import json
 import networkx as nx
-from pogg.my_delphin import sementcodecs
+from pogg_semantics.my_delphin import sementcodecs
 from pogg.data_handling import POGGGraphUtil
 
 # data class ?

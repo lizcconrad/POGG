@@ -37,17 +37,6 @@ dependencies = [
   "texttable"
 ]
 
-[project.optional-dependencies]
-data_conversion = [
-  "swiplserver"
-]
-
-#[tool.hatch.envs.codev]
-#pre-install-commands = [
-#  "pip install -e ../pydelphin"
-#]
-#[tool.hatch.metadata]
-#allow-direct-references = true
 
 [project.urls]
 Documentation = "https://github.com/lizcconrad/POGG#readme"
@@ -69,8 +58,9 @@ check = "mypy --install-types --non-interactive {args:src/pogg tests}"
 [tool.hatch.envs.default]
 type = "virtual"
 path = "/Users/lizcconrad/.venvs/pogg_default"
-features = [
-  "data_conversion"
+# move to top and switch to pip dependency later
+dependencies = [
+  "pogg-semantics@git+https://github.com/lizcconrad/pogg-semantics.git"
 ]
 
 # docs environment
@@ -89,7 +79,8 @@ dependencies = [
   "mystmd",
   "jupyterlab",
   "jupyterlab_myst",
-  "sphinx-togglebutton"
+  "sphinx-togglebutton",
+  "pogg-semantics@git+https://github.com/lizcconrad/pogg-semantics.git"
 ]
 [tool.hatch.envs.docs.scripts]
 build = "make html"
@@ -111,12 +102,10 @@ dependencies = [
   "pytest-randomly~=3.15",
   "pytest-rerunfailures~=14.0",
   "pytest-xdist[psutil]~=3.5",
-  "pytest-cases"
+  "pytest-cases",
+  "pogg-semantics@git+https://github.com/lizcconrad/pogg-semantics.git"
 ]
 
-features = [
-  "data_conversion"
-]
 
 [tool.coverage.run]
 source_pkgs = ["pogg", "tests"]
