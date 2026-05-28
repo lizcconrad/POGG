@@ -149,6 +149,7 @@ class POGGLexicon:
                 new_entry.entry_type = node_entry.entry_type
                 new_entry.string_to_parse = node_entry.string_to_parse
                 new_entry.blocked_templates = node_entry.blocked_templates
+                new_entry.attempted_templates = node_entry.attempted_templates
                 node_entry = new_entry
 
             # if not, try auto filling
@@ -191,6 +192,11 @@ class POGGLexicon:
         for edge_key, edge_entry in edge_entries.items():
             json_only["edge_entries"][edge_key] = edge_entry.convert_to_dict_format()
 
+            # sort the node_keys
+            json_only['node_entries'] = dict(sorted(json_only['node_entries'].items()))
+            # sort the edge_keys
+            json_only['edge_entries'] = dict(sorted(json_only['edge_entries'].items()))
+
         with open(file, "w") as f:
             json.dump(json_only, f, indent=4)
 
@@ -204,9 +210,21 @@ class POGGLexicon:
             "edge_entries": {}
         }
         for node in split.node_keys:
-            new_workspace["node_entries"][node] = self.all_node_entries[node]
+            # if already approved, skip
+            if node in self.node_entries:
+                continue
+            elif node in self.workspace_node_entries:
+                new_workspace["node_entries"][node] = self.workspace_node_entries[node]
+            else:
+                new_workspace["node_entries"][node] = self.all_node_entries[node]
         for edge in split.edge_keys:
-            new_workspace["edge_entries"][edge] = self.all_edge_entries[edge]
+            # if already apprived, skip
+            if edge in self.edge_entries:
+                continue
+            elif edge in self.workspace_edge_entries:
+                new_workspace["edge_entries"][edge] = self.workspace_edge_entries[edge]
+            else:
+                new_workspace["edge_entries"][edge] = self.all_edge_entries[edge]
 
         self.workspace_node_entries = new_workspace["node_entries"]
         self.workspace_edge_entries = new_workspace["edge_entries"]

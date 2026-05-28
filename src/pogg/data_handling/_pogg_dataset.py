@@ -45,7 +45,7 @@ class POGGDataSplit:
                     "graph_json": graph_json,
                     "graph": graph,
                     "graph_directory": dir_elem.path,
-                    "gold_outputs": set(graph_json["gold_outputs"]),
+                    "gold_outputs": graph_json["gold_outputs"],
                 }
 
     def _set_node_and_edge_keys(self):

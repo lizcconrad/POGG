@@ -15,7 +15,7 @@ from pogg_semantics.my_delphin import SEMENT
 from pogg_semantics.semantic_composition import SemanticComposition, SemCompTracer, SemAlgTracer
 
 from pogg.data_handling import POGGGraphUtil
-from pogg.lexicon import POGGLexiconEntry
+# from pogg.lexicon import POGGLexiconEntry
 
 class POGGGraphConverter:
     """
@@ -222,7 +222,7 @@ class POGGGraphConverter:
             elif param_vals[key] == 'child':
                 param_vals[key] = child
             # if there's a parameter that introduces its own SEMENT, build it and insert it as the value
-            elif isinstance(param_vals[key], POGGLexiconEntry):
+            elif isinstance(param_vals[key], pogg.lexicon.POGGLexiconEntry):
                 param_vals[key] = self.get_SEMENT(param_vals[key].composition_function_name, param_vals[key].parameters)
             else:
                 # I don't think I should raise an error?

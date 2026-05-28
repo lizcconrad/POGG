@@ -10,7 +10,6 @@ from pogg_semantics.semantic_composition import SemanticAlgebra, SEMENTUtil
 
 from pogg.graph_to_SEMENT import POGGGraphConverter
 
-
 from pogg.lexicon._lexicon_entry import POGGLexiconEntry
 
 
@@ -339,7 +338,10 @@ class POGGLexiconAutoFiller:
 
         return new_templates
 
-    def _dump_templates_to_file(self):
+    def _dump_templates_to_file(self, templates_to_dump=None):
+        if templates_to_dump is None:
+            templates_to_dump = self.templates
+
         try:
             with open(self.dump_file, "r") as f:
                 try:
@@ -350,7 +352,7 @@ class POGGLexiconAutoFiller:
             dumpable_json = {}
 
         with open(self.dump_file, "w") as f:
-            for template_key, template in self.templates.items():
+            for template_key, template in templates_to_dump.items():
                 dumpable_entry = {
                     "example": template["example"],
                     "lexical_entry_template": template["lexical_entry_template"],
@@ -360,7 +362,7 @@ class POGGLexiconAutoFiller:
             json.dump(dumpable_json, f, indent=4)
 
     def dump_new_templates(self, entries):
-        self._look_for_new_templates(entries)
+        new_templates = self._look_for_new_templates(entries)
 
         # dump newly found ones
-        self._dump_templates_to_file()
+        self._dump_templates_to_file(new_templates)
