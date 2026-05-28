@@ -111,8 +111,17 @@ class POGGLexicon:
         self.workspace_edge_entries = workspace_entries_dict["edge_entries"]
 
         approved_entries_dict = self._read_from_file(self.approved_entries_file)
+        # remove entries that have been marked as not approved anymore
+        for node_key in copy.copy(approved_entries_dict["node_entries"]):
+            if not approved_entries_dict["node_entries"][node_key].approved:
+                approved_entries_dict["node_entries"].pop(node_key)
+        for edge_key in copy.copy(approved_entries_dict["edge_entries"]):
+            if not approved_entries_dict["edge_entries"][edge_key].approved:
+                approved_entries_dict["edge_entries"].pop(edge_key)
+
         self.node_entries = approved_entries_dict["node_entries"]
         self.edge_entries = approved_entries_dict["edge_entries"]
+
 
     def _read_from_file(self, file):
         with open(file, "r") as f:
