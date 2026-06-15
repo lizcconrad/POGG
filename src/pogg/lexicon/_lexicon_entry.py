@@ -26,7 +26,9 @@ class POGGLexiconEntry:
                 "string_to_parse": "",
                 "template_used": "",
                 "blocked_templates": set(),
-                "attempted_templates": set()
+                "attempted_templates": set(),
+                "name_of_created_template": "",
+                "template_example_string": ""
             }
 
         self.key = lexicon_key
@@ -614,7 +616,9 @@ class POGGLexiconEntry:
             "template_used": self.template_used,
             "blocked_templates": sorted(list(self.blocked_templates)),
             "attempted_templates": sorted(list(self.attempted_templates)),
-            "string_to_parse": self.string_to_parse
+            "string_to_parse": self.string_to_parse,
+            "name_of_created_template": self.name_of_created_template,
+            "template_example_string": self.template_example_string
         }
         entry["flags"] = {
             "auto_filled": self.auto_filled,

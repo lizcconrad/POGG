@@ -87,6 +87,8 @@ class POGGLexicon:
                 "template_used": "",
                 "blocked_templates": [],
                 "attempted_templates": [],
+                "name_of_created_template": "",
+                "template_example_string": ""
             },
             "flags": {
                 "auto_filled": False,

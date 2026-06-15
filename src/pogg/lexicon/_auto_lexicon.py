@@ -317,7 +317,7 @@ class POGGLexiconAutoFiller:
 
         for entry_key, entry in entries.items():
             potential_template = {
-                "example": "",
+                "example": entry.template_example_string,
                 "lexical_entry_template": entry.entry_in_dict_format
             }
 
@@ -330,9 +330,13 @@ class POGGLexiconAutoFiller:
 
             # if the entry was manually marked as a new template, add to new_templates
             if entry.create_template_from:
-                if f"TEMPLATE_{entry_key}" not in self.templates:
-                    new_templates[f"TEMPLATE_{entry_key}"] = potential_template
-                    self.templates[f"TEMPLATE_{entry_key}"] = potential_template
+                if entry.name_of_created_template != "":
+                    template_name = entry.name_of_created_template
+                else:
+                    template_name = f"TEMPLATE_{entry_key}"
+                if template_name not in self.templates:
+                    new_templates[template_name] = potential_template
+                    self.templates[template_name] = potential_template
 
             # if auto_create_templates is on, look for new ones via comparison
             # downside of this is that it won't catch cases where the lexical entry template has the same structure
