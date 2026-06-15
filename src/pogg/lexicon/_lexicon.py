@@ -56,25 +56,25 @@ class POGGLexicon:
         if self.imported_lexicon_paths:
             imported_node_entries, imported_edge_entries = self._import_lexicons()
 
-            # update approved entries in the skeleton
+            # update entries in the skeleton
             for key in imported_node_entries:
                 skeleton["node_entries"][key] = imported_node_entries[key].convert_to_dict_format()
             for key in imported_edge_entries:
                 skeleton["edge_entries"][key] = imported_edge_entries[key].convert_to_dict_format()
 
-            self._dump_to_file(imported_node_entries, imported_edge_entries, self.approved_entries_file)
-        else:
-            with open(self.approved_entries_file, "w") as approved_f:
-                json.dump({
-                    "node_entries": {},
-                    "edge_entries": {}
-                }, approved_f, indent=4)
 
         # dump skeleton into all_entries_file and workspace_file
         with (open(self.all_entries_file, "w") as all_f,
               open(self.workspace_file, "w") as workspace_f):
             json.dump(skeleton, all_f, indent=4)
             json.dump(skeleton, workspace_f, indent=4)
+
+        # dump empty approved file; update will pull any approved entries from skeleton
+        with open(self.approved_entries_file, "w") as approved_f:
+            json.dump({
+                "node_entries": {},
+                "edge_entries": {}
+            }, approved_f, indent=4)
 
 
     def _create_lexicon_skeleton(self):
@@ -162,9 +162,8 @@ class POGGLexicon:
         imported_edge_entries = {}
         for path in self.imported_lexicon_paths:
             imported_lexicon = POGGLexicon(path, self.dataset)
-            # only import approved entries
-            imported_node_entries.update(imported_lexicon.node_entries)
-            imported_edge_entries.update(imported_lexicon.edge_entries)
+            imported_node_entries.update(imported_lexicon.all_node_entries)
+            imported_edge_entries.update(imported_lexicon.all_edge_entries)
         return imported_node_entries, imported_edge_entries
 
 
@@ -173,6 +172,7 @@ class POGGLexicon:
             # if it's already approved, move it
             if node_entry.approved:
                 self.node_entries[node_key] = node_entry
+                self.all_node_entries[node_key] = node_entry
                 # remove from workspace if approved
                 self.workspace_node_entries.pop(node_key)
                 continue
@@ -200,6 +200,7 @@ class POGGLexicon:
             # TODO: if auto approve when complete is on
             if node_entry.approved:
                 self.node_entries[node_key] = node_entry
+                self.all_node_entries[node_key] = node_entry
                 # remove from workspace if approved
                 self.workspace_node_entries.pop(node_key)
 
@@ -209,6 +210,7 @@ class POGGLexicon:
             self.workspace_edge_entries[edge_key] = edge_entry
             if edge_entry.approved:
                 self.edge_entries[edge_key] = edge_entry
+                self.all_edge_entries[edge_key] = edge_entry
                 # remove from workspace if approved
                 self.workspace_edge_entries.pop(edge_key)
 
