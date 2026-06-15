@@ -11,9 +11,11 @@ from pogg.lexicon._auto_lexicon import POGGLexiconAutoFiller
 
 
 class POGGLexicon:
-    def __init__(self, name, lexicon_path, dataset: POGGDataset,
+    def __init__(self, lexicon_path, dataset: POGGDataset,
                  imported_lexicon_paths: List = None, auto_filler: POGGLexiconAutoFiller = None):
-        self.name = name
+
+        # set name to be last part of path
+        self.name = lexicon_path.split("/")[-1]
 
         self.directory = lexicon_path
         self.all_entries_file = Path(self.directory, f"{self.name}_lexicon_all_entries.json")
@@ -41,11 +43,11 @@ class POGGLexicon:
         if not os.path.isfile(self.all_entries_file):
             self._initialize_lexicon_directory()
 
-        if imported_lexicon_paths:
-            self._import_lexicons(imported_lexicon_paths)
-
         # read in information from directory (which already existed or was just initialized)
         self._read_from_directory()
+
+        if imported_lexicon_paths:
+            self._import_lexicons(imported_lexicon_paths)
 
     def _initialize_lexicon_directory(self):
         # make lexicon dirs
@@ -147,7 +149,8 @@ class POGGLexicon:
 
     def _import_lexicons(self, imported_lexicon_paths):
         for path in imported_lexicon_paths:
-            imported_lexicon = POGGLexicon("imported", path, self.dataset)
+
+            imported_lexicon = POGGLexicon(path, self.dataset)
             # all
             self.all_node_entries.update(imported_lexicon.all_node_entries)
             self.all_edge_entries.update(imported_lexicon.all_edge_entries)

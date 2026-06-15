@@ -573,7 +573,7 @@ class POGGExperimentsConfig:
     def _create_lexicon_objects(self, config_json):
         lexicons = {}
         for key, val in config_json["lexicons"].items():
-            lexicons[key] = POGGLexicon(key, val["lexicon_dir"], self.dataset)
+            lexicons[key] = POGGLexicon(val["lexicon_dir"], self.dataset)
         return lexicons
 
 

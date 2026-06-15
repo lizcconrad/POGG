@@ -16,6 +16,7 @@ from pogg.lexicon._lexicon_entry import POGGLexiconEntry
 class POGGLexiconAutoFiller:
     def __init__(self, composition_config,
                  template_files,
+                 global_blocked_templates,
                  auto_approve=False,
                  string_processing_fxn=None,
                  dump_file=None,
@@ -31,6 +32,10 @@ class POGGLexiconAutoFiller:
         self.templates = {}
         for file in template_files:
             self._read_templates_from_file(file)
+
+        # remove global blocks
+        for blocked_template in global_blocked_templates:
+            self.templates.pop(blocked_template)
 
         self.auto_approve = auto_approve
         self.string_processing_fxn = string_processing_fxn
@@ -353,6 +358,9 @@ class POGGLexiconAutoFiller:
     def _dump_templates_to_file(self, templates_to_dump=None):
         if templates_to_dump is None:
             templates_to_dump = self.templates
+
+        if self.dump_file is None:
+            raise ValueError("No template dump file specified.")
 
         try:
             with open(self.dump_file, "r") as f:
