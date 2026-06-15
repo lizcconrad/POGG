@@ -6,6 +6,7 @@ that each store evaluation information about the respective elements of a datase
 """
 import os
 from pathlib import Path
+from typing import Dict
 import json
 import networkx as nx
 from pogg_semantics.my_delphin import sementcodecs

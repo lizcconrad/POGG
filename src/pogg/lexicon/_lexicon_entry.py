@@ -25,8 +25,8 @@ class POGGLexiconEntry:
             entry_information["auto_info"] = {
                 "string_to_parse": "",
                 "template_used": "",
-                "blocked_templates": [],
-                "attempted_templates": []
+                "blocked_templates": set(),
+                "attempted_templates": set()
             }
 
         self.key = lexicon_key
@@ -49,7 +49,10 @@ class POGGLexiconEntry:
 
         # only add auto_info and flags for top-level entries
         for key, val in entry_information["auto_info"].items():
-            setattr(self, key, val)
+            if key == "blocked_templates" or key == "attempted_templates":
+                setattr(self, key, set(val))
+            else:
+                setattr(self, key, val)
         for key, val in entry_information["flags"].items():
             setattr(self, key, val)
 
@@ -609,8 +612,8 @@ class POGGLexiconEntry:
         entry["lexicon_entry"] = self.entry_in_dict_format
         entry["auto_info"] = {
             "template_used": self.template_used,
-            "blocked_templates": self.blocked_templates,
-            "attempted_templates": self.attempted_templates,
+            "blocked_templates": sorted(list(self.blocked_templates)),
+            "attempted_templates": sorted(list(self.attempted_templates)),
             "string_to_parse": self.string_to_parse
         }
         entry["flags"] = {

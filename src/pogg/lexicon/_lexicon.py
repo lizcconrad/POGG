@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import copy
+from typing import List
 import json
 
 from pogg.data_handling import POGGDataset, POGGDataSplit
@@ -10,7 +11,8 @@ from pogg.lexicon._auto_lexicon import POGGLexiconAutoFiller
 
 
 class POGGLexicon:
-    def __init__(self, name, lexicon_path, dataset: POGGDataset, auto_filler: POGGLexiconAutoFiller = None):
+    def __init__(self, name, lexicon_path, dataset: POGGDataset,
+                 imported_lexicon_paths: List = None, auto_filler: POGGLexiconAutoFiller = None):
         self.name = name
 
         self.directory = lexicon_path
@@ -38,6 +40,9 @@ class POGGLexicon:
         # if all_entries doesn't exist, initialize the directory
         if not os.path.isfile(self.all_entries_file):
             self._initialize_lexicon_directory()
+
+        if imported_lexicon_paths:
+            self._import_lexicons(imported_lexicon_paths)
 
         # read in information from directory (which already existed or was just initialized)
         self._read_from_directory()
@@ -100,6 +105,24 @@ class POGGLexicon:
 
         return lexicon_skeleton
 
+    def _read_from_file(self, file):
+        with open(file, "r") as f:
+            file_json = json.load(f)
+
+        entries_dict = {
+            "node_entries": {},
+            "edge_entries": {}
+        }
+
+        for node_key, node_entry in file_json['node_entries'].items():
+            entry_obj = POGGLexiconEntry(node_key, node_entry)
+            entries_dict["node_entries"][node_key] = entry_obj
+
+        for edge_key, edge_entry in file_json['edge_entries'].items():
+            entry_obj = POGGLexiconEntry(edge_key, edge_entry)
+            entries_dict["edge_entries"][edge_key] = entry_obj
+
+        return entries_dict
 
     def _read_from_directory(self):
         all_entries_dict = self._read_from_file(self.all_entries_file)
@@ -122,25 +145,21 @@ class POGGLexicon:
         self.node_entries = approved_entries_dict["node_entries"]
         self.edge_entries = approved_entries_dict["edge_entries"]
 
+    def _import_lexicons(self, imported_lexicon_paths):
+        for path in imported_lexicon_paths:
+            imported_lexicon = POGGLexicon("imported", path, self.dataset)
+            # all
+            self.all_node_entries.update(imported_lexicon.all_node_entries)
+            self.all_edge_entries.update(imported_lexicon.all_edge_entries)
 
-    def _read_from_file(self, file):
-        with open(file, "r") as f:
-            file_json = json.load(f)
+            # workspace
+            self.workspace_node_entries.update(imported_lexicon.workspace_node_entries)
+            self.workspace_edge_entries.update(imported_lexicon.workspace_edge_entries)
 
-        entries_dict = {
-            "node_entries": {},
-            "edge_entries": {}
-        }
+            # approved
+            self.node_entries.update(imported_lexicon.node_entries)
+            self.edge_entries.update(imported_lexicon.edge_entries)
 
-        for node_key, node_entry in file_json['node_entries'].items():
-            entry_obj = POGGLexiconEntry(node_key, node_entry)
-            entries_dict["node_entries"][node_key] = entry_obj
-
-        for edge_key, edge_entry in file_json['edge_entries'].items():
-            entry_obj = POGGLexiconEntry(edge_key, edge_entry)
-            entries_dict["edge_entries"][edge_key] = entry_obj
-
-        return entries_dict
 
     def update_lexicon_files(self):
         for node_key, node_entry in copy.deepcopy(self.workspace_node_entries).items():
@@ -201,10 +220,10 @@ class POGGLexicon:
         for edge_key, edge_entry in edge_entries.items():
             json_only["edge_entries"][edge_key] = edge_entry.convert_to_dict_format()
 
-            # sort the node_keys
-            json_only['node_entries'] = dict(sorted(json_only['node_entries'].items()))
-            # sort the edge_keys
-            json_only['edge_entries'] = dict(sorted(json_only['edge_entries'].items()))
+        # sort the node_keys
+        json_only['node_entries'] = dict(sorted(json_only['node_entries'].items()))
+        # sort the edge_keys
+        json_only['edge_entries'] = dict(sorted(json_only['edge_entries'].items()))
 
         with open(file, "w") as f:
             json.dump(json_only, f, indent=4)
@@ -213,12 +232,20 @@ class POGGLexicon:
         self._dump_to_file(self.all_node_entries, self.all_edge_entries, file)
 
 
-    def set_workspace_split(self, split: POGGDataSplit):
+    def set_workspace_split(self, split: POGGDataSplit, removal_splits: List[POGGDataSplit]=None):
         new_workspace = {
             "node_entries": {},
             "edge_entries": {}
         }
-        for node in split.node_keys:
+
+        # start with given split
+        working_split = copy.deepcopy(split)
+        if removal_splits:
+            for removal_split in removal_splits:
+                working_split.node_keys = working_split.node_keys.difference(removal_split.node_keys)
+                working_split.edge_keys = working_split.edge_keys.difference(removal_split.edge_keys)
+
+        for node in working_split.node_keys:
             # if already approved, skip
             if node in self.node_entries:
                 continue
@@ -226,8 +253,8 @@ class POGGLexicon:
                 new_workspace["node_entries"][node] = self.workspace_node_entries[node]
             else:
                 new_workspace["node_entries"][node] = self.all_node_entries[node]
-        for edge in split.edge_keys:
-            # if already apprived, skip
+        for edge in working_split.edge_keys:
+            # if already approved, skip
             if edge in self.edge_entries:
                 continue
             elif edge in self.workspace_edge_entries:

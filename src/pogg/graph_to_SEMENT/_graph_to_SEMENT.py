@@ -222,7 +222,8 @@ class POGGGraphConverter:
             elif param_vals[key] == 'child':
                 param_vals[key] = child
             # if there's a parameter that introduces its own SEMENT, build it and insert it as the value
-            elif isinstance(param_vals[key], pogg.lexicon.POGGLexiconEntry):
+            # TODO: this is rancid but i'm getting circular import problems and the only reason i even import this class is for this check...
+            elif str(type(param_vals[key])) == "<class 'pogg.lexicon._lexicon_entry.POGGLexiconEntry'>":
                 param_vals[key] = self.get_SEMENT(param_vals[key].composition_function_name, param_vals[key].parameters)
             else:
                 # I don't think I should raise an error?

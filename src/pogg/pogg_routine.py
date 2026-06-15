@@ -115,14 +115,17 @@ from pogg.graph_to_SEMENT import POGGGraphConverter
 
 
 class POGGExperiment:
-    def __init__(self, composition_config: Path | str | POGGCompositionConfig,
+    def __init__(self,
                  lexicon: POGGLexicon,
                  data_split: POGGDataSplit,
                  split_info: Dict,
                  experiment_dict: Dict,
                  sub_experiments: List = None):
+
         self.data_split = data_split
         self.lexicon = lexicon
+
+        self.composition_config = POGGCompositionConfig(experiment_dict["composition_config"])
 
         self.experiment_name = experiment_dict["experiment_name"]
         self.SEMENT_processing = experiment_dict["SEMENT_processing"]
@@ -140,7 +143,7 @@ class POGGExperiment:
             self.graph_json_dir = Path(split_info["graph_json_dir"])
             self.graph_png_dir = Path(split_info["graph_png_dir"])
 
-        self.graph_converter = POGGGraphConverter(composition_config, self.lexicon)
+        self.graph_converter = POGGGraphConverter(self.composition_config, self.lexicon)
         self.evaluation = POGGEvaluation(self.experiment_name)
 
         self.sub_experiments = sub_experiments
@@ -444,10 +447,13 @@ class POGGExperiment:
         eval_metadata = {
             "run_id": self.evaluation.run_id,
             "experiment_name": self.experiment_name,
+            "grammar_location": self.composition_config.grammar_location,
+            "SEMI_location": self.composition_config.SEMI_location,
             "dataset_name": self.full_data_split_name,
             "dataset_location": str(self.evaluation.dataset_location),
             "semantic_algebra_functions_available": sorted(list(self.evaluation.sem_alg_fxns_available)),
             "semantic_composition_functions_available": sorted(list(self.evaluation.sem_comp_fxns_available)),
+
         }
 
         with open(Path(run_eval_dir, 'run_metadata.json'), 'w') as f:
@@ -528,7 +534,7 @@ class POGGExperiment:
 
 
 class POGGExperimentsConfig:
-    def __init__(self, composition_config_path: Path | str, experiment_config_path: Path | str, run_name: str=None):
+    def __init__(self, experiment_config_path: Path | str, run_name: str=None):
         with open(experiment_config_path, "r") as f:
             config_json = json.load(f)
             # dump back to string and do EXPERIMENT_RUN_PLACEHOLDER replacement
@@ -558,7 +564,6 @@ class POGGExperimentsConfig:
             if key != "splits":
                 setattr(self, key, config_json[key])
 
-        self.composition_config = POGGCompositionConfig(composition_config_path)
         self.dataset = POGGDataset(config_json)
         self.lexicons = self._create_lexicon_objects(config_json)
 
@@ -568,7 +573,7 @@ class POGGExperimentsConfig:
     def _create_lexicon_objects(self, config_json):
         lexicons = {}
         for key, val in config_json["lexicons"].items():
-            lexicons[key] = POGGLexicon(config_json["dataset_name"], val["lexicon_dir"], self.dataset)
+            lexicons[key] = POGGLexicon(key, val["lexicon_dir"], self.dataset)
         return lexicons
 
 
@@ -601,13 +606,13 @@ class POGGExperimentsConfig:
                 if not split_info["leaf"]:
                     # create experiment object from exp + subsplit_exps
                     # comp_config, lexicon, data_split, experiment_dict, sub_experiments
-                    exp_obj = POGGExperiment(self.composition_config, lexicon, data_split,
+                    exp_obj = POGGExperiment(lexicon, data_split,
                                              split_info, exp, copy.copy(subsplit_experiments[exp_key]))
                     # add to the experiment_dict
                     current_exp_obj_dict[exp_key] = exp_obj
                 else:
                     # create experiment object
-                    exp_obj = POGGExperiment(self.composition_config, lexicon, data_split, split_info, exp)
+                    exp_obj = POGGExperiment(lexicon, data_split, split_info, exp)
                     # add to the experiment_dict
                     current_exp_obj_dict[exp_key] = exp_obj
 

@@ -60,7 +60,15 @@ type = "virtual"
 path = "/Users/lizcconrad/.venvs/pogg_default"
 # move to top and switch to pip dependency later
 dependencies = [
-  "pogg-semantics@git+https://github.com/lizcconrad/pogg-semantics.git"
+#  "pogg-semantics@git+https://github.com/lizcconrad/pogg-semantics.git"
+]
+
+# environment for developing both repos simultaneously
+[tool.hatch.envs.dual_dev]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_dual_dev"
+workspace.members = [
+  "pogg_semantics @ file:///Users/lizcconrad/Documents/PhD/POGG/pogg_semantics"
 ]
 
 # docs environment
@@ -79,8 +87,7 @@ dependencies = [
   "mystmd",
   "jupyterlab",
   "jupyterlab_myst",
-  "sphinx-togglebutton",
-  "pogg-semantics@git+https://github.com/lizcconrad/pogg-semantics.git"
+  "sphinx-togglebutton"
 ]
 [tool.hatch.envs.docs.scripts]
 build = "make html"

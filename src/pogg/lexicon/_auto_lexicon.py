@@ -226,16 +226,14 @@ class POGGLexiconAutoFiller:
 
         erg_MRSes = self._get_ERG_parse_MRSes(lexicon_entry.string_to_parse)
 
-        for erg_MRS in erg_MRSes:
-            for template_name, template in self.templates.items():
+        for template_name, template in self.templates.items():
+            for erg_MRS in erg_MRSes:
+
                 # skip blocked/already attempted templates
                 if template_name in lexicon_entry.blocked_templates or template_name in lexicon_entry.attempted_templates:
                     continue
 
                 mapping = self._find_correct_placeholder_mapping(template, erg_MRS)
-
-                # add template to attempted templates
-                lexicon_entry.attempted_templates.append(template_name)
 
                 if mapping is not None:
                     print(f"AUTO FILLING {lexicon_entry.key} with {template_name}...")
@@ -250,13 +248,26 @@ class POGGLexiconAutoFiller:
                         print(f"...... auto-approve ON ... approved {lexicon_entry.key}...")
                         lexicon_entry.approved = True
 
+                    # add as an attempt when it works
+                    lexicon_entry.attempted_templates.add(template_name)
                     return
 
+            # add template to attempted templates
+            lexicon_entry.attempted_templates.add(template_name)
 
     def auto_fill_entry(self, lexicon_entry: POGGLexiconEntry):
         # skip if "blocked_templates" says "all"
         # or skip if all templates have been marked as blocked or attempted
-        if "all" in lexicon_entry.blocked_templates or len(lexicon_entry.attempted_templates) + len(lexicon_entry.blocked_templates) == len(self.templates):
+        blocked_and_attempted = copy.copy(lexicon_entry.blocked_templates)
+        blocked_and_attempted.update(lexicon_entry.attempted_templates)
+
+        # CASES:
+        # 1. block "all"
+        # 2. template_used != "" and != blocked_templates ... i.e. entry is complete but not yet approved but not marked as wrong either
+        # 3. # of blocked+attempted templates == # of total templates
+        if ("all" in lexicon_entry.blocked_templates or
+                (lexicon_entry.template_used != "" and lexicon_entry.template_used not in lexicon_entry.blocked_templates)
+                or len(blocked_and_attempted) == len(self.templates)):
             print(f"All templates blocked or attempted for '{lexicon_entry.key}'... skipping...")
             return
 
@@ -314,8 +325,9 @@ class POGGLexiconAutoFiller:
 
             # if the entry was manually marked as a new template, add to new_templates
             if entry.create_template_from:
-                new_templates[f"TEMPLATE_{entry_key}"] = potential_template
-                self.templates[f"TEMPLATE_{entry_key}"] = potential_template
+                if f"TEMPLATE_{entry_key}" not in self.templates:
+                    new_templates[f"TEMPLATE_{entry_key}"] = potential_template
+                    self.templates[f"TEMPLATE_{entry_key}"] = potential_template
 
             # if auto_create_templates is on, look for new ones via comparison
             # downside of this is that it won't catch cases where the lexical entry template has the same structure

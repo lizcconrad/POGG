@@ -25,8 +25,11 @@ class POGGDataSplit:
         # used when checking if parent/child nodes of edges have already been added, even if the name != lexicon key
         self.original_element_names = None
 
-        for data_dir in data_directories:
-            self._build_graphs(data_dir)
+        # sometimes a DataSplit is created without data_directories provided
+        # specifically when creating an on-the-fly split with a set operation
+        if data_directories:
+            for data_dir in data_directories:
+                self._build_graphs(data_dir)
 
         self._set_node_and_edge_keys()
 
@@ -166,4 +169,3 @@ class POGGDataset:
                 current_dict_level = current_dict_level[current_arg]["splits"]
 
         return data_split
-
