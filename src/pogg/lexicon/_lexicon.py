@@ -18,6 +18,7 @@ class POGGLexicon:
         self.name = lexicon_path.split("/")[-1]
 
         self.directory = lexicon_path
+        self.imported_lexicon_paths = imported_lexicon_paths
         self.all_entries_file = Path(self.directory, f"{self.name}_lexicon_all_entries.json")
         self.approved_entries_file = Path(self.directory, f"{self.name}_lexicon_approved_entries.json")
         self.workspace_file = Path(self.directory, f"{self.name}_lexicon_workspace.json")
@@ -46,13 +47,28 @@ class POGGLexicon:
         # read in information from directory (which already existed or was just initialized)
         self._read_from_directory()
 
-        if imported_lexicon_paths:
-            self._import_lexicons(imported_lexicon_paths)
-
     def _initialize_lexicon_directory(self):
         # make lexicon dirs
         Path(self.directory).mkdir(parents=True, exist_ok=True)
         skeleton = self._create_lexicon_skeleton()
+
+        # dump blank lexicon file to approved_entries_file
+        if self.imported_lexicon_paths:
+            imported_node_entries, imported_edge_entries = self._import_lexicons()
+
+            # update approved entries in the skeleton
+            for key in imported_node_entries:
+                skeleton["node_entries"][key] = imported_node_entries[key].convert_to_dict_format()
+            for key in imported_edge_entries:
+                skeleton["edge_entries"][key] = imported_edge_entries[key].convert_to_dict_format()
+
+            self._dump_to_file(imported_node_entries, imported_edge_entries, self.approved_entries_file)
+        else:
+            with open(self.approved_entries_file, "w") as approved_f:
+                json.dump({
+                    "node_entries": {},
+                    "edge_entries": {}
+                }, approved_f, indent=4)
 
         # dump skeleton into all_entries_file and workspace_file
         with (open(self.all_entries_file, "w") as all_f,
@@ -60,12 +76,6 @@ class POGGLexicon:
             json.dump(skeleton, all_f, indent=4)
             json.dump(skeleton, workspace_f, indent=4)
 
-        # dump blank lexicon file to approved_entries_file
-        with open(self.approved_entries_file, "w") as approved_f:
-            json.dump({
-                "node_entries": {},
-                "edge_entries": {}
-            }, approved_f, indent=4)
 
     def _create_lexicon_skeleton(self):
         default_entry = {
@@ -147,21 +157,15 @@ class POGGLexicon:
         self.node_entries = approved_entries_dict["node_entries"]
         self.edge_entries = approved_entries_dict["edge_entries"]
 
-    def _import_lexicons(self, imported_lexicon_paths):
-        for path in imported_lexicon_paths:
-
+    def _import_lexicons(self):
+        imported_node_entries = {}
+        imported_edge_entries = {}
+        for path in self.imported_lexicon_paths:
             imported_lexicon = POGGLexicon(path, self.dataset)
-            # all
-            self.all_node_entries.update(imported_lexicon.all_node_entries)
-            self.all_edge_entries.update(imported_lexicon.all_edge_entries)
-
-            # workspace
-            self.workspace_node_entries.update(imported_lexicon.workspace_node_entries)
-            self.workspace_edge_entries.update(imported_lexicon.workspace_edge_entries)
-
-            # approved
-            self.node_entries.update(imported_lexicon.node_entries)
-            self.edge_entries.update(imported_lexicon.edge_entries)
+            # only import approved entries
+            imported_node_entries.update(imported_lexicon.node_entries)
+            imported_edge_entries.update(imported_lexicon.edge_entries)
+        return imported_node_entries, imported_edge_entries
 
 
     def update_lexicon_files(self):
