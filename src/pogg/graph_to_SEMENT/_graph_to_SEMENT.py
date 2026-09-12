@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pogg_semantics.pogg_config import POGGCompositionConfig
 from pogg_semantics.my_delphin import SEMENT
-from pogg_semantics.semantic_composition import SemanticComposition, SemCompTracer, SemAlgTracer
+from pogg_semantics.semantic_composition import SemanticComposition, SemCompTracer, SemAlgTracer, SEMENTUtil
 
 from pogg.data_handling import POGGGraphUtil
 # from pogg.lexicon import POGGLexiconEntry
@@ -45,7 +45,7 @@ class POGGGraphConverter:
 
         self.lexicon = lexicon
 
-    def get_SEMENT(self, comp_fxn_name, given_parameters):
+    def get_SEMENT(self, comp_fxn_name, given_parameters, parent=None, child=None):
         """
         Get a SEMENT object by providing the composition function name and parameters for the function call.
 
@@ -75,12 +75,27 @@ class POGGGraphConverter:
                     param_val = given_parameters[key]
 
                     # if it's NOT optional or optional and HAS a value
-                    if not optional_param or (optional_param and param_val):
+                    # TODO: this is kind of messy... but if an edge has nesting then handle it here
+                    if param_val == "parent":
+                        parameters_to_pass[key] = parent
+                        continue
+                    elif param_val == "child":
+                        parameters_to_pass[key] = child
+                        continue
+                    elif not optional_param or (optional_param and param_val):
+                        # if it's a list of args...
+                        if type(param_val) is dict and "arg1" in param_val:
+                            var_args = {}
+                            for arg in param_val:
+                                var_args[arg] = self.get_SEMENT(param_val[arg].composition_function_name, param_val[arg].parameters)
+                            parameters_to_pass[key] = var_args
+                            continue
+
                         # if the value is not already a SEMENT, recurse
-                        if not isinstance(given_parameters[key], SEMENT):
+                        elif not isinstance(given_parameters[key], SEMENT):
                             nested_comp_fxn = given_parameters[key].composition_function_name
                             nested_params = copy.deepcopy(given_parameters[key].parameters)
-                            parameters_to_pass[key] = self.get_SEMENT(nested_comp_fxn, nested_params)
+                            parameters_to_pass[key] = self.get_SEMENT(nested_comp_fxn, nested_params, parent, child)
                             continue
 
                     # only gets here if...
@@ -97,7 +112,19 @@ class POGGGraphConverter:
                 else:
                     raise KeyError(f"The parameter '{key}' is not defined in the lexicon entry; {given_parameters}")
 
-        sement = comp_fxn_obj(**parameters_to_pass)
+
+        # if last parameter is a variable args list
+        if "_args" in list(parameters_to_pass.keys())[-1]:
+            params_as_list = []
+            for key, val in parameters_to_pass.items():
+                if "_args" in key:
+                    for var_key, var_arg in parameters_to_pass[key].items():
+                        params_as_list.append(var_arg)
+                else:
+                    params_as_list.append(val)
+            sement = comp_fxn_obj(*params_as_list)
+        else:
+            sement = comp_fxn_obj(**parameters_to_pass)
 
         return sement
 
@@ -224,7 +251,7 @@ class POGGGraphConverter:
             # if there's a parameter that introduces its own SEMENT, build it and insert it as the value
             # TODO: this is rancid but i'm getting circular import problems and the only reason i even import this class is for this check...
             elif str(type(param_vals[key])) == "<class 'pogg.lexicon._lexicon_entry.POGGLexiconEntry'>":
-                param_vals[key] = self.get_SEMENT(param_vals[key].composition_function_name, param_vals[key].parameters)
+                param_vals[key] = self.get_SEMENT(param_vals[key].composition_function_name, param_vals[key].parameters, parent, child)
             else:
                 # I don't think I should raise an error?
                 # If there's some other edge parameter, just leave it alone
@@ -232,7 +259,7 @@ class POGGGraphConverter:
 
         # if some other unforeseen error occurs, leave it in the comment and proceed
         try:
-            sement = self.get_SEMENT(comp_fxn_name, param_vals)
+            sement = self.get_SEMENT(comp_fxn_name, param_vals, parent, child)
         except Exception as err:
             if edge_evaluation:
                 edge_evaluation.generation_comment = f"Error during execution ({err})"
@@ -260,7 +287,7 @@ class POGGGraphConverter:
         return sement
 
 
-    def convert_graph_to_SEMENT(self, graph, graph_evaluation=None, root=None):
+    def _convert_graph_to_SEMENT(self, graph, graph_evaluation=None, root=None):
         """
         Convert a directed graph to a SEMENT.
 
@@ -312,7 +339,9 @@ class POGGGraphConverter:
             node_evaluation = None
 
         # attempt to convert node to SEMENT
-        latest_sement = self.convert_node_to_SEMENT(root, node_evaluation)
+        # Save current node in case of post-composition LBL/INDEX surgery
+        current_node_SEMENT = self.convert_node_to_SEMENT(root, node_evaluation)
+        latest_sement = current_node_SEMENT
 
         # recurse on each child
         for child in graph.successors(root_name):
@@ -321,7 +350,7 @@ class POGGGraphConverter:
             # convert to tuple
             child_with_props = (child, child_properties)
             # get SEMENT for child by recursing on it as a subgraph
-            child_sement = self.convert_graph_to_SEMENT(graph, graph_evaluation, child_with_props)
+            full_child_sement, child_root_sement = self._convert_graph_to_SEMENT(graph, graph_evaluation, child_with_props)
             # get edge information between current root (parent) and child
             edge_data = graph.get_edge_data(root_name, child)
 
@@ -331,7 +360,78 @@ class POGGGraphConverter:
             else:
                 edge_evaluation = None
 
-            latest_sement = self.convert_edge_to_SEMENT(edge_data, latest_sement, child_sement, edge_evaluation)
+            latest_sement = self.convert_edge_to_SEMENT(edge_data, latest_sement, full_child_sement, edge_evaluation)
+
+            # # if the full child SEMENT is of a different type than the node on its own
+            # # (e.g. node alone is type x but whole subgraph is proposition of type e)
+            # if full_child_sement is not None and full_child_sement.index[0] != child_root_sement.index[0]:
+            #     latest_sement = self.convert_edge_to_SEMENT(edge_data, latest_sement, full_child_sement, edge_evaluation)
+            #     latest_sement = self._perform_relativization_surgery(latest_sement, full_child_sement, child_root_sement)
+            # # if the latest_sement's index type is not the same as the current_node_SEMENT
+            # # (e.g. node alone is type x but after composing with one of the children it's now of type e)
+            # elif latest_sement is not None and latest_sement.index[0] != current_node_SEMENT.index[0]:
+            #     # save the SEMENT before composing with the next node
+            #     # pre_edge_sement = latest_sement
+            #     # latest_sement = self.convert_edge_to_SEMENT(edge_data, latest_sement, full_child_sement, edge_evaluation)
+            #     # latest_sement = self._perform_relativization_surgery(latest_sement, pre_edge_sement, current_node_SEMENT)
+            #     node_only_with_edge = self.convert_edge_to_SEMENT(edge_data, current_node_SEMENT, full_child_sement, edge_evaluation)
+            #     latest_sement = self._perform_coordination_surgery(latest_sement, node_only_with_edge, current_node_SEMENT)
+            # else:
+            #     latest_sement = self.convert_edge_to_SEMENT(edge_data, latest_sement, full_child_sement, edge_evaluation)
 
 
-        return latest_sement
+        # return BOTH the composed SEMENT for the subgraph and the SEMENT of the root of the subgraph
+        # this enables the "surgery" required for dealing with mutli-proposition SEMENTs
+        return latest_sement, current_node_SEMENT
+
+    # creating a wrapper to hide the extra returned value that's only for internal "surgery"
+    def convert_graph_to_SEMENT(self, graph, graph_evaluation=None, root=None):
+        to_return, _ = self._convert_graph_to_SEMENT(graph, graph_evaluation, root)
+        return to_return
+
+
+    def _perform_relativization_surgery(self, sement_to_operate_on, relativized_prop_SEMENT, distinguished_entity_SEMENT):
+        # sement_to_operate_on -- SEMENT after composition happened as usual
+        # relativized_prop_SEMENT -- proposition SEMENT that should have been treated as a relative clause (e.g. "Cake is tasty")
+        # distinguished_entity_SEMENT -- SEMENT that the relative clause modifies
+
+        new_eqs = []
+
+        # 1. find EQs where relativized_prop_SEMENT.index is a member and replace with distinguished_entity_SEMENT.index
+        # 2. OR where relativized_prop_SEMENT.top is a member and replace with distinguished_entity_SEMENT's key_rel.top
+        for eq in sement_to_operate_on.eqs:
+            # if eq already existed in child SEMENT, don't mess with it
+            if eq in relativized_prop_SEMENT.eqs:
+                new_eqs.append(eq)
+            elif relativized_prop_SEMENT.index in eq:
+                # "cake is tasty".INDEX = eat.ARG2 ...
+                # "x serves y".INDEX = located.ARG1 ...
+                new_tuple = list(eq)
+                new_tuple.remove(relativized_prop_SEMENT.index)
+                new_tuple.append(distinguished_entity_SEMENT.index)
+                new_eqs.append(tuple(new_tuple))
+            elif sement_to_operate_on.top in eq and relativized_prop_SEMENT.top in eq:
+                # top = "x serves y".TOP = located.LBL = in.LBL
+                new_tuple = list(eq)
+                new_tuple.remove(sement_to_operate_on.top)
+
+                original_entity_key_rel = SEMENTUtil.get_key_rel(distinguished_entity_SEMENT)
+                new_tuple.append(original_entity_key_rel.label)
+
+                new_eqs.append(new_tuple)
+            else:
+                new_eqs.append(eq)
+
+        sement_to_operate_on.eqs = new_eqs
+        return sement_to_operate_on
+
+    def _perform_coordination_surgery(self, prop1, prop2, shared_entity):
+        and_c = self.semantic_composition.manual_synopsis("_and_c", {
+            "roles":[
+                {"name": "ARG0", "value": "e"},
+                {"name": "ARG1", "value": "u"},
+                {"name": "ARG2", "value": "u"}
+            ]
+        }, {"TENSE":"tensed"})
+        and_c_ARG1 = self.semantic_algebra.op_non_scopal_functor_hook_slots(and_c, prop1, "ARG1")
+        return self.semantic_algebra.op_non_scopal_functor_hook_slots(and_c_ARG1, prop2, "ARG2")

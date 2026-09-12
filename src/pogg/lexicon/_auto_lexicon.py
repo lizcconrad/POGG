@@ -91,7 +91,7 @@ class POGGLexiconAutoFiller:
             # replace all quantifiers with abstract_q
             # the generic quantifiers i use do not match the ERG output usually
             for rel in template_mrs.rels:
-                if rel.predicate.endswith("_q"):
+                if rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i"):
                     rel.predicate = "abstract_q"
 
             # save the string for later
@@ -115,7 +115,7 @@ class POGGLexiconAutoFiller:
                 # replace all quantifiers with abstract_q
                 # the generic quantifiers i use do not match the ERG output usually
                 for rel in mrs_obj.rels:
-                    if rel.predicate.endswith("_q"):
+                    if rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i"):
                         rel.predicate = "abstract_q"
             return mrs_objs
 
@@ -243,7 +243,9 @@ class POGGLexiconAutoFiller:
                 if mapping is not None:
                     print(f"AUTO FILLING {lexicon_entry.key} with {template_name}...")
                     filled_template = self._fill_template(template, mapping)
+
                     lexicon_entry.entry_in_dict_format = filled_template
+                    lexicon_entry._convert_dict_format_to_POGGLexiconEntry_objects()
                     lexicon_entry.template_used = template_name
                     lexicon_entry.auto_filled = True
                     lexicon_entry.validate_entry()
@@ -255,16 +257,20 @@ class POGGLexiconAutoFiller:
 
                     # add as an attempt when it works
                     lexicon_entry.attempted_templates.add(template_name)
-                    return
+                    return lexicon_entry
 
             # add template to attempted templates
             lexicon_entry.attempted_templates.add(template_name)
+
+        return lexicon_entry
 
     def auto_fill_entry(self, lexicon_entry: POGGLexiconEntry):
         # skip if "blocked_templates" says "all"
         # or skip if all templates have been marked as blocked or attempted
         blocked_and_attempted = copy.copy(lexicon_entry.blocked_templates)
         blocked_and_attempted.update(lexicon_entry.attempted_templates)
+
+
 
         # CASES:
         # 1. block "all"
@@ -273,8 +279,8 @@ class POGGLexiconAutoFiller:
         if ("all" in lexicon_entry.blocked_templates or
                 (lexicon_entry.template_used != "" and lexicon_entry.template_used not in lexicon_entry.blocked_templates)
                 or len(blocked_and_attempted) == len(self.templates)):
-            print(f"All templates blocked or attempted for '{lexicon_entry.key}'... skipping...")
-            return
+            print(f"All templates blocked or attempted for '{lexicon_entry.key}'...")
+            return lexicon_entry
 
         # if a string is already provided in the entry, use that
         if lexicon_entry.string_to_parse == "":
@@ -283,7 +289,8 @@ class POGGLexiconAutoFiller:
             else:
                 lexicon_entry.string_to_parse = lexicon_entry.key
 
-        self._find_and_fill_template(lexicon_entry)
+        lexicon_entry = self._find_and_fill_template(lexicon_entry)
+        return lexicon_entry
 
 
     def _compare_lexical_entry_structures(self, template_entry, new_entry_dict):
@@ -359,7 +366,7 @@ class POGGLexiconAutoFiller:
 
         return new_templates
 
-    def _dump_templates_to_file(self, templates_to_dump=None):
+    def dump_templates_to_file(self, templates_to_dump=None):
         if templates_to_dump is None:
             templates_to_dump = self.templates
 
@@ -389,4 +396,32 @@ class POGGLexiconAutoFiller:
         new_templates = self._look_for_new_templates(entries)
 
         # dump newly found ones
-        self._dump_templates_to_file(new_templates)
+        self.dump_templates_to_file(new_templates)
+
+
+    def get_empty_template(self, template_name):
+        template = self.templates[template_name]
+        placeholders = self._determine_template_placeholders(template, [])
+        dummy_mapping = {}
+        for placeholder in placeholders:
+            dummy_mapping[placeholder] = ""
+        cleared_template = self._fill_template(template, dummy_mapping)
+        return cleared_template
+
+    @staticmethod
+    def clear_auto_filled_info(entry):
+        if entry.auto_filled:
+            # add used template to blocked templates if it's not in there
+            if entry.template_used not in entry.blocked_templates:
+                entry.blocked_templates.add(entry.template_used)
+
+            entry.template_used = ""
+            entry.auto_filled = False
+            entry.composition_function_name = ""
+            entry.entry_in_dict_format = {"comp_fxn":""}
+            entry.parameters = {}
+
+        return entry
+
+
+

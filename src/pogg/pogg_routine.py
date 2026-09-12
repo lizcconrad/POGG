@@ -130,8 +130,31 @@ class POGGExperiment:
         self.experiment_name = experiment_dict["experiment_name"]
         self.SEMENT_processing = experiment_dict["SEMENT_processing"]
         self.result_processing = experiment_dict["result_processing"]
-        self.output_dir = Path(experiment_dict["experiment_output_dir"])
-        self.report_dir = Path(experiment_dict["experiment_report_dir"])
+
+        # check if the output/report dir exists already, add a counter if so
+        output_dir = experiment_dict["experiment_output_dir"]
+        # if os.path.isdir(experiment_dict["experiment_output_dir"]):
+        #     non_existent = False
+        #     counter = 1
+        #     while not non_existent:
+        #         output_dir = f"{experiment_dict["experiment_output_dir"]}_{counter}"
+        #         if not os.path.isdir(output_dir):
+        #             non_existent = True
+        #         else:
+        #             counter += 1
+        self.output_dir = output_dir
+
+        report_dir = experiment_dict["experiment_report_dir"]
+        # if os.path.isdir(experiment_dict["experiment_report_dir"]):
+        #     non_existent = False
+        #     counter = 1
+        #     while not non_existent:
+        #         report_dir = f"{experiment_dict["experiment_report_dir"]}_{counter}"
+        #         if not os.path.isdir(report_dir):
+        #             non_existent = True
+        #         else:
+        #             counter += 1
+        self.report_dir = report_dir
 
         self.full_data_split_name = split_info["full_data_split_name"]
         self.data_dir = Path(split_info["split_data_dir"])
@@ -178,9 +201,22 @@ class POGGExperiment:
             final_sement = self.graph_converter.semantic_algebra.prepare_for_generation(sement)
             graph_evaluation.set_prepped_SEMENT(final_sement)
 
-            with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_frag']) as generator:
+            # TODO: make this configurable, for now just choose one or the other
+            with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_gen_nopass']) as generator:
                 response = generator.interact(graph_evaluation.prepped_SEMENT_string)
                 results = response.results()
+
+            # if there aren't results using nopass, ease up and allow passive,
+            if len(results) == 0:
+                with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_gen']) as generator:
+                    response = generator.interact(graph_evaluation.prepped_SEMENT_string)
+                    results = response.results()
+
+            # if still no results from generating full sentences, try fragments
+            if len(results) == 0:
+                with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_frag']) as generator:
+                    response = generator.interact(graph_evaluation.prepped_SEMENT_string)
+                    results = response.results()
 
             # Store results in evaluation object
             for r in results:
@@ -230,210 +266,210 @@ class POGGExperiment:
         return self.evaluation
 
 
-    def store_evaluation_report(self):
-        """
-        Store an evaluation report after running the data-to-text algorithm on the dataset.
-
-        See the dropdown for the structure of the report's directory.
-        Note that most JSON files are just meant to enable reading in the evaluation report later for comparing metrics between runs.
-        The `txt` files, on the other hand are meant to be human-readable for analyzing the results yourself.
-
-        :::{info} Directory structure of the report
-        :collapsible:
-        ```txt
-        - evaluation/                   <-- evaluation output from POGG algorithm will be stored here
-            - single_runs/              <-- evaluation reports from this function are stored here
-                - 20260702_123456/      <-- each run's top level directory is named after the time that the run started
-                    - 20260702_123456_graph_notes.json      <-- take notes here about the results of each graph if desired
-                    - eval_metadata.json
-                    - dataset_eval.json
-                    - lexicon.json
-                    - dataset_report.txt    <-- readable report of the dataset-level metrics
-                    - complete_graphs/      <-- graphs with full element coverage, inclusion, and gold results generated
-                        - graph_name/
-                            - nodes/            <-- contains JSON files of node evaluation information
-                            - edges/            <-- contains JSON files of edge evaluation information
-                            - graph_name_evaluation.json
-                            - graph_name_evaluation.txt     <-- readable report of the graph-level metrics
-                            - graph_name.dot
-                            - graph_name.json
-                    - incomplete_graphs/
-                        - full_inclusion/
-                            - full_inclusion_no_results/    <-- all elements included in final MRS, but no text results generated
-                            - full_inclusion_w_results/     <-- all elements included in final MRS, but *gold* text results not generated
-                        - gold_covered/                     <-- not all elements included in final MRS, but all gold text results generated
-                        - true_incomplete/                  <-- none of the above
-        ```
-        :::
-
-        **Returns**
-        | Type | Description |
-        | ---- | ----------- |
-        | `None` | -- |
-        """
-
-       # TODO: add metadata to txt report then move metadata into the dataset_eval json
-
-        # 0. create the directory for this run's evaluation
-        run_eval_dir = Path(self.output_dir, f"{self.full_data_split_name}_eval")
-        Path(run_eval_dir).mkdir(parents=True, exist_ok=True)
-
-        # create a file for notes about each graph
-        graph_notes = {}
-
-        # 1. store the metadata for the eval
-        eval_metadata = {
-            "run_id": self.evaluation.run_id,
-            "experiment_name": self.experiment_name,
-            "dataset_name": self.full_data_split_name,
-            "dataset_location": str(self.evaluation.dataset_location),
-            "semantic_algebra_functions_available": sorted(list(self.evaluation.sem_alg_fxns_available)),
-            "semantic_composition_functions_available": sorted(list(self.evaluation.sem_comp_fxns_available)),
-        }
-
-        with open(Path(run_eval_dir, 'eval_metadata.json'), 'w') as f:
-            f.write(json.dumps(eval_metadata, indent=4))
-
-        # 2. dump all entries
-        self.lexicon.dump_all_lexicon_entries_to_file(Path(run_eval_dir, f"{self.lexicon.name}_lexicon_all_entries.json"))
-
-        # 3. store eval files for whole dataset
-        with open(Path(run_eval_dir, 'dataset_eval.json'), 'w') as f:
-            f.write(json.dumps(self.evaluation.get_top_level_dict_representation(), indent=4))
-
-        with open(Path(run_eval_dir, 'dataset_report.txt'), 'w') as f:
-            f.write(POGGDatasetReporting.build_dataset_report(eval_metadata, self.evaluation))
-
-
-
-        # 4. store eval files for graphs
-        complete_graphs_dir = Path(run_eval_dir, "complete_graphs")
-        incomplete_graphs_dir = Path(run_eval_dir, "incomplete_graphs")
-
-        full_inclusion_dir = Path(incomplete_graphs_dir, "full_inclusion")
-        full_inclusion_w_results = Path(full_inclusion_dir, "full_inclusion_w_results")
-        full_inclusion_no_results = Path(full_inclusion_dir, "full_inclusion_no_results")
-
-        gold_covered_but_incomplete = Path(incomplete_graphs_dir, "gold_covered")
-
-        true_incomplete = Path(incomplete_graphs_dir, "true_incomplete")
-
-
-        Path.mkdir(complete_graphs_dir, parents=True, exist_ok=True)
-        Path.mkdir(incomplete_graphs_dir, parents=True, exist_ok=True)
-        Path.mkdir(full_inclusion_dir, parents=True, exist_ok=True)
-        Path.mkdir(full_inclusion_w_results, parents=True, exist_ok=True)
-        Path.mkdir(full_inclusion_no_results, parents=True, exist_ok=True)
-        Path.mkdir(gold_covered_but_incomplete, parents=True, exist_ok=True)
-        Path.mkdir(true_incomplete, parents=True, exist_ok=True)
-
-        for graph_name in self.evaluation.graph_evaluations:
-            graph_notes[graph_name] = {
-                "tags": {
-                }
-            }
-
-            graph_evaluation = self.evaluation.graph_evaluations[graph_name]
-
-            # add some tags
-            if graph_evaluation.node_coverage == 1.0:
-                graph_notes[graph_name]["tags"]["full_node_coverage"] = ""
-            if graph_evaluation.edge_coverage == 1.0:
-                graph_notes[graph_name]["tags"]["full_edge_coverage"] = ""
-            if graph_evaluation.node_inclusion == 1.0:
-                graph_notes[graph_name]["tags"]["full_node_inclusion"] = ""
-            if graph_evaluation.edge_inclusion == 1.0:
-                graph_notes[graph_name]["tags"]["full_edge_inclusion"] = ""
-
-            if graph_evaluation.generated_SEMENT is None:
-                graph_notes[graph_name]["tags"]["no_SEMENT"] = ""
-            else:
-                graph_notes[graph_name]["tags"]["generated_SEMENT"] = ""
-
-            if len(graph_evaluation.generated_results) == 0:
-                graph_notes[graph_name]["tags"]["no_text_results"] = ""
-            else:
-                graph_notes[graph_name]["tags"]["generated_text_results"] = ""
-
-            if graph_evaluation.gold_output_generation_coverage == 1.0:
-                graph_notes[graph_name]["tags"]["full_gold_generation_coverage"] = ""
-            if graph_evaluation.generation_comment and "cycle" in graph_evaluation.generation_comment.lower():
-                graph_notes[graph_name]["tags"]["cycle"] = ""
-
-            graph_report = POGGGraphReporting.build_graph_report_detail(graph_evaluation)
-
-            # determine which subdirectory the graph's eval folder goes in
-            full_gold_coverage = graph_evaluation.gold_output_generation_coverage == 1.0
-            full_node_cov_and_incl = graph_evaluation.node_coverage == 1.0 and graph_evaluation.node_inclusion == 1.0
-            full_edge_cov_and_incl = (graph_evaluation.edge_coverage == 1.0 and graph_evaluation.edge_inclusion == 1.0) or graph_evaluation.edge_count == 0.0
-
-            # if coverage and inclusion are 100%...
-            if full_node_cov_and_incl and full_edge_cov_and_incl:
-                # ... and gold coverage is 100% ...
-                if full_gold_coverage:
-                    graph_eval_dir = Path(complete_graphs_dir, graph_name)
-                # or ...
-                else:
-                    # if results are generated (but the gold ones aren't covered) ...
-                    if len(graph_evaluation.generated_results) > 0:
-                        graph_eval_dir = Path(full_inclusion_w_results, graph_name)
-                    # if there are no results
-                    else:
-                        graph_eval_dir = Path(full_inclusion_no_results, graph_name)
-            # if coverage and inclusion are NOT 100% ...
-            else:
-                # ... and gold coverage is 100% ...
-                if full_gold_coverage:
-                    graph_eval_dir = Path(gold_covered_but_incomplete, graph_name)
-                else:
-                    graph_eval_dir = Path(true_incomplete, graph_name)
-
-            # store all eval files for the graph
-            Path.mkdir(graph_eval_dir, parents=True, exist_ok=True)
-            with open(Path(graph_eval_dir, graph_name + "_evaluation.txt"), "w") as file:
-                file.write(graph_report)
-            with open(Path(graph_eval_dir, graph_name + "_evaluation.json"), "w") as file:
-                file.write(json.dumps(graph_evaluation.get_top_level_dict_representation(), indent=4))
-
-            # store json file for the nodes
-            # create directory for node_evaluation jsons
-            nodes_dir = Path(graph_eval_dir, "nodes")
-            Path.mkdir(nodes_dir, parents=True, exist_ok=True)
-            for node_evaluation_key in graph_evaluation.node_evaluations:
-
-                # TODO: make this more robust...
-                # remove slashes from node_key if they're there
-                file_name_node_key = re.sub(r"[\./\"]", "_", node_evaluation_key)
-                with open(Path(nodes_dir, file_name_node_key + "_evaluation.json"), "w") as file:
-                    file.write(json.dumps(graph_evaluation.node_evaluations[node_evaluation_key].get_dict_representation(), indent=4))
-
-            # store json file for the edges
-            # create directory for edge_evaluation jsons
-            edges_dir = Path(graph_eval_dir, "edges")
-            Path.mkdir(edges_dir, parents=True, exist_ok=True)
-
-            for edge_evaluation in graph_evaluation.edge_evaluations:
-                # TODO: make this more robust...
-                # remove slashes from node_key if they're there
-                file_name_edge_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
-                file_name_parent_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
-                file_name_child_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
-
-                with open(Path(edges_dir, file_name_edge_name + "_" + file_name_parent_name
-                                          + "_to_" + file_name_child_name + "_evaluation.json"), "w") as file:
-                    file.write(json.dumps(edge_evaluation.get_dict_representation(), indent=4))
-
-            # write dot file
-            POGGGraphUtil.write_graph_to_dot(graph_evaluation.graph, Path(graph_eval_dir, graph_name + ".dot"))
-            # write graph json file
-            POGGGraphUtil.write_graph_to_json(graph_evaluation.graph, graph_evaluation.gold_outputs, Path(graph_eval_dir, graph_name + ".json"))
-
-
-        # print graph_notes file
-        with open(Path(run_eval_dir, "graph_notes.json"), "w") as file:
-            # sort the graph names
-            sorted_graph_notes = dict(sorted(graph_notes.items()))
-            file.write(json.dumps(sorted_graph_notes, indent=4))
+    # def store_evaluation_report(self):
+    #     """
+    #     Store an evaluation report after running the data-to-text algorithm on the dataset.
+    #
+    #     See the dropdown for the structure of the report's directory.
+    #     Note that most JSON files are just meant to enable reading in the evaluation report later for comparing metrics between runs.
+    #     The `txt` files, on the other hand are meant to be human-readable for analyzing the results yourself.
+    #
+    #     :::{info} Directory structure of the report
+    #     :collapsible:
+    #     ```txt
+    #     - evaluation/                   <-- evaluation output from POGG algorithm will be stored here
+    #         - single_runs/              <-- evaluation reports from this function are stored here
+    #             - 20260702_123456/      <-- each run's top level directory is named after the time that the run started
+    #                 - 20260702_123456_graph_notes.json      <-- take notes here about the results of each graph if desired
+    #                 - eval_metadata.json
+    #                 - dataset_eval.json
+    #                 - lexicon.json
+    #                 - dataset_report.txt    <-- readable report of the dataset-level metrics
+    #                 - complete_graphs/      <-- graphs with full element coverage, inclusion, and gold results generated
+    #                     - graph_name/
+    #                         - nodes/            <-- contains JSON files of node evaluation information
+    #                         - edges/            <-- contains JSON files of edge evaluation information
+    #                         - graph_name_evaluation.json
+    #                         - graph_name_evaluation.txt     <-- readable report of the graph-level metrics
+    #                         - graph_name.dot
+    #                         - graph_name.json
+    #                 - incomplete_graphs/
+    #                     - full_inclusion/
+    #                         - full_inclusion_no_results/    <-- all elements included in final MRS, but no text results generated
+    #                         - full_inclusion_w_results/     <-- all elements included in final MRS, but *gold* text results not generated
+    #                     - gold_covered/                     <-- not all elements included in final MRS, but all gold text results generated
+    #                     - true_incomplete/                  <-- none of the above
+    #     ```
+    #     :::
+    #
+    #     **Returns**
+    #     | Type | Description |
+    #     | ---- | ----------- |
+    #     | `None` | -- |
+    #     """
+    #
+    #    # TODO: add metadata to txt report then move metadata into the dataset_eval json
+    #
+    #     # 0. create the directory for this run's evaluation
+    #     run_eval_dir = Path(self.output_dir, f"{self.full_data_split_name}_eval")
+    #     Path(run_eval_dir).mkdir(parents=True, exist_ok=True)
+    #
+    #     # create a file for notes about each graph
+    #     graph_notes = {}
+    #
+    #     # 1. store the metadata for the eval
+    #     eval_metadata = {
+    #         "run_id": self.evaluation.run_id,
+    #         "experiment_name": self.experiment_name,
+    #         "dataset_name": self.full_data_split_name,
+    #         "dataset_location": str(self.evaluation.dataset_location),
+    #         "semantic_algebra_functions_available": sorted(list(self.evaluation.sem_alg_fxns_available)),
+    #         "semantic_composition_functions_available": sorted(list(self.evaluation.sem_comp_fxns_available)),
+    #     }
+    #
+    #     with open(Path(run_eval_dir, 'eval_metadata.json'), 'w') as f:
+    #         f.write(json.dumps(eval_metadata, indent=4))
+    #
+    #     # 2. dump all entries
+    #     self.lexicon.dump_all_lexicon_entries_to_file(Path(run_eval_dir, f"{self.lexicon.name}_lexicon_all_entries.json"))
+    #
+    #     # 3. store eval files for whole dataset
+    #     with open(Path(run_eval_dir, 'dataset_eval.json'), 'w') as f:
+    #         f.write(json.dumps(self.evaluation.get_top_level_dict_representation(), indent=4))
+    #
+    #     with open(Path(run_eval_dir, 'dataset_report.txt'), 'w') as f:
+    #         f.write(POGGDatasetReporting.build_dataset_report(eval_metadata, self.evaluation))
+    #
+    #
+    #
+    #     # 4. store eval files for graphs
+    #     complete_graphs_dir = Path(run_eval_dir, "complete_graphs")
+    #     incomplete_graphs_dir = Path(run_eval_dir, "incomplete_graphs")
+    #
+    #     full_inclusion_dir = Path(incomplete_graphs_dir, "full_inclusion")
+    #     full_inclusion_w_results = Path(full_inclusion_dir, "full_inclusion_w_results")
+    #     full_inclusion_no_results = Path(full_inclusion_dir, "full_inclusion_no_results")
+    #
+    #     gold_covered_but_incomplete = Path(incomplete_graphs_dir, "gold_covered")
+    #
+    #     true_incomplete = Path(incomplete_graphs_dir, "true_incomplete")
+    #
+    #
+    #     Path.mkdir(complete_graphs_dir, parents=True, exist_ok=True)
+    #     Path.mkdir(incomplete_graphs_dir, parents=True, exist_ok=True)
+    #     Path.mkdir(full_inclusion_dir, parents=True, exist_ok=True)
+    #     Path.mkdir(full_inclusion_w_results, parents=True, exist_ok=True)
+    #     Path.mkdir(full_inclusion_no_results, parents=True, exist_ok=True)
+    #     Path.mkdir(gold_covered_but_incomplete, parents=True, exist_ok=True)
+    #     Path.mkdir(true_incomplete, parents=True, exist_ok=True)
+    #
+    #     for graph_name in self.evaluation.graph_evaluations:
+    #         graph_notes[graph_name] = {
+    #             "tags": {
+    #             }
+    #         }
+    #
+    #         graph_evaluation = self.evaluation.graph_evaluations[graph_name]
+    #
+    #         # add some tags
+    #         if graph_evaluation.node_coverage == 1.0:
+    #             graph_notes[graph_name]["tags"]["full_node_coverage"] = ""
+    #         if graph_evaluation.edge_coverage == 1.0:
+    #             graph_notes[graph_name]["tags"]["full_edge_coverage"] = ""
+    #         if graph_evaluation.node_inclusion == 1.0:
+    #             graph_notes[graph_name]["tags"]["full_node_inclusion"] = ""
+    #         if graph_evaluation.edge_inclusion == 1.0:
+    #             graph_notes[graph_name]["tags"]["full_edge_inclusion"] = ""
+    #
+    #         if graph_evaluation.generated_SEMENT is None:
+    #             graph_notes[graph_name]["tags"]["no_SEMENT"] = ""
+    #         else:
+    #             graph_notes[graph_name]["tags"]["generated_SEMENT"] = ""
+    #
+    #         if len(graph_evaluation.generated_results) == 0:
+    #             graph_notes[graph_name]["tags"]["no_text_results"] = ""
+    #         else:
+    #             graph_notes[graph_name]["tags"]["generated_text_results"] = ""
+    #
+    #         if graph_evaluation.gold_output_generation_coverage == 1.0:
+    #             graph_notes[graph_name]["tags"]["full_gold_generation_coverage"] = ""
+    #         if graph_evaluation.generation_comment and "cycle" in graph_evaluation.generation_comment.lower():
+    #             graph_notes[graph_name]["tags"]["cycle"] = ""
+    #
+    #         graph_report = POGGGraphReporting.build_graph_report_detail(graph_evaluation)
+    #
+    #         # determine which subdirectory the graph's eval folder goes in
+    #         full_gold_coverage = graph_evaluation.gold_output_generation_coverage == 1.0
+    #         full_node_cov_and_incl = graph_evaluation.node_coverage == 1.0 and graph_evaluation.node_inclusion == 1.0
+    #         full_edge_cov_and_incl = (graph_evaluation.edge_coverage == 1.0 and graph_evaluation.edge_inclusion == 1.0) or graph_evaluation.edge_count == 0.0
+    #
+    #         # if coverage and inclusion are 100%...
+    #         if full_node_cov_and_incl and full_edge_cov_and_incl:
+    #             # ... and gold coverage is 100% ...
+    #             if full_gold_coverage:
+    #                 graph_eval_dir = Path(complete_graphs_dir, graph_name)
+    #             # or ...
+    #             else:
+    #                 # if results are generated (but the gold ones aren't covered) ...
+    #                 if len(graph_evaluation.generated_results) > 0:
+    #                     graph_eval_dir = Path(full_inclusion_w_results, graph_name)
+    #                 # if there are no results
+    #                 else:
+    #                     graph_eval_dir = Path(full_inclusion_no_results, graph_name)
+    #         # if coverage and inclusion are NOT 100% ...
+    #         else:
+    #             # ... and gold coverage is 100% ...
+    #             if full_gold_coverage:
+    #                 graph_eval_dir = Path(gold_covered_but_incomplete, graph_name)
+    #             else:
+    #                 graph_eval_dir = Path(true_incomplete, graph_name)
+    #
+    #         # store all eval files for the graph
+    #         Path.mkdir(graph_eval_dir, parents=True, exist_ok=True)
+    #         with open(Path(graph_eval_dir, graph_name + "_evaluation.txt"), "w") as file:
+    #             file.write(graph_report)
+    #         with open(Path(graph_eval_dir, graph_name + "_evaluation.json"), "w") as file:
+    #             file.write(json.dumps(graph_evaluation.get_top_level_dict_representation(), indent=4))
+    #
+    #         # store json file for the nodes
+    #         # create directory for node_evaluation jsons
+    #         nodes_dir = Path(graph_eval_dir, "nodes")
+    #         Path.mkdir(nodes_dir, parents=True, exist_ok=True)
+    #         for node_evaluation_key in graph_evaluation.node_evaluations:
+    #
+    #             # TODO: make this more robust...
+    #             # remove slashes from node_key if they're there
+    #             file_name_node_key = re.sub(r"[\./\"]", "_", node_evaluation_key)
+    #             with open(Path(nodes_dir, file_name_node_key + "_evaluation.json"), "w") as file:
+    #                 file.write(json.dumps(graph_evaluation.node_evaluations[node_evaluation_key].get_dict_representation(), indent=4))
+    #
+    #         # store json file for the edges
+    #         # create directory for edge_evaluation jsons
+    #         edges_dir = Path(graph_eval_dir, "edges")
+    #         Path.mkdir(edges_dir, parents=True, exist_ok=True)
+    #
+    #         for edge_evaluation in graph_evaluation.edge_evaluations:
+    #             # TODO: make this more robust...
+    #             # remove slashes from node_key if they're there
+    #             file_name_edge_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
+    #             file_name_parent_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
+    #             file_name_child_name = re.sub(r"[\./\"]", "_", edge_evaluation.edge_name)
+    #
+    #             with open(Path(edges_dir, file_name_edge_name + "_" + file_name_parent_name
+    #                                       + "_to_" + file_name_child_name + "_evaluation.json"), "w") as file:
+    #                 file.write(json.dumps(edge_evaluation.get_dict_representation(), indent=4))
+    #
+    #         # write dot file
+    #         POGGGraphUtil.write_graph_to_dot(graph_evaluation.graph, Path(graph_eval_dir, graph_name + ".dot"))
+    #         # write graph json file
+    #         POGGGraphUtil.write_graph_to_json(graph_evaluation.graph, graph_evaluation.gold_outputs, Path(graph_eval_dir, graph_name + ".json"))
+    #
+    #
+    #     # print graph_notes file
+    #     with open(Path(run_eval_dir, "graph_notes.json"), "w") as file:
+    #         # sort the graph names
+    #         sorted_graph_notes = dict(sorted(graph_notes.items()))
+    #         file.write(json.dumps(sorted_graph_notes, indent=4))
 
     def store_experiment_results(self):
         # 0. create the directory for this run's evaluation
@@ -548,14 +584,16 @@ class POGGExperimentsConfig:
                 if os.path.isdir(anchor):
                     non_existent = False
                     counter = 1
+                    previous_run_name = run_name
                     while not non_existent:
                         new_run_name = f"{run_name}_{counter}"
-                        anchor = anchor.replace(run_name, new_run_name)
-                        run_name = new_run_name
+                        anchor = anchor.replace(previous_run_name, new_run_name)
                         if not os.path.isdir(anchor):
                             non_existent = True
                         else:
                             counter +=1
+                            previous_run_name = new_run_name
+                    run_name = new_run_name
 
             config_string = config_string.replace("EXPERIMENT_RUN_PLACEHOLDER", run_name)
             config_json = json.loads(config_string)
@@ -670,3 +708,22 @@ class POGGExperimentsConfig:
             print(f"Running {experiment.full_data_split_name}__{experiment.experiment_name} (experiment {i + 1} of {len(experiments)})...")
             experiment.run_experiment()
             experiment.store_evaluation_report()
+
+
+    def get_single_experiment(self, *args):
+        args_copy = copy.copy(list(args))
+        current_dict_level = self.experiments["splits"]
+        for arg in args:
+            current_arg = args_copy.pop(0)
+
+            # if it's the second to last argument, data split found; grab experiment
+            if len(args_copy) == 1:
+                exp_arg = args_copy.pop(0)
+                try:
+                    experiment = current_dict_level[current_arg][exp_arg]
+                    return experiment
+                except KeyError:
+                    raise KeyError(f"No experiment named {exp_arg} split at path {".".join(args[0:-1])}")
+
+            else:
+                current_dict_level = current_dict_level[current_arg]["splits"]

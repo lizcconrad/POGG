@@ -4,11 +4,11 @@ import inspect
 from pogg_semantics.semantic_composition import SemanticComposition
 
 class POGGLexiconEntry:
-    def __init__(self, lexicon_key, entry_information=None):
+    def __init__(self, lexicon_key, entry_information=None, entry_type="node"):
         if entry_information is None:
             entry_information = {
                 # default to "node" type
-                "entry_type": "node",
+                "entry_type": entry_type,
                 "lexicon_entry": {
                     "comp_fxn": ""
                 }
@@ -17,19 +17,24 @@ class POGGLexiconEntry:
         else:
             if "comp_fxn" in entry_information:
                 entry_information = {
-                    "entry_type": "node",
+                    "entry_type": entry_type,
                     "lexicon_entry": entry_information
                 }
 
+        default_auto_information = {
+            "string_to_parse": "",
+            "attempted_templates": set(),
+            "name_of_created_template": "",
+            "template_example_string": "",
+            "template_used": "",
+            "blocked_templates": set(),
+        }
         if "auto_info" not in entry_information:
-            entry_information["auto_info"] = {
-                "string_to_parse": "",
-                "template_used": "",
-                "blocked_templates": set(),
-                "attempted_templates": set(),
-                "name_of_created_template": "",
-                "template_example_string": ""
-            }
+            entry_information["auto_info"] = default_auto_information
+        else:
+            for key in default_auto_information:
+                if key not in entry_information["auto_info"]:
+                    entry_information["auto_info"][key] = default_auto_information[key]
 
         self.key = lexicon_key
         self.entry_type = entry_information["entry_type"]
@@ -40,14 +45,24 @@ class POGGLexiconEntry:
         # parameters is everything besides "comp_fxn"
         self.parameters.pop("comp_fxn")
 
+        default_flags = {
+            "auto_filled": False,
+            "complete": False,
+            "approved": False,
+            "valid": False,
+            "create_template_from": False
+        }
         if "flags" not in entry_information:
-            entry_information["flags"] = {
-                "auto_filled": False,
-                "complete": False,
-                "approved": False,
-                "valid": False,
-                "create_template_from": False
-            }
+            entry_information["flags"] = default_flags
+        else:
+            for key in default_flags:
+                if key not in entry_information["flags"]:
+                    entry_information["flags"][key] = default_flags[key]
+
+        if "tags" not in entry_information:
+            entry_information["tags"] = []
+        if "notes" not in entry_information:
+            entry_information["notes"] = []
 
         # only add auto_info and flags for top-level entries
         for key, val in entry_information["auto_info"].items():
@@ -57,6 +72,9 @@ class POGGLexiconEntry:
                 setattr(self, key, val)
         for key, val in entry_information["flags"].items():
             setattr(self, key, val)
+
+        self.tags = set(entry_information["tags"])
+        self.notes = entry_information["notes"]
 
         self.validate_entry()
         if self.valid:
@@ -91,11 +109,12 @@ class POGGLexiconEntry:
         self.validate_entry()
         if self.valid:
             self.check_entry_completion()
-            if not self.complete:
-                if self.entry_type == "node":
-                    self._expand_node_entry(self.entry_in_dict_format)
-                else:
-                    self._expand_edge_entry(self.entry_in_dict_format)
+            # TODO: removing completion check, expand by default
+            # this is because entries with optional params are marked "complete" even when they aren't filled out
+            if self.entry_type == "node":
+                self._expand_node_entry(self.entry_in_dict_format)
+            else:
+                self._expand_edge_entry(self.entry_in_dict_format)
 
 
     def _validate_node_entry(self, node_entry):
@@ -125,6 +144,14 @@ class POGGLexiconEntry:
         # node_entry == None -- when a comp_fxn's parameter of type SEMENT is optional and the user is specifying they aren't including it
         if node_entry == "" or node_entry == {} or node_entry is None:
             return True
+
+        # if "arg1" is in the entry, then it's a list of variable arguments, so loop through those instead
+        if "arg1" in node_entry:
+            for key in node_entry.keys():
+                self._validate_node_entry(node_entry[key])
+            # if we make it here then return True for the variable arguments param
+            return True
+
 
         comp_fxn_name = node_entry["comp_fxn"]
         # if comp_fxn_name is empty, it's incomplete, so just return
@@ -199,6 +226,15 @@ class POGGLexiconEntry:
         | `boolean` | result of the validation check |
         """
 
+        # if "arg1" is in the entry, then it's a list of variable arguments, so loop through those instead
+        if "arg1" in edge_entry:
+            for key in edge_entry.keys():
+                if edge_entry[key] == "parent" or edge_entry[key] == "child":
+                    continue
+                self._validate_edge_entry(edge_entry[key])
+            # if we make it here then return True for the variable arguments param
+            return True
+
         comp_fxn_name = edge_entry["comp_fxn"]
         # if comp_fxn_name is empty, it's incomplete, so just return
 
@@ -220,7 +256,7 @@ class POGGLexiconEntry:
                         edge_entry["failure_msg"] = f"{key} is not a parameter of {comp_fxn_name}"
                         raise KeyError(edge_entry["failure_msg"], edge_entry)
 
-                    # if it is legitimate AND the type is SEMENT, then the value should either be "parent" or "child"
+                    # if it is legitimate AND the type is SEMENT, then the value should either be "parent, "child," or provide full composition information
                     elif parameters[key].annotation.__name__ == "SEMENT":
                         # if the value is empty, it's not complete so just continue
                         if edge_entry[key] == "":
@@ -229,8 +265,8 @@ class POGGLexiconEntry:
                             continue
                         # if the edge is introducing another SEMENT directly, continue
                         elif isinstance(edge_entry[key], dict):
-                            # if it's introducing its own SEMENT it should mimic a node entry
-                            self._validate_node_entry(edge_entry[key])
+                            # if it's introducing its own SEMENT, recurse and validate
+                            self._validate_edge_entry(edge_entry[key])
                         else:
                             edge_entry[
                                 "failure_msg"] = f"{key} should have a value of 'parent' or 'child', introduce a SEMENT via a comp_fxn, or be set to 'null' if it's an optional argument"
@@ -275,9 +311,15 @@ class POGGLexiconEntry:
         | `boolean` | result of the completion check |
         """
 
-        # node_entry == "" -- when the inside of an edge is being treated as a "node" TODO ?
         if node_entry == "":
             return False
+
+        # if "arg1" is in the entry, then it's a list of variable arguments, so loop through those instead
+        if "arg1" in node_entry:
+            for key in node_entry.keys():
+                self._check_node_entry_completion(node_entry[key])
+            # if we make it here then return True for the variable arguments param
+            return True
 
         comp_fxn_name = node_entry["comp_fxn"]
 
@@ -302,17 +344,16 @@ class POGGLexiconEntry:
 
             # if the parameter from the signature is in the node entry...
             if param_name in node_entry.keys():
+                if node_entry[param_name] == "":
+                    return False
                 # recurse for SEMENT parameters
-                if param_information.annotation.__name__ == "SEMENT":
+                elif param_information.annotation.__name__ == "SEMENT":
                     # if the SEMENT type parameter is optional and the value is set to None, keep going
                     if param_information.default is not inspect.Parameter.empty and node_entry[param_name] is None:
                         continue
                     # if the SEMENT type parameter is NOT optional and has no value, entry is not complete
                     elif not self._check_node_entry_completion(node_entry[param_name]):
                         return False
-
-                if node_entry[param_name] == "":
-                    return False
             else:
                 return False
 
@@ -353,6 +394,13 @@ class POGGLexiconEntry:
         | `boolean` | result of the completion check |
         """
 
+        # if "arg1" is in the entry, then it's a list of variable arguments, so loop through those instead
+        if "arg1" in edge_entry:
+            for key in edge_entry.keys():
+                self._check_edge_entry_completion(edge_entry[key])
+            # if we make it here then return True for the variable arguments param
+            return True
+
         comp_fxn_name = edge_entry["comp_fxn"]
 
         if comp_fxn_name == "":
@@ -382,10 +430,13 @@ class POGGLexiconEntry:
                 elif (param_information.annotation.__name__ == "SEMENT" and param_information.default is not inspect.Parameter.empty
                     and edge_entry[param_name] is None):
                     continue
+                # if it's a dict-type parameter and the value is a dict, keep going (i.e. "intrinsic variable properties" and "synopsis_dict")
+                elif param_information.annotation.__name__ == "dict" and isinstance(edge_entry[param_name], dict):
+                    continue
                 # if it introduces its own SEMENT
                 elif isinstance(edge_entry[param_name], dict):
-                    # check completion as a node
-                    if not self._check_node_entry_completion(edge_entry[param_name]):
+                    # recurse with dict
+                    if not self._check_edge_entry_completion(edge_entry[param_name]):
                         return False
                     else:
                         continue
@@ -472,8 +523,13 @@ class POGGLexiconEntry:
                 continue
             # if the param_name is not in the entry, add it with an appropriate "empty" value for the user to fill in
             elif param_name not in node_entry:
+                # for variable-length parameters
+                if "_args" in param_name:
+                    node_entry[param_name] = {
+                        "arg1": {"comp_fxn":""}
+                    }
                 # if parameter's type is SEMENT then it requires its own composition
-                if param_information.annotation.__name__ == "SEMENT":
+                elif param_information.annotation.__name__ == "SEMENT":
                     node_entry[param_name] = {"comp_fxn": ""}
                 # if parameter's type is dict insert empty dict
                 elif param_information.annotation.__name__ == "dict":
@@ -487,7 +543,11 @@ class POGGLexiconEntry:
             # then the parameters (adjective_sement, nominal_sement) will themselves to be expanded with comp_fxn info
             else:
                 if param_information.annotation.__name__ == "SEMENT":
-                    self._expand_node_entry(node_entry[param_name])
+                    if "_args" in param_name:
+                        for key in node_entry[param_name]:
+                            self._expand_node_entry(node_entry[param_name][key])
+                    else:
+                        self._expand_node_entry(node_entry[param_name])
                 else:
                     pass
 
@@ -572,14 +632,28 @@ class POGGLexiconEntry:
             if param_name == 'self':
                 continue
             # if the param_name is not in the entry, add it with an appropriate "empty" value for the user to fill in
-            elif param_information.annotation.__name__ == "dict":
-                edge_entry[param_name] = {}
             elif param_name not in edge_entry:
-                edge_entry[param_name] = ""
+                # for variable-length parameters
+                if "_args" in param_name:
+                    edge_entry[param_name] = {
+                        "arg1": ""
+                    }
+                # if parameter's type is dict then insert empty dict
+                elif param_information.annotation.__name__ == "dict":
+                    edge_entry[param_name] = {}
+                # otherwise insert empty string
+                else:
+                    edge_entry[param_name] = ""
             # if it is in the entry, the type is SEMENT, and the value is not "parent" or "child", recurse down for further expansion
             elif (param_information.annotation.__name__ == "SEMENT"
                   and not (edge_entry[param_name] == "parent" or edge_entry[param_name] == "child")):
-                self._expand_edge_entry(edge_entry[param_name])
+                if "_args" in param_name:
+                    for key in edge_entry[param_name]:
+                        if edge_entry[param_name][key] != "parent" and edge_entry[param_name][key] != "child":
+                            self._expand_edge_entry(edge_entry[param_name][key])
+                else:
+                    self._expand_edge_entry(edge_entry[param_name])
+
             else:
                 pass
 
@@ -594,15 +668,21 @@ class POGGLexiconEntry:
             dict_entry = self.entry_in_dict_format
             entry = self
         else:
-            entry = POGGLexiconEntry(dict_key, dict_entry)
+            entry = POGGLexiconEntry(dict_key, dict_entry, self.entry_type)
 
         for param_name in dict_entry.keys():
             if param_name != "comp_fxn":
                 param_value = dict_entry[param_name]
 
                 # if the parameter is a dict with its own "comp_fxn" then make a sub POGGLexiconEntry
-                if type(param_value) is dict and "comp_fxn" in param_value:
-                    param_value = self._convert_dict_format_to_POGGLexiconEntry_objects(param_name, param_value)
+                if type(param_value) is dict:
+                    if "comp_fxn" in param_value:
+                        param_value = self._convert_dict_format_to_POGGLexiconEntry_objects(param_name, param_value)
+                    elif "arg1" in param_value:
+                        args_as_lex_objs = {}
+                        for arg in param_value:
+                            args_as_lex_objs[arg] = self._convert_dict_format_to_POGGLexiconEntry_objects(arg, param_value[arg])
+                        param_value = args_as_lex_objs
                 # add value to parameters_dict
                 entry.parameters[param_name] = param_value
 
@@ -613,12 +693,12 @@ class POGGLexiconEntry:
         entry["entry_type"] = self.entry_type
         entry["lexicon_entry"] = self.entry_in_dict_format
         entry["auto_info"] = {
-            "template_used": self.template_used,
-            "blocked_templates": sorted(list(self.blocked_templates)),
             "attempted_templates": sorted(list(self.attempted_templates)),
             "string_to_parse": self.string_to_parse,
             "name_of_created_template": self.name_of_created_template,
-            "template_example_string": self.template_example_string
+            "template_example_string": self.template_example_string,
+            "template_used": self.template_used,
+            "blocked_templates": sorted(list(self.blocked_templates)),
         }
         entry["flags"] = {
             "auto_filled": self.auto_filled,
@@ -627,4 +707,6 @@ class POGGLexiconEntry:
             "valid": self.valid,
             "create_template_from": self.create_template_from
         }
+        entry["tags"] = sorted(set(self.tags))
+        entry["notes"] = self.notes
         return entry
