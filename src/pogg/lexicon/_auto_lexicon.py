@@ -35,7 +35,8 @@ class POGGLexiconAutoFiller:
 
         # remove global blocks
         for blocked_template in global_blocked_templates:
-            self.templates.pop(blocked_template)
+            if blocked_template != "all":
+                self.templates.pop(blocked_template)
 
         self.auto_approve = auto_approve
         self.string_processing_fxn = string_processing_fxn
@@ -270,7 +271,12 @@ class POGGLexiconAutoFiller:
         blocked_and_attempted = copy.copy(lexicon_entry.blocked_templates)
         blocked_and_attempted.update(lexicon_entry.attempted_templates)
 
-
+        # if a string is already provided in the entry, use that
+        if lexicon_entry.string_to_parse == "":
+            if self.string_processing_fxn:
+                lexicon_entry.string_to_parse = self.string_processing_fxn(lexicon_entry.key)
+            else:
+                lexicon_entry.string_to_parse = lexicon_entry.key
 
         # CASES:
         # 1. block "all"
@@ -282,12 +288,6 @@ class POGGLexiconAutoFiller:
             print(f"All templates blocked or attempted for '{lexicon_entry.key}'...")
             return lexicon_entry
 
-        # if a string is already provided in the entry, use that
-        if lexicon_entry.string_to_parse == "":
-            if self.string_processing_fxn:
-                lexicon_entry.string_to_parse = self.string_processing_fxn(lexicon_entry.key)
-            else:
-                lexicon_entry.string_to_parse = lexicon_entry.key
 
         lexicon_entry = self._find_and_fill_template(lexicon_entry)
         return lexicon_entry
