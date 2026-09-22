@@ -390,6 +390,271 @@ class POGGGraphReporting:
         report += str(POGGGraphReporting.build_graph_generated_text_table(graph_eval)) + "\n\n"
         return report
 
+class POGGDataPointReporting:
+    @staticmethod
+    def build_dataset_metrics_table(data_point_eval):
+        """
+        Build an ASCII table detailing evaluation metrics for a dataset.
+
+        :::{info} Attributes included in the table
+        :collapsible:
+        The following attributes from the `POGGEvaluation` object are included in the table:
+
+        | Attribute | Description |
+        | --------- | ----------- |
+        | `graph_count` | number of graphs in the dataset |
+        | `graph_SEMENT_count` | number of graphs that generated a SEMENT |
+        | `graph_SEMENT_coverage` | percentage of graphs that generated a SEMENT |
+        | `graphs_with_text_count` | number of graphs that generated English text results |
+        | `graph_text_coverage` | percentage of graphs that generated English text results |
+        | `total_node_count` | total number of nodes in the dataset |
+        | `total_nodes_covered` | total number of nodes that generated a SEMENT during graph-to-SEMENT conversion |
+        | `total_nodes_included` | total number of nodes that contributed semantically to the final SEMENT for the graph |
+        | `total_node_coverage` | percentage of nodes that generated a SEMENT during graph-to-SEMENT conversion |
+        | `total_node_inclusion` | perctengae of nodes that contributed semantically to the final SEMENT for the graph |
+        | `total_edge_count` | total number of edges in the dataset |
+        | `total_edges_covered` | total number of edges that generated a SEMENT during graph-to-SEMENT conversion |
+        | `total_edges_included` | total number of edges that contributed semantically to the final SEMENT for the graph |
+        | `total_edge_coverage` | percentage of edges that generated a SEMENT during graph-to-SEMENT conversion |
+        | `total_edge_inclusion` | perctengae of edges that contributed semantically to the final SEMENT for the graph |
+        :::
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `dataset_eval` | `POGGEvaluation` | `POGGEvaluation` object to build the table from |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `PrettyTable` | ASCII table of the evaluation metrics for a graph |
+        """
+
+        metrics_table = PrettyTable(["Metric", "Value"])
+        metrics_table.title = "EVALUATION METRICS"
+        metrics_table.align = "l"
+
+        metrics_table.add_row(["Graph Count", data_point_eval.graph_count])
+        metrics_table.add_row(["Graphs that produced SEMENTs", data_point_eval.graph_SEMENT_count])
+        metrics_table.add_row(["Graphs w/ SEMENTs coverage", data_point_eval.graph_SEMENT_coverage])
+        metrics_table.add_row(["Graphs that generated text", data_point_eval.graphs_with_text_count])
+        metrics_table.add_row(["Graphs w/ text coverage", data_point_eval.graphs_with_text_coverage], divider=True)
+
+        metrics_table.add_row(["Total Node Count", data_point_eval.full_node_count])
+        metrics_table.add_row(["Total Nodes Covered", data_point_eval.full_nodes_covered])
+        metrics_table.add_row(["Total Nodes Included", data_point_eval.full_nodes_included])
+        metrics_table.add_row(["Total Node Coverage", data_point_eval.full_node_coverage])
+        metrics_table.add_row(["Total Node Inclusion", data_point_eval.full_node_inclusion], divider=True)
+
+        metrics_table.add_row(["Total Edge Count", data_point_eval.full_edge_count])
+        metrics_table.add_row(["Total Edges Covered", data_point_eval.full_edges_covered])
+        metrics_table.add_row(["Total Edges Included", data_point_eval.full_edges_included])
+        metrics_table.add_row(["Total Edge Coverage", data_point_eval.full_edge_coverage])
+        metrics_table.add_row(["Total Edge Inclusion", data_point_eval.full_edge_inclusion], divider=True)
+
+        # metrics_table.add_row(["# Semantic Composition Functions Available", len(dataset_eval.sem_comp_fxns_available)])
+        # metrics_table.add_row(["# Semantic Composition Functions Used", len(dataset_eval.sem_comp_fxns_used)])
+        # metrics_table.add_row(["# Semantic Composition Function Coverage", dataset_eval.sem_comp_fxns_used_coverage])
+
+        return metrics_table
+
+    @staticmethod
+    def build_data_point_SEMENT_table(data_point_eval, table_type):
+        """
+        Build an ASCII table showing the SEMENTs associated with a particular directed graph.
+        If an error caused generation to fail, print the error instead.
+
+        :::{info} Attributes included in the table
+        :collapsible:
+        The following attributes from the `POGGGraphEvaluation` object are included in the table:
+
+        | Attribute | Description |
+        | --------- | ----------- |
+        | `generated_SEMENT_string`| original SEMENT generated for the graph encoded as a string |
+        | `collapsed_SEMENT_string`| SEMENT string that is isomorphic to the original SEMENT but with EQs collapsed to one value |
+        | `prepped_SEMENT_string`| SEMENT string that has been prepared for generation by the ERG (not necessarily strictly isomorphic to the original) |
+        :::
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `graph_eval` | `POGGGraphEvaluation` | `POGGGraphEvaluation` object to build the table from |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `PrettyTable` | ASCII table of the SEMENTs associated with a graph |
+        """
+
+        sement_table = PrettyTable(["SEMENT"])
+        sement_table.title = f"{table_type} SEMENTS"
+        sement_table.align = "l"
+        sement_table.max_width["SEMENT"] = 80
+
+        if table_type == "ORIGINAL":
+            for sement in data_point_eval.original_data_point_SEMENT_strings:
+                sement_table.add_row([sement], divider=True)
+        else:
+            for sement in data_point_eval.modified_data_point_SEMENT_strings:
+                sement_table.add_row([sement], divider=True)
+
+        return sement_table
+
+    @staticmethod
+    def build_graphs_report_summary(data_point_eval):
+        """
+        Build an ASCII table detailing evaluation metrics for each graph in a dataset.
+
+        :::{info} Attributes included in each row of the table
+        :collapsible:
+        The following attributes from each `POGGGraphEvaluation` object for the dataset are included in the table:
+
+        | Attribute | Description |
+        | --------- | ----------- |
+        | `graph_name` | name of the graph |
+        | whether `generated_SEMENT` is `None` | whether there's a SEMENT associated with the graph |
+        | length of `generated_results` | number of text results generated |
+        | `node_count` | number of nodes in the graph |
+        | `node_coverage` | percentage of nodes that generated a SEMENT for the graph |
+        | `node_inclusion` | percentage of nodes that contributed semantically to the final SEMENT for the graph |
+        | `edge_count` | number of edges in the graph |
+        | `edge_coverage` | percentage of edges that generated a SEMENT for the graph |
+        | `edge_inclusion` | percentage of edges that contributed semantically to the final SEMENT for the graph |
+        :::
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `dataset_eval` | `POGGEvaluation` | `POGGEvaluation` object to build the table from |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `PrettyTable` | ASCII table summarizing metrics for each graph in the dataset |
+        """
+        graphs_summary_table = PrettyTable([
+            "Graph Name",
+            "Generated SEMENT?",
+            "# of text results",
+            "Nodes",
+            "Node Coverage",
+            "Node Inclusion",
+            "Edges",
+            "Edge Coverage",
+            "Edge Inclusion"])
+        graphs_summary_table.title = "GRAPH SUMMARIES"
+        graphs_summary_table.align = "l"
+
+        for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
+            graph_eval = data_point_eval.graph_evaluations[graph_eval_key]
+            graphs_summary_table.add_row([
+                graph_eval.graph_name,
+                (graph_eval.generated_SEMENT is not None),
+                len(graph_eval.generated_results),
+                graph_eval.node_count,
+                graph_eval.node_coverage,
+                graph_eval.node_inclusion,
+                graph_eval.edge_count,
+                graph_eval.edge_coverage,
+                graph_eval.edge_inclusion
+            ])
+
+        return graphs_summary_table
+
+    @staticmethod
+    def build_incomplete_graphs_table(data_point_eval):
+        incomplete_graphs_table = PrettyTable([
+            "Graph Name",
+            "Generated SEMENT?",
+            "# of text results",
+            "Nodes",
+            "Node Coverage",
+            "Node Inclusion",
+            "Edges",
+            "Edge Coverage",
+            "Edge Inclusion"])
+        incomplete_graphs_table.title = "INCOMPLETE GRAPHS"
+        incomplete_graphs_table.align = "l"
+
+
+        for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
+            graph_eval = data_point_eval.graph_evaluations[graph_eval_key]
+
+            if (graph_eval.node_coverage != 1.0 or graph_eval.node_inclusion != 1.0
+                    or graph_eval.edge_coverage != 1.0 or graph_eval.edge_inclusion != 1.0):
+                incomplete_graphs_table.add_row([
+                    graph_eval.graph_name,
+                    (graph_eval.generated_SEMENT is not None),
+                    len(graph_eval.generated_results),
+                    graph_eval.node_count,
+                    graph_eval.node_coverage,
+                    graph_eval.node_inclusion,
+                    graph_eval.edge_count,
+                    graph_eval.edge_coverage,
+                    graph_eval.edge_inclusion
+                ])
+
+        return incomplete_graphs_table
+
+    @staticmethod
+    def build_non_text_generating_graphs_table(data_point_eval):
+        non_generating_graphs_table = PrettyTable([
+            "Graph Name",
+            "Generated SEMENT?",
+            "# of text results",
+            "Nodes",
+            "Node Coverage",
+            "Node Inclusion",
+            "Edges",
+            "Edge Coverage",
+            "Edge Inclusion"])
+        non_generating_graphs_table.title = "GRAPHS THAT DIDN'T GENERATE TEXT"
+        non_generating_graphs_table.align = "l"
+
+
+        for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
+            graph_eval = data_point_eval.graph_evaluations[graph_eval_key]
+
+            if len(graph_eval.generated_results) == 0:
+                non_generating_graphs_table.add_row([
+                    graph_eval.graph_name,
+                    (graph_eval.generated_SEMENT is not None),
+                    len(graph_eval.generated_results),
+                    graph_eval.node_count,
+                    graph_eval.node_coverage,
+                    graph_eval.node_inclusion,
+                    graph_eval.edge_count,
+                    graph_eval.edge_coverage,
+                    graph_eval.edge_inclusion
+                ])
+
+        return non_generating_graphs_table
+
+    @staticmethod
+    def build_data_point_report(data_point_eval):
+        """
+        Build a report for a dataset that includes a table of evaluation metrics for the whole dataset and a table
+        summarizing metrics for each graph in the dataset.
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `dataset_eval` | `POGGEvaluation` | `POGGEvaluation` object to build the report for |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `str` | string that concatenates all relevant tables for the dataset can be printed to a file |
+        """
+
+        report = f"DATA POINT: {data_point_eval.data_point_name}\n"
+        report += str(POGGDataPointReporting.build_dataset_metrics_table(data_point_eval)) + "\n\n"
+        report += str(POGGDataPointReporting.build_data_point_SEMENT_table(data_point_eval, "ORIGINAL")) + "\n\n"
+        report += str(POGGDataPointReporting.build_data_point_SEMENT_table(data_point_eval, "MODIFIED")) + "\n\n"
+        report += str(POGGDataPointReporting.build_incomplete_graphs_table(data_point_eval)) + "\n\n"
+        report += str(POGGDataPointReporting.build_non_text_generating_graphs_table(data_point_eval)) + "\n\n"
+        report += str(POGGDataPointReporting.build_graphs_report_summary(data_point_eval)) + "\n\n"
+        return report
 
 class POGGDatasetReporting:
     """
@@ -496,7 +761,6 @@ class POGGDatasetReporting:
         | ---- | ----------- |
         | `PrettyTable` | ASCII table summarizing metrics for each graph in the dataset |
         """
-
         graphs_summary_table = PrettyTable([
             "Graph Name",
             "Generated SEMENT?",
@@ -510,21 +774,92 @@ class POGGDatasetReporting:
         graphs_summary_table.title = "GRAPH SUMMARIES"
         graphs_summary_table.align = "l"
 
-        for graph_eval_key in sorted(dataset_eval.graph_evaluations.keys()):
-            graph_eval = dataset_eval.graph_evaluations[graph_eval_key]
-            graphs_summary_table.add_row([
-                graph_eval.graph_name,
-                (graph_eval.generated_SEMENT is not None),
-                len(graph_eval.generated_results),
-                graph_eval.node_count,
-                graph_eval.node_coverage,
-                graph_eval.node_inclusion,
-                graph_eval.edge_count,
-                graph_eval.edge_coverage,
-                graph_eval.edge_inclusion
+        for data_point_eval_key, data_point_eval in dataset_eval.data_point_evaluations.items():
+            for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
+                graph_eval = dataset_eval.graph_evaluations[graph_eval_key]
+                graphs_summary_table.add_row([
+                    graph_eval.graph_name,
+                    (graph_eval.generated_SEMENT is not None),
+                    len(graph_eval.generated_results),
+                    graph_eval.node_count,
+                    graph_eval.node_coverage,
+                    graph_eval.node_inclusion,
+                    graph_eval.edge_count,
+                    graph_eval.edge_coverage,
+                    graph_eval.edge_inclusion
             ])
 
         return graphs_summary_table
+
+    @staticmethod
+    def build_incomplete_graphs_table(dataset_eval):
+        incomplete_graphs_table = PrettyTable([
+            "Graph Name",
+            "Generated SEMENT?",
+            "# of text results",
+            "Nodes",
+            "Node Coverage",
+            "Node Inclusion",
+            "Edges",
+            "Edge Coverage",
+            "Edge Inclusion"])
+        incomplete_graphs_table.title = "INCOMPLETE GRAPHS"
+        incomplete_graphs_table.align = "l"
+
+        for data_point_eval_key, data_point_eval in dataset_eval.data_point_evaluations.items():
+            for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
+                graph_eval = dataset_eval.graph_evaluations[graph_eval_key]
+
+                if (graph_eval.node_coverage != 1.0 or graph_eval.node_inclusion != 1.0
+                    or graph_eval.edge_coverage != 1.0 or graph_eval.edge_inclusion != 1.0):
+
+                    incomplete_graphs_table.add_row([
+                        graph_eval.graph_name,
+                        (graph_eval.generated_SEMENT is not None),
+                        len(graph_eval.generated_results),
+                        graph_eval.node_count,
+                        graph_eval.node_coverage,
+                        graph_eval.node_inclusion,
+                        graph_eval.edge_count,
+                        graph_eval.edge_coverage,
+                        graph_eval.edge_inclusion
+                    ])
+
+        return incomplete_graphs_table
+
+    @staticmethod
+    def build_non_text_generating_graphs_table(dataset_eval):
+        non_generating_graphs_table = PrettyTable([
+            "Graph Name",
+            "Generated SEMENT?",
+            "# of text results",
+            "Nodes",
+            "Node Coverage",
+            "Node Inclusion",
+            "Edges",
+            "Edge Coverage",
+            "Edge Inclusion"])
+        non_generating_graphs_table.title = "GRAPHS THAT DIDN'T GENERATE TEXT"
+        non_generating_graphs_table.align = "l"
+
+        for data_point_eval_key, data_point_eval in dataset_eval.data_point_evaluations.items():
+            for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
+                graph_eval = dataset_eval.graph_evaluations[graph_eval_key]
+
+                if len(graph_eval.generated_results) == 0:
+                    non_generating_graphs_table.add_row([
+                        graph_eval.graph_name,
+                        (graph_eval.generated_SEMENT is not None),
+                        len(graph_eval.generated_results),
+                        graph_eval.node_count,
+                        graph_eval.node_coverage,
+                        graph_eval.node_inclusion,
+                        graph_eval.edge_count,
+                        graph_eval.edge_coverage,
+                        graph_eval.edge_inclusion
+                    ])
+
+        return non_generating_graphs_table
 
     @staticmethod
     def build_dataset_report(experiment):
@@ -546,6 +881,8 @@ class POGGDatasetReporting:
         report = f"DATASET: {experiment.full_data_split_name}\n"
         report += f"EXPERIMENT: {experiment.experiment_name}\n\n"
         report += str(POGGDatasetReporting.build_dataset_metrics_table(experiment.evaluation)) + "\n\n"
+        report += str(POGGDatasetReporting.build_incomplete_graphs_table(experiment.evaluation)) + "\n\n"
+        report += str(POGGDatasetReporting.build_non_text_generating_graphs_table(experiment.evaluation)) + "\n\n"
         report += str(POGGDatasetReporting.build_graphs_report_summary(experiment.evaluation)) + "\n\n"
         return report
 

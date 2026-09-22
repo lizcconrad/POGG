@@ -781,6 +781,219 @@ class POGGGraphEvaluation:
             self.edge_evaluations.append(POGGEdgeEvaluation(None, None, None, None, Path(evaluation_directory, "edges", item)))
 
 
+
+class POGGDataPointEvaluation:
+    """
+    A `POGGEvaluation` object stores evaluation information about dataset.
+    """
+
+    def __init__(self, data_point_name, data_point_info):
+        """
+        Initialize the `POGGDataPointEvaluation` object by providing the data point and its name.
+        """
+
+        self.data_point_name = data_point_name
+        self.graphs = data_point_info["graphs"]
+        self.gold_outputs = data_point_info["gold_outputs"]
+
+        self.graph_evaluations = {}
+
+        # calculations made over all graphs
+        self.graph_count = None
+        self.graph_SEMENT_count = None
+        self.graph_SEMENT_coverage = None
+
+        # list of SEMENTs from each graph
+        self.original_data_point_SEMENTs = []
+        self.original_data_point_SEMENT_strings = []
+        self.modified_data_point_SEMENTs = []
+        self.modified_data_point_SEMENT_strings = []
+
+        # NOT number of results, but number that generated text
+        self.graphs_with_text_count = None
+        self.graphs_with_text_coverage = None
+        self.graphs_with_gold_text_count = None
+        self.graphs_with_complete_gold_text_count = None
+
+        self.graphs_with_gold_text_coverage = None
+        self.graphs_with_complete_gold_text_coverage = None
+
+        self.full_node_count = None
+        self.full_nodes_covered = None
+        self.full_nodes_included = None
+        self.full_node_coverage = None
+        self.full_node_inclusion = None
+        self.full_edge_count = None
+        self.full_edges_covered = None
+        self.full_edges_included = None
+        self.full_edge_coverage = None
+        self.full_edge_inclusion = None
+
+        self.sem_alg_fxns_used = {}
+        self.sem_comp_fxns_used = {}
+
+        # metadata about the run itself for reporting/comparing evaluations between runs
+        self.run_id = None
+
+    @classmethod
+    def read_from_directory(cls, data_point_evaluation_directory):
+
+        # read data_point_metrics.json file
+        try:
+            data_point_name = Path(data_point_evaluation_directory).name
+
+            # TODO: fix etc
+            eval_obj = POGGDataPointEvaluation(data_point_name, {"graphs": None, "gold_outputs": None})
+
+            with open(Path(data_point_evaluation_directory, f"{data_point_name}_metrics.json"), 'r') as dataset_eval_file:
+                dataset_eval = json.load(dataset_eval_file)
+
+                for key, val in dataset_eval.items():
+                    setattr(eval_obj, key, val)
+        except FileNotFoundError as e:
+            raise e
+
+
+
+        eval_obj.graph_evaluations = {}
+
+        graph_dir = Path(data_point_evaluation_directory, "graphs")
+        for item in os.listdir(graph_dir):
+            eval_obj.graph_evaluations[item] = POGGGraphEvaluation.read_from_directory(Path(graph_dir, item))
+
+        eval_obj.calculate_metrics()
+
+        return eval_obj
+
+    def add_graph(self, graph_name, graph_info):
+        """
+        Create a graph evaluation object given a graph and add it to the dictionary of graph evaluation objects.
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `graph` | NetworkX `digraph` | graph to add an evaluation object for |
+        | `graph_name` | `str` | name of the graph |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `None` | -- |
+        """
+
+        # create graph evaluation object
+        if isinstance(graph_info, POGGGraphEvaluation):
+            graph_eval = graph_info
+        else:
+            graph_eval = POGGGraphEvaluation(graph_name, graph_info)
+
+        self.graph_evaluations[graph_name] = graph_eval
+        if graph_eval.prepped_SEMENT:
+            self.original_data_point_SEMENTs.append(graph_eval.prepped_SEMENT)
+            self.original_data_point_SEMENT_strings.append(sementcodecs.encode(graph_eval.prepped_SEMENT, indent=True))
+
+    def get_graph_evaluation(self, graph_name):
+        """
+        Get the `POGGGraphEvaluation` object for a graph given its name.
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `graph_name` | `str` | name of the graph to get the evaluation object for |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `POGGGraphEvaluation` | evaluation object associated with the given graph name |
+        """
+        try:
+            return self.graph_evaluations[graph_name]
+        except KeyError:
+            raise KeyError("No evaluation object for a graph named '{}'".format(graph_name))
+
+    def calculate_metrics(self):
+        """
+        Calculate the evaluation metrics (node coverage over all graphs, node inclusion over all graphs,
+        edge coverage over all graphs, edge inclusion over all graphs) for the graph.
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `None` | -- |
+        """
+        self.graph_count = len(self.graph_evaluations)
+
+        self.graph_SEMENT_count = 0
+        self.graphs_with_text_count = 0
+        self.graphs_with_gold_text_count = 0
+        self.graphs_with_complete_gold_text_count = 0
+        self.full_node_count = 0
+        self.full_nodes_covered = 0
+        self.full_nodes_included = 0
+        self.full_edge_count = 0
+        self.full_edges_covered = 0
+        self.full_edges_included = 0
+
+        for graph_name in self.graph_evaluations.keys():
+            graph_eval = self.graph_evaluations[graph_name]
+
+            self.sem_alg_fxns_used = {
+                k: self.sem_alg_fxns_used.get(k, 0) + graph_eval.sem_alg_fxns_used.get(k, 0)
+                for k in self.sem_alg_fxns_used.keys() | graph_eval.sem_alg_fxns_used.keys()}
+
+            self.sem_comp_fxns_used = {
+                k: self.sem_comp_fxns_used.get(k, 0) + graph_eval.sem_comp_fxns_used.get(k, 0)
+                for k in self.sem_comp_fxns_used.keys() | graph_eval.sem_comp_fxns_used.keys()}
+
+            if graph_eval.generated_SEMENT is not None:
+                self.graph_SEMENT_count += 1
+            if len(graph_eval.generated_results) > 0:
+                self.graphs_with_text_count += 1
+            if len(graph_eval.generated_gold_outputs) > 0:
+                self.graphs_with_gold_text_count += 1
+            if graph_eval.gold_output_generation_coverage == 1:
+                self.graphs_with_complete_gold_text_count += 1
+
+            self.full_node_count += graph_eval.node_count
+            self.full_nodes_covered += graph_eval.nodes_covered
+            self.full_nodes_included += graph_eval.nodes_included
+            self.full_edge_count += graph_eval.edge_count
+            self.full_edges_covered += graph_eval.edges_covered
+            self.full_edges_included += graph_eval.edges_included
+
+        self.graph_SEMENT_coverage = self.graph_count and self.graph_SEMENT_count / self.graph_count
+        self.graphs_with_text_coverage = self.graph_count and self.graphs_with_text_count / self.graph_count
+        self.graphs_with_gold_text_coverage = self.graph_count and self.graphs_with_gold_text_count / self.graph_count
+        self.graphs_with_complete_gold_text_coverage = self.graph_count and self.graphs_with_complete_gold_text_count / self.graph_count
+
+        self.full_node_coverage = self.full_node_count and self.full_nodes_covered / self.full_node_count
+        self.full_node_inclusion = self.full_node_count and self.full_nodes_included / self.full_node_count
+        self.full_edge_coverage = self.full_edge_count and self.full_edges_covered / self.full_edge_count
+        self.full_edge_inclusion = self.full_edge_count and self.full_edges_included / self.full_edge_count
+
+
+    def get_POGG_metrics_dict(self):
+        return {
+            'graph_count': self.graph_count,
+            'graph_SEMENT_count': self.graph_SEMENT_count,
+            'graphs_with_text_count': self.graphs_with_text_count,
+            'graphs_with_gold_text_count': self.graphs_with_gold_text_count,
+            'graphs_with_complete_gold_text_count': self.graphs_with_complete_gold_text_count,
+
+            'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
+            'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
+
+            'full_node_count': self.full_node_count,
+            'full_nodes_covered': self.full_nodes_covered,
+            'full_nodes_included': self.full_nodes_included,
+
+            'full_edge_count': self.full_edge_count,
+            'full_edges_covered': self.full_edges_covered,
+            'full_edges_included': self.full_edges_included,
+
+            'gold_outputs': sorted(list(self.gold_outputs))
+        }
+
 class POGGEvaluation:
     """
     A `POGGEvaluation` object stores evaluation information about dataset.
@@ -820,6 +1033,7 @@ class POGGEvaluation:
         """
 
         self.experiment_name = experiment_name
+        self.data_point_evaluations = {}
         self.graph_evaluations = {}
 
         self.dataset_location = None
@@ -885,11 +1099,18 @@ class POGGEvaluation:
         except FileNotFoundError as e:
             raise e
 
-        eval_obj.graph_evaluations = {}
 
-        graph_dir = Path(evaluation_directory, "graphs")
-        for item in os.listdir(graph_dir):
-            eval_obj.graph_evaluations[item] = POGGGraphEvaluation.read_from_directory(Path(graph_dir, item))
+        eval_obj.data_point_evaluations = {}
+
+        data_point_dir = Path(evaluation_directory, "data_points")
+        for item in os.listdir(data_point_dir):
+            eval_obj.data_point_evaluations[item] = POGGDataPointEvaluation.read_from_directory(Path(data_point_dir, item))
+
+
+        # TODO: hacky... take out later
+        for data_point_name, data_point_eval in eval_obj.data_point_evaluations.items():
+            for graph_name, graph_eval in data_point_eval.graph_evaluations.items():
+                eval_obj.graph_evaluations[graph_name] = graph_eval
 
         eval_obj.calculate_metrics()
 
@@ -917,6 +1138,47 @@ class POGGEvaluation:
             self.graph_evaluations[graph_name] = graph_info
         else:
             self.graph_evaluations[graph_name] = POGGGraphEvaluation(graph_name, graph_info)
+
+    def add_data_point(self, data_point_name, data_point_info):
+        """
+        Create a graph evaluation object given a graph and add it to the dictionary of graph evaluation objects.
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `graph` | NetworkX `digraph` | graph to add an evaluation object for |
+        | `graph_name` | `str` | name of the graph |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `None` | -- |
+        """
+
+        # create graph evaluation object
+        if isinstance(data_point_info, POGGDataPointEvaluation):
+            self.data_point_evaluations[data_point_name] = data_point_info
+        else:
+            self.graph_evaluations[data_point_name] = POGGDataPointEvaluation(data_point_name, data_point_info)
+
+    def get_data_point_evaluations(self, data_point_name):
+        """
+        Get the `POGGGraphEvaluation` object for a graph given its name.
+
+         **Parameters**
+        | Parameter | Type | Description |
+        | --------- | ---- | ----------- |
+        | `graph_name` | `str` | name of the graph to get the evaluation object for |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `POGGGraphEvaluation` | evaluation object associated with the given graph name |
+        """
+        try:
+            return self.data_point_evaluations[data_point_name]
+        except KeyError:
+            raise KeyError("No evaluation object for a data point named '{}'".format(data_point_name))
 
     def get_graph_evaluation(self, graph_name):
         """

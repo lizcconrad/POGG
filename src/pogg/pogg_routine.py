@@ -19,99 +19,9 @@ from pogg_semantics.semantic_composition import SemanticAlgebra, SemanticComposi
 
 from pogg.lexicon import POGGLexicon, POGGLexiconAutoFiller
 from pogg.data_handling import POGGDataset, POGGDataSplit, POGGGraphUtil
-from pogg.evaluation import POGGEvaluation, POGGGraphEvaluation, POGGGraphReporting, POGGDatasetReporting
+from pogg.evaluation import (POGGEvaluation, POGGGraphEvaluation, POGGDataPointEvaluation,
+                             POGGGraphReporting, POGGDataPointReporting, POGGDatasetReporting)
 from pogg.graph_to_SEMENT import POGGGraphConverter
-
-
-#
-# class POGGExperiment:
-#     """
-#     Holds all key objects necessary to run the data-to-text algorithm.
-#     """
-#
-#     # def run_POGG_data_to_text_algorithm_on_single_graph(self, given_graph_name, graph_object=None):
-#     #     """
-#     #     Run the POGG data-to-text algorithm on a single graph.
-#     #     If no object is given, the function searches for a file with the given graph name in the data directory.
-#     #     Otherwise, it uses the provided object.
-#     #
-#     #     **Parameters**
-#     #     | Parameter | Type | Description | Default |
-#     #     | --------- | ---- | ----------- | ------- |
-#     #     | `given_graph_name` | `str` | name of the graph | -- |
-#     #     | `graph_object` | `dict` or `DiGraph` | either a NetworkX graph or a graph in the POGG JSON format | `None` |
-#     #
-#     #     **Returns**
-#     #     | Type | Description |
-#     #     | ---- | ----------- |
-#     #     | `POGGGraphEvaluation` | evaluation object with results of running the data-to-text algorithm on the given graph |
-#     #     """
-#     #
-#     #     graph = None
-#     #
-#     #     if graph_object is not None:
-#     #         if isinstance(graph_object, dict):
-#     #             graph = POGGGraphUtil.build_graph(graph_object)
-#     #         else:
-#     #             graph = graph_object
-#     #     else:
-#     #         for graph_name in os.listdir(dataset.graph_json_dir):
-#     #             graph_name_stem = graph_name.split('.')[0]
-#     #             graph_path = os.path.join(dataset.graph_json_dir, graph_name)
-#     #
-#     #             # if the path does not point to a JSON file, skip it
-#     #             if not os.path.isfile(graph_path) or not graph_path.endswith('.json'):
-#     #                 continue
-#     #
-#     #             if graph_name_stem == given_graph_name:
-#     #                 print(f"Converting {graph_path}...")
-#     #                 graph_json = json.load(open(graph_path))
-#     #                 graph = POGGGraphUtil.build_graph(graph_json)
-#     #                 break
-#     #
-#     #         if graph is None:
-#     #             raise FileNotFoundError(f"Graph {given_graph_name} not found")
-#     #
-#     #     graph_evaluation = POGGGraphEvaluation(graph, given_graph_name)
-#     #
-#     #
-#     #     # store the gold outputs in the evaluation object
-#     #     try:
-#     #         with open(Path(dataset.gold_outputs_dir, given_graph_name + ".txt"), "r") as gold_outputs_file:
-#     #             graph_evaluation.gold_outputs = gold_outputs_file.read().splitlines()
-#     #     except FileNotFoundError:
-#     #         # no gold outputs
-#     #         graph_evaluation.gold_outputs = []
-#     #
-#     #     # 3. Perform graph -> SEMENT conversion and save result to evaluation object
-#     #     sement = self.graph_converter.convert_graph_to_SEMENT(graph, graph_evaluation, None)
-#     #     graph_evaluation.set_SEMENT(sement)
-#     #
-#     #     # 4. If SEMENT is created, perform English text generation
-#     #     if sement is not None:
-#     #         # collapse EQs for easier reading
-#     #         collapsed_sement = SEMENTUtil.overwrite_eqs(sement)
-#     #         graph_evaluation.set_collapsed_SEMENT(collapsed_sement)
-#     #
-#     #         final_sement = self.semantic_algebra.prepare_for_generation(sement)
-#     #         graph_evaluation.set_prepped_SEMENT(final_sement)
-#     #
-#     #         with ace.ACEGenerator(self.pogg_config.grammar_location, ['-r', 'root_frag']) as generator:
-#     #             response = generator.interact(graph_evaluation.prepped_SEMENT_string)
-#     #             results = response.results()
-#     #
-#     #         # 5. Store results in evaluation object
-#     #         for r in results:
-#     #             graph_evaluation.generated_results.append(r['surface'])
-#     #
-#     #     # 6. Calculate evaluation metrics
-#     #     graph_evaluation.calculate_metrics()
-#     #
-#     #     return graph_evaluation
-#     #
-#
-
-
 
 
 class POGGExperiment:
@@ -171,6 +81,7 @@ class POGGExperiment:
 
         self.sub_experiments = sub_experiments
 
+
     def run_POGG_data_to_text_single_graph(self, graph_name, graph_dict):
         graph_obj = graph_dict["graph"]
         gold_outputs = graph_dict["gold_outputs"]
@@ -178,12 +89,12 @@ class POGGExperiment:
         # try to find evaluation information from subexperiment
         if self.sub_experiments:
             for sub_experiment in self.sub_experiments:
-                for sub_exp_graph_key, sub_exp_graph in sub_experiment.data_split.graphs.items():
-                    if graph_dict["graph_json"] == sub_exp_graph["graph_json"]:
-                        print(
-                            f"Found evaluation for {graph_name} in subexperiment {sub_experiment.full_data_split_name} ({sub_exp_graph_key})... copying...")
-                        graph_evaluation = sub_experiment.evaluation.graph_evaluations[sub_exp_graph_key]
-                        return graph_evaluation
+                for data_point_name, data_point in sub_experiment.data_split.data_points.items():
+                    for sub_exp_graph_key, sub_exp_graph in data_point["graphs"].items():
+                        if graph_dict["graph_json"] == sub_exp_graph["graph_json"]:
+                            print(f"Found evaluation for {graph_name} in subexperiment {sub_experiment.full_data_split_name} ({sub_exp_graph_key})... copying...")
+                            graph_evaluation = sub_experiment.evaluation.graph_evaluations[sub_exp_graph_key]
+                            return graph_evaluation
 
         # if evaluation from a subexperiment was not found, proceed with conversion
         graph_evaluation = POGGGraphEvaluation(graph_name, graph_dict)
@@ -227,6 +138,26 @@ class POGGExperiment:
 
         return graph_evaluation
 
+    def run_POGG_data_to_text_single_data_point(self, data_point_name, data_point_dict):
+
+        data_point_evaluation = POGGDataPointEvaluation(data_point_name, data_point_dict)
+
+        for graph_name, graph_dict in data_point_dict["graphs"].items():
+            print(f"Converting {graph_name}...")
+
+            # convert graph, get eval obj back
+            graph_evaluation = self.run_POGG_data_to_text_single_graph(graph_name, graph_dict)
+
+            # TODO: add to POGGDataPointEvaluation
+            data_point_evaluation.add_graph(graph_name, graph_evaluation)
+
+            # add to POGGEvaluation
+            # TODO: don't do this separately in the future but for now just leave it
+            self.evaluation.add_graph(graph_name, graph_evaluation)
+
+        # return POGGDataPointEvaluation
+        data_point_evaluation.calculate_metrics()
+        return data_point_evaluation
 
     def run_experiment(self):
         """
@@ -250,16 +181,14 @@ class POGGExperiment:
             [method_name for method_name in dir(SemanticComposition)
                 if callable(getattr(SemanticComposition, method_name)) and not re.match("__.*__", method_name)])
 
-        for i, graph_tuple in enumerate(self.data_split.graphs.items()):
-            graph_name = graph_tuple[0]
-            graph_dict = graph_tuple[1]
-            print(f"Converting {graph_name} (graph {i + 1} of {len(self.data_split.graphs)})...")
+        data_point_counter = 0
+        for data_point_name, data_point in self.data_split.data_points.items():
+            data_point_counter += 1
+            print(f"Converting {data_point_name} (data_point {data_point_counter} of {len(self.data_split.data_points.keys())})...")
+            data_point_evaluation = self.run_POGG_data_to_text_single_data_point(data_point_name, data_point)
 
-            # convert graph, get eval obj back
-            graph_evaluation = self.run_POGG_data_to_text_single_graph(graph_name, graph_dict)
-
-            # add to POGGEvaluation
-            self.evaluation.add_graph(graph_name, graph_evaluation)
+            # TODO: WEE WOO
+            self.evaluation.add_data_point(data_point_name, data_point_evaluation)
 
         # Calculate metrics for full dataset
         self.evaluation.calculate_metrics()
@@ -502,19 +431,32 @@ class POGGExperiment:
         with open(Path(run_eval_dir, 'dataset_metrics.json'), 'w') as f:
             f.write(json.dumps(self.evaluation.get_POGG_metrics_dict(), indent=4))
 
-        # 4. store eval files for each graph
-        for graph_name, graph_evaluation in self.evaluation.graph_evaluations.items():
-            graph_output_dir = Path(run_eval_dir, "graphs", graph_name)
-            Path.mkdir(graph_output_dir, parents=True, exist_ok=True)
+        # 4. store eval files for each data point
+        for data_point_name, data_point_evaluation in self.evaluation.data_point_evaluations.items():
+            data_point_output_dir = Path(run_eval_dir, "data_points", data_point_name)
+            Path.mkdir(data_point_output_dir, parents=True, exist_ok=True)
 
-            with open(Path(graph_output_dir, graph_name + ".json"), "w") as f:
-                json.dump(graph_evaluation.graph_json, f, indent=4)
+            # with open(Path(data_point_output_dir, data_point_name + ".json"), "w") as f:
+            #     json.dump(data_point_evaluation.graph_json, f, indent=4)
 
-            with open(Path(graph_output_dir, graph_name + "_metrics.json"), "w") as f:
-                json.dump(graph_evaluation.get_POGG_metrics_dict(), f, indent=4)
+            with open(Path(data_point_output_dir, data_point_name + "_metrics.json"), "w") as f:
+                metrics_dict = data_point_evaluation.get_POGG_metrics_dict()
+                json.dump(metrics_dict, f, indent=4)
 
-            with open(Path(graph_output_dir, graph_name + "_text_outputs.json"), "w") as f:
-                json.dump(graph_evaluation.get_text_outputs_dict(), f, indent=4)
+            # 4. store eval files for each graph
+            for graph_name, graph_evaluation in data_point_evaluation.graph_evaluations.items():
+                graph_output_dir = Path(data_point_output_dir, "graphs", graph_name)
+                Path.mkdir(graph_output_dir, parents=True, exist_ok=True)
+
+                with open(Path(graph_output_dir, graph_name + ".json"), "w") as f:
+                    json.dump(graph_evaluation.graph_json, f, indent=4)
+
+                with open(Path(graph_output_dir, graph_name + "_metrics.json"), "w") as f:
+                    json.dump(graph_evaluation.get_POGG_metrics_dict(), f, indent=4)
+
+                with open(Path(graph_output_dir, graph_name + "_text_outputs.json"), "w") as f:
+                    json.dump(graph_evaluation.get_text_outputs_dict(), f, indent=4)
+
 
     def _make_report_graph_directories(self):
         graph_report_dir = Path(self.report_dir, "graphs")
@@ -535,36 +477,36 @@ class POGGExperiment:
         true_incomplete.mkdir(parents=True, exist_ok=True)
         return complete_graphs, full_inclusion_w_results, full_inclusion_no_results, gold_covered, true_incomplete
 
-    def store_experiment_report(self, dataset_report=True, graph_reports=True, dot_files=True):
+    def store_experiment_report(self, dataset_report=True, data_point_reports=True, graph_reports=True, dot_files=True):
         if dataset_report:
             Path(self.report_dir).mkdir(parents=True, exist_ok=True)
             with open(Path(self.report_dir, "dataset_report.txt"), "w") as f:
                 f.write(POGGDatasetReporting.build_dataset_report(self))
 
-        if graph_reports:
-            complete_graphs, full_inclusion_w_results, full_inclusion_no_results, gold_covered, true_incomplete = self._make_report_graph_directories()
 
-            for graph_name, graph_eval in self.evaluation.graph_evaluations.items():
+        if data_point_reports:
+            data_point_reports_dir = Path(self.report_dir, "data_points")
 
-                if graph_eval.node_inclusion == 1.0 and graph_eval.edge_inclusion == 1.0:
-                    if graph_eval.gold_output_generation_coverage == 1.0:
-                        sub_dir = complete_graphs
-                    elif len(graph_eval.generated_results) > 0:
-                        sub_dir = full_inclusion_w_results
-                    else:
-                        sub_dir = full_inclusion_no_results
-                else:
-                    if graph_eval.gold_output_generation_coverage == 1.0:
-                        sub_dir = gold_covered
-                    else:
-                        sub_dir = true_incomplete
+            for data_point_name, data_point_eval in self.evaluation.data_point_evaluations.items():
 
-                with open(Path(sub_dir, graph_name + "_report.txt"), "w") as f:
-                    f.write(POGGGraphReporting.build_graph_report_detail(graph_eval))
+                current_data_point_dir = Path(data_point_reports_dir, data_point_name)
+                Path(current_data_point_dir).mkdir(parents=True, exist_ok=True)
 
-                if dot_files:
-                    with open(Path(sub_dir, graph_name + ".dot"), "w") as f:
-                        POGGGraphUtil.write_graph_to_dot(graph_eval.graph, f)
+                with open(Path(current_data_point_dir, data_point_name + "_report.txt"), "w") as f:
+                    f.write(POGGDataPointReporting.build_data_point_report(data_point_eval))
+
+
+                # now loop through graphs...
+                if graph_reports:
+                    graph_report_dir = Path(current_data_point_dir, "graphs")
+                    Path(graph_report_dir).mkdir(parents=True, exist_ok=True)
+                    for graph_name, graph_eval in data_point_eval.graph_evaluations.items():
+                        with open(Path(graph_report_dir, graph_name + "_report.txt"), "w") as f:
+                            f.write(POGGGraphReporting.build_graph_report_detail(graph_eval))
+
+                        if dot_files:
+                            with open(Path(graph_report_dir, graph_name + ".dot"), "w") as f:
+                                POGGGraphUtil.write_graph_to_dot(graph_eval.graph, f)
 
 
 

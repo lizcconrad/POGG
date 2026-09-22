@@ -18,7 +18,17 @@ class POGGDataSplit:
     def __init__(self, full_data_split_name: str, data_directories: List[Path | str], leaf:bool=False):
         self.full_data_split_name = full_data_split_name
         self.leaf = leaf
-        self.graphs = {}
+
+        # TODO: MULTIGRAPH REFACTOR
+        # change self.graphs to self.data_points
+        # each data_point can have multiple graphs
+        self.data_points = {}
+        # self.graphs = {}
+
+        # i'm constantly recalculating this so let's just make it an attribute
+        self.graph_count = 0
+
+
         self.node_keys = None
         self.edge_keys = None
         # store original names here (i.e. not lexicon keys)
@@ -33,50 +43,92 @@ class POGGDataSplit:
 
         self._set_node_and_edge_keys()
 
-    def _build_graphs(self, graph_json_dir):
-        graph_counter = len(self.graphs.keys())
-        for dir_elem in os.scandir(graph_json_dir):
+    def _build_graphs(self, data_point_json_dir):
+
+        # TODO: MULTIGRAPH REFACTOR
+        # instead of the dataset having a dict of graphs, it has a dict of datapoints each of which can have multiple graphs
+
+        """
+        data_points = {
+            "webnlg_airport_id1": {
+                "graphs": {
+                    "graph_1": {
+                        "graph": nx_graph
+                        "graph_json": graph in json format
+                    }
+                    ...
+                }
+                "gold_outputs": [...]
+            }
+        }
+        """
+
+        # get current count of graphs already in dataset
+        data_point_counter = len(self.data_points.keys())
+
+
+        for dir_elem in os.scandir(data_point_json_dir):
             if dir_elem.is_file() and dir_elem.name.endswith(".json"):
-                graph_name = f"{self.full_data_split_name}_{dir_elem.name.split('.')[0]}_{graph_counter}"
-                graph_counter += 1
 
                 with open(dir_elem.path, 'r') as f:
-                    graph_json = json.load(f)
+                    data_point_json = json.load(f)
 
-                graph = POGGGraphUtil.build_graph(graph_json)
-                self.graphs[graph_name] = {
-                    "graph_json": graph_json,
-                    "graph": graph,
-                    "graph_directory": dir_elem.path,
-                    "gold_outputs": graph_json["gold_outputs"],
+                # TODO: MULTIGRAPH REFACTOR
+                # loop through each graph in data_point
+                data_point = {
+                    "graphs": {},
+                    "gold_outputs": data_point_json["gold_outputs"],
                 }
+                data_point_name = f"{self.full_data_split_name}_{dir_elem.name.split('.')[0]}_{data_point_counter}"
+                data_point_counter += 1
+
+                for graph_name, graph_json in data_point_json["graphs"].items():
+                    graph_name = f"{data_point_name}_{self.graph_count}"
+                    self.graph_count += 1
+
+                    nx_graph = POGGGraphUtil.build_graph(graph_json)
+
+                    data_point["graphs"][graph_name] = {
+                        # TODO: MULTIGRAPH REFACTOR ...what do i use the graph_json field for...
+                        "graph_json": {
+                            "nodes": graph_json["nodes"],
+                            "edges": graph_json["edges"]
+                        },
+                        "graph": nx_graph,
+                        "gold_outputs": graph_json["gold_outputs"]
+                        # "graph_directory": dir_elem.path,
+                    }
+
+                self.data_points[data_point_name] = data_point
 
     def _set_node_and_edge_keys(self):
         nodes = set()
         edges = set()
         original_element_names = set()
-        for graph_name, graph in self.graphs.items():
-            graph_json = graph["graph_json"]
-            for node_name, node_info in graph_json["nodes"].items():
-                original_element_names.add(node_name)
-                if "lexicon_key" in node_info:
-                    nodes.add(node_info["lexicon_key"])
 
-                else:
-                    nodes.add(node_name)
+        for data_point_name, data_point in self.data_points.items():
+            for graph_name, graph in data_point["graphs"].items():
+                graph_json = graph["graph_json"]
+                for node_name, node_info in graph_json["nodes"].items():
+                    original_element_names.add(node_name)
+                    if "lexicon_key" in node_info:
+                        nodes.add(node_info["lexicon_key"])
 
-            for edge_info in graph_json["edges"]:
-                edge_name = edge_info["edge_name"]
-                original_element_names.add(edge_name)
-                if "lexicon_key" in edge_info:
-                    edges.add(edge_info["lexicon_key"])
-                else:
-                    edges.add(edge_name)
+                    else:
+                        nodes.add(node_name)
 
-                if not edge_info["parent_node"] in original_element_names:
-                    nodes.add(edge_info["parent_node"])
-                if not edge_info["child_node"] in original_element_names:
-                    nodes.add(edge_info["child_node"])
+                for edge_info in graph_json["edges"]:
+                    edge_name = edge_info["edge_name"]
+                    original_element_names.add(edge_name)
+                    if "lexicon_key" in edge_info:
+                        edges.add(edge_info["lexicon_key"])
+                    else:
+                        edges.add(edge_name)
+
+                    if not edge_info["parent_node"] in original_element_names:
+                        nodes.add(edge_info["parent_node"])
+                    if not edge_info["child_node"] in original_element_names:
+                        nodes.add(edge_info["child_node"])
 
         self.node_keys = nodes
         self.edge_keys = edges
