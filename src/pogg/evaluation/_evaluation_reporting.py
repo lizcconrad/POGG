@@ -794,6 +794,7 @@ class POGGDatasetReporting:
     @staticmethod
     def build_incomplete_graphs_table(dataset_eval):
         incomplete_graphs_table = PrettyTable([
+            "Data Point Name",
             "Graph Name",
             "Generated SEMENT?",
             "# of text results",
@@ -806,7 +807,8 @@ class POGGDatasetReporting:
         incomplete_graphs_table.title = "INCOMPLETE GRAPHS"
         incomplete_graphs_table.align = "l"
 
-        for data_point_eval_key, data_point_eval in dataset_eval.data_point_evaluations.items():
+        for data_point_eval_key in sorted(dataset_eval.data_point_evaluations.keys()):
+            data_point_eval = dataset_eval.data_point_evaluations[data_point_eval_key]
             for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
                 graph_eval = dataset_eval.graph_evaluations[graph_eval_key]
 
@@ -814,6 +816,7 @@ class POGGDatasetReporting:
                     or graph_eval.edge_coverage != 1.0 or graph_eval.edge_inclusion != 1.0):
 
                     incomplete_graphs_table.add_row([
+                        data_point_eval.data_point_name,
                         graph_eval.graph_name,
                         (graph_eval.generated_SEMENT is not None),
                         len(graph_eval.generated_results),
@@ -830,6 +833,7 @@ class POGGDatasetReporting:
     @staticmethod
     def build_non_text_generating_graphs_table(dataset_eval):
         non_generating_graphs_table = PrettyTable([
+            "Data Point Name",
             "Graph Name",
             "Generated SEMENT?",
             "# of text results",
@@ -842,12 +846,14 @@ class POGGDatasetReporting:
         non_generating_graphs_table.title = "GRAPHS THAT DIDN'T GENERATE TEXT"
         non_generating_graphs_table.align = "l"
 
-        for data_point_eval_key, data_point_eval in dataset_eval.data_point_evaluations.items():
+        for data_point_eval_key in sorted(dataset_eval.data_point_evaluations.keys()):
+            data_point_eval = dataset_eval.data_point_evaluations[data_point_eval_key]
             for graph_eval_key in sorted(data_point_eval.graph_evaluations.keys()):
                 graph_eval = dataset_eval.graph_evaluations[graph_eval_key]
 
                 if len(graph_eval.generated_results) == 0:
                     non_generating_graphs_table.add_row([
+                        data_point_eval.data_point_name,
                         graph_eval.graph_name,
                         (graph_eval.generated_SEMENT is not None),
                         len(graph_eval.generated_results),

@@ -89,12 +89,40 @@ class POGGExperiment:
         # try to find evaluation information from subexperiment
         if self.sub_experiments:
             for sub_experiment in self.sub_experiments:
-                for data_point_name, data_point in sub_experiment.data_split.data_points.items():
-                    for sub_exp_graph_key, sub_exp_graph in data_point["graphs"].items():
-                        if graph_dict["graph_json"] == sub_exp_graph["graph_json"]:
-                            print(f"Found evaluation for {graph_name} in subexperiment {sub_experiment.full_data_split_name} ({sub_exp_graph_key})... copying...")
-                            graph_evaluation = sub_experiment.evaluation.graph_evaluations[sub_exp_graph_key]
+                for data_point_name, data_point_eval in sub_experiment.evaluation.data_point_evaluations.items():
+                    for sub_exp_graph_eval_key, sub_exp_graph_eval in data_point_eval.graph_evaluations.items():
+                        if graph_dict["graph_json"] == sub_exp_graph_eval.graph_json:
+                            print(
+                                f"Found evaluation for {graph_name} in subexperiment {sub_experiment.full_data_split_name} ({sub_exp_graph_eval_key})... copying...")
+                            # TODO: can't do deepcopy so the SEMENTs inside this object are the same object as the original
+                            # i don't think this matters anywhere because i should be doing duplicate_SEMENT() anywhere i want to modify
+                            # but should probably make this more robust
+                            graph_evaluation = copy.copy(sub_exp_graph_eval)
+
+                            # change the name of the graph from the graph_name in the subexperiment to the name of the graph in the current experiment
+                            graph_evaluation.graph_name = graph_name
+
                             return graph_evaluation
+
+
+        # try to find evaluation information from other graphs already generated for this split
+        # that is, sometimes the same graph is used across multiple data points so avoid recomposing/generating
+        for data_point_eval_key, data_point_eval in self.evaluation.data_point_evaluations.items():
+            for graph_key, graph in data_point_eval.graphs.items():
+                if graph_dict["graph_json"] == graph["graph_json"]:
+                    print(
+                        f"Found evaluation for {graph_name} in from previous data point ({data_point_eval.data_point_name})... copying...")
+                    # TODO: can't do deepcopy so the SEMENTs inside this object are the same object as the original
+                    # i don't think this matters anywhere because i should be doing duplicate_SEMENT() anywhere i want to modify
+                    # but should probably make this more robust
+                    graph_evaluation = copy.copy(data_point_eval.graph_evaluations[graph_key])
+
+                    # change the name of the graph from the graph_name in the subexperiment to the name of the graph in the current experiment
+                    graph_evaluation.graph_name = graph_name
+
+                    return graph_evaluation
+
+
 
         # if evaluation from a subexperiment was not found, proceed with conversion
         graph_evaluation = POGGGraphEvaluation(graph_name, graph_dict)
