@@ -229,7 +229,7 @@ class POGGLexiconEntry:
         # if "arg1" is in the entry, then it's a list of variable arguments, so loop through those instead
         if "arg1" in edge_entry:
             for key in edge_entry.keys():
-                if edge_entry[key] == "parent" or edge_entry[key] == "child":
+                if edge_entry[key] == "parent" or edge_entry[key] == "child" or edge_entry[key] == "boolean_SEMENT":
                     continue
                 self._validate_edge_entry(edge_entry[key])
             # if we make it here then return True for the variable arguments param
@@ -261,7 +261,7 @@ class POGGLexiconEntry:
                         # if the value is empty, it's not complete so just continue
                         if edge_entry[key] == "":
                             continue
-                        elif edge_entry[key] == "parent" or edge_entry[key] == "child":
+                        elif edge_entry[key] == "parent" or edge_entry[key] == "child" or edge_entry[key] == "boolean_SEMENT":
                             continue
                         # if the edge is introducing another SEMENT directly, continue
                         elif isinstance(edge_entry[key], dict):
@@ -617,6 +617,17 @@ class POGGLexiconEntry:
         if comp_fxn_name == "":
             return edge_entry
 
+        # TODO: this is lowkey ghastly but whatever
+        # eh maybe it's not so bad
+        if comp_fxn_name == "boolean_edge":
+            # basically create a nested node entry and then put the fully expanded dict as the value of "main_comp_info"
+            if "main_comp_info" not in edge_entry:
+                edge_entry["main_comp_info"] = {
+                    "comp_fxn": ""
+                }
+            else:
+                nested_entry = self._expand_edge_entry(edge_entry["main_comp_info"])
+
         # get parameters for the comp_fxn
         comp_fxn_obj = getattr(SemanticComposition, comp_fxn_name)
         parameters = inspect.signature(comp_fxn_obj).parameters
@@ -644,12 +655,13 @@ class POGGLexiconEntry:
                 # otherwise insert empty string
                 else:
                     edge_entry[param_name] = ""
-            # if it is in the entry, the type is SEMENT, and the value is not "parent" or "child", recurse down for further expansion
+            # if it is in the entry, the type is SEMENT, and the value is not "parent" or "child" recurse down for further expansion
+            # (...or "boolean_SEMENT" which isn't super robust because that should only apply if the outer entry is a boolean edge but whatever for now
             elif (param_information.annotation.__name__ == "SEMENT"
-                  and not (edge_entry[param_name] == "parent" or edge_entry[param_name] == "child")):
+                  and not (edge_entry[param_name] == "parent" or edge_entry[param_name] == "child" or edge_entry[param_name] == "boolean_SEMENT")):
                 if "_args" in param_name:
                     for key in edge_entry[param_name]:
-                        if edge_entry[param_name][key] != "parent" and edge_entry[param_name][key] != "child":
+                        if edge_entry[param_name][key] != "parent" and edge_entry[param_name][key] != "child" and edge_entry[param_name][key] != "boolean_SEMENT":
                             self._expand_edge_entry(edge_entry[param_name][key])
                 else:
                     self._expand_edge_entry(edge_entry[param_name])

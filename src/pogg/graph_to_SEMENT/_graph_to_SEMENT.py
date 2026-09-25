@@ -63,6 +63,18 @@ class POGGGraphConverter:
 
         comp_fxn_obj = getattr(self.semantic_composition, comp_fxn_name)
 
+        # ... handle boolean edge nested entry i guess ...
+        if comp_fxn_name == "boolean_edge":
+            try:
+                for key in given_parameters["main_comp_info"].parameters.keys():
+                    if given_parameters["main_comp_info"].parameters[key] == "parent":
+                        given_parameters["main_comp_info"].parameters[key] = parent
+                    elif given_parameters["main_comp_info"].parameters[key] == "child":
+                        given_parameters["main_comp_info"].parameters[key] = child
+            except KeyError:
+                raise KeyError(f"The parameter 'main_comp_info' is not defined in the lexicon entry; {given_parameters}")
+
+
         # get parameters for the comp_fxn
         defined_parameter_keys = inspect.signature(comp_fxn_obj).parameters
 
@@ -235,6 +247,16 @@ class POGGGraphConverter:
             # get comp_fxn
             comp_fxn_name = self.lexicon.edge_entries[edge['lexicon_key']].composition_function_name
             param_vals = copy.deepcopy(self.lexicon.edge_entries[edge['lexicon_key']].parameters)
+
+            # # if 'boolean_edge' then need to swap out parent or child in the nested main_comp_info entry
+            # if comp_fxn_name == "boolean_edge":
+            #     for key in param_vals["main_comp_info"].keys():
+            #         if param_vals["main_comp_info"][key] == "parent":
+            #             param_vals["main_comp_info"][key] = parent
+            #         elif param_vals["main_comp_info"][key] == "child":
+            #             param_vals["main_comp_info"][key] = child
+
+
         except KeyError:
             if edge_evaluation:
                 edge_evaluation.edge_covered = False
