@@ -141,7 +141,10 @@ class POGGLexicon:
             entries_dict["node_entries"][node_key] = entry_obj
 
         for edge_key, edge_entry in file_json['edge_entries'].items():
-            entry_obj = POGGLexiconEntry(edge_key, edge_entry, "edge")
+            if "entry_type" not in edge_entry:
+                entry_obj = POGGLexiconEntry(edge_key, edge_entry, "edge")
+            else:
+                entry_obj = POGGLexiconEntry(edge_key, edge_entry, edge_entry["entry_type"])
             entries_dict["edge_entries"][edge_key] = entry_obj
 
         return entries_dict

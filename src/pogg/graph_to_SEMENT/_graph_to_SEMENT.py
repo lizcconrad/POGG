@@ -45,7 +45,7 @@ class POGGGraphConverter:
 
         self.lexicon = lexicon
 
-    def get_SEMENT(self, comp_fxn_name, given_parameters, parent=None, child=None):
+    def get_SEMENT(self, comp_fxn_name, given_parameters, parent=None, child=None, boolean_SEMENT=None):
         """
         Get a SEMENT object by providing the composition function name and parameters for the function call.
 
@@ -62,18 +62,6 @@ class POGGGraphConverter:
         """
 
         comp_fxn_obj = getattr(self.semantic_composition, comp_fxn_name)
-
-        # ... handle boolean edge nested entry i guess ...
-        if comp_fxn_name == "boolean_edge":
-            try:
-                for key in given_parameters["main_comp_info"].parameters.keys():
-                    if given_parameters["main_comp_info"].parameters[key] == "parent":
-                        given_parameters["main_comp_info"].parameters[key] = parent
-                    elif given_parameters["main_comp_info"].parameters[key] == "child":
-                        given_parameters["main_comp_info"].parameters[key] = child
-            except KeyError:
-                raise KeyError(f"The parameter 'main_comp_info' is not defined in the lexicon entry; {given_parameters}")
-
 
         # get parameters for the comp_fxn
         defined_parameter_keys = inspect.signature(comp_fxn_obj).parameters
@@ -94,6 +82,8 @@ class POGGGraphConverter:
                     elif param_val == "child":
                         parameters_to_pass[key] = child
                         continue
+                    elif param_val == "boolean_SEMENT":
+                        parameters_to_pass[key] = boolean_SEMENT
                     elif not optional_param or (optional_param and param_val):
                         # if it's a list of args...
                         if type(param_val) is dict and "arg1" in param_val:
@@ -107,7 +97,7 @@ class POGGGraphConverter:
                         elif not isinstance(given_parameters[key], SEMENT):
                             nested_comp_fxn = given_parameters[key].composition_function_name
                             nested_params = copy.deepcopy(given_parameters[key].parameters)
-                            parameters_to_pass[key] = self.get_SEMENT(nested_comp_fxn, nested_params, parent, child)
+                            parameters_to_pass[key] = self.get_SEMENT(nested_comp_fxn, nested_params, parent, child, boolean_SEMENT)
                             continue
 
                     # only gets here if...
@@ -245,16 +235,32 @@ class POGGGraphConverter:
 
         try:
             # get comp_fxn
-            comp_fxn_name = self.lexicon.edge_entries[edge['lexicon_key']].composition_function_name
-            param_vals = copy.deepcopy(self.lexicon.edge_entries[edge['lexicon_key']].parameters)
+            edge_lex_ent = self.lexicon.edge_entries[edge['lexicon_key']]
 
-            # # if 'boolean_edge' then need to swap out parent or child in the nested main_comp_info entry
-            # if comp_fxn_name == "boolean_edge":
-            #     for key in param_vals["main_comp_info"].keys():
-            #         if param_vals["main_comp_info"][key] == "parent":
-            #             param_vals["main_comp_info"][key] = parent
-            #         elif param_vals["main_comp_info"][key] == "child":
-            #             param_vals["main_comp_info"][key] = child
+            boolean_SEMENT = None
+            if edge_lex_ent.entry_type == "boolean_edge":
+                # 1. figure out whether to pass true_ or false_SEMENT
+                if edge_lex_ent.parameters["boolean_value_node"] == "parent":
+                    bool_key = SEMENTUtil.get_key_rel(parent)
+                else:
+                    bool_key = SEMENTUtil.get_key_rel(child)
+
+                if bool_key.predicate == "_true_a_of":
+                    boolean_lex_ent = edge_lex_ent.parameters["true_SEMENT"]
+                    boolean_SEMENT = self.get_SEMENT(boolean_lex_ent.composition_function_name, boolean_lex_ent.parameters,
+                                                     parent, child)
+                else:
+                    boolean_lex_ent = edge_lex_ent.parameters["false_SEMENT"]
+                    boolean_SEMENT = self.get_SEMENT(boolean_lex_ent.composition_function_name,
+                                                     boolean_lex_ent.parameters,
+                                                     parent, child)
+
+                # swap edge lex ent to the nested one
+                edge_lex_ent = edge_lex_ent.parameters["main_comp_info"]
+
+
+            comp_fxn_name = edge_lex_ent.composition_function_name
+            param_vals = copy.deepcopy(edge_lex_ent.parameters)
 
 
         except KeyError:
@@ -270,10 +276,12 @@ class POGGGraphConverter:
                 param_vals[key] = parent
             elif param_vals[key] == 'child':
                 param_vals[key] = child
+            elif param_vals[key] == "boolean_SEMENT":
+                param_vals[key] = boolean_SEMENT
             # if there's a parameter that introduces its own SEMENT, build it and insert it as the value
             # TODO: this is rancid but i'm getting circular import problems and the only reason i even import this class is for this check...
             elif str(type(param_vals[key])) == "<class 'pogg.lexicon._lexicon_entry.POGGLexiconEntry'>":
-                param_vals[key] = self.get_SEMENT(param_vals[key].composition_function_name, param_vals[key].parameters, parent, child)
+                param_vals[key] = self.get_SEMENT(param_vals[key].composition_function_name, param_vals[key].parameters, parent, child, boolean_SEMENT)
             else:
                 # I don't think I should raise an error?
                 # If there's some other edge parameter, just leave it alone
@@ -281,7 +289,7 @@ class POGGGraphConverter:
 
         # if some other unforeseen error occurs, leave it in the comment and proceed
         try:
-            sement = self.get_SEMENT(comp_fxn_name, param_vals, parent, child)
+            sement = self.get_SEMENT(comp_fxn_name, param_vals, parent, child, boolean_SEMENT)
         except Exception as err:
             if edge_evaluation:
                 edge_evaluation.generation_comment = f"Error during execution ({err})"

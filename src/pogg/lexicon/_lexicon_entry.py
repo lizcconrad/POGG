@@ -40,10 +40,18 @@ class POGGLexiconEntry:
         self.entry_type = entry_information["entry_type"]
 
         self.entry_in_dict_format = entry_information["lexicon_entry"]
-        self.composition_function_name = self.entry_in_dict_format["comp_fxn"]
+
+        if self.entry_type == "boolean_edge":
+             self.composition_function_name = "boolean_edge"
+        else:
+            self.composition_function_name = self.entry_in_dict_format["comp_fxn"]
+
+
         self.parameters = copy.deepcopy(self.entry_in_dict_format)
         # parameters is everything besides "comp_fxn"
-        self.parameters.pop("comp_fxn")
+        if "comp_fxn" in self.parameters:
+            self.parameters.pop("comp_fxn")
+
 
         default_flags = {
             "auto_filled": False,
@@ -88,6 +96,8 @@ class POGGLexiconEntry:
         try:
             if self.entry_type == "node":
                 self.valid = self._validate_node_entry(self.entry_in_dict_format)
+            elif self.entry_type == "boolean_edge":
+                self.valid = self._validate_boolean_edge_entry(self.entry_in_dict_format)
             else:
                 self.valid = self._validate_edge_entry(self.entry_in_dict_format)
         except (AttributeError, KeyError, ValueError) as err:
@@ -101,6 +111,8 @@ class POGGLexiconEntry:
     def check_entry_completion(self):
         if self.entry_type == "node":
             self.complete = self._check_node_entry_completion(self.entry_in_dict_format)
+        elif self.entry_type == "boolean_edge":
+            self.complete = self._check_boolean_edge_entry_completion(self.entry_in_dict_format)
         else:
             self.complete = self._check_edge_entry_completion(self.entry_in_dict_format)
         return self.complete
@@ -113,6 +125,8 @@ class POGGLexiconEntry:
             # this is because entries with optional params are marked "complete" even when they aren't filled out
             if self.entry_type == "node":
                 self._expand_node_entry(self.entry_in_dict_format)
+            elif self.entry_type == "boolean_edge":
+                self._expand_boolean_edge_entry(self.entry_in_dict_format)
             else:
                 self._expand_edge_entry(self.entry_in_dict_format)
 
@@ -226,21 +240,21 @@ class POGGLexiconEntry:
         | `boolean` | result of the validation check |
         """
 
+        # if there's an existing failure message, clear it out
+        if "failure_msg" in edge_entry:
+            edge_entry.pop("failure_msg")
+
         # if "arg1" is in the entry, then it's a list of variable arguments, so loop through those instead
         if "arg1" in edge_entry:
             for key in edge_entry.keys():
-                if edge_entry[key] == "parent" or edge_entry[key] == "child" or edge_entry[key] == "boolean_SEMENT":
+                if edge_entry[key] == "parent" or edge_entry[key] == "child":
                     continue
                 self._validate_edge_entry(edge_entry[key])
             # if we make it here then return True for the variable arguments param
             return True
 
-        comp_fxn_name = edge_entry["comp_fxn"]
-        # if comp_fxn_name is empty, it's incomplete, so just return
 
-        # if there's an existing failure message, clear it out
-        if "failure_msg" in edge_entry:
-            edge_entry.pop("failure_msg")
+        comp_fxn_name = edge_entry["comp_fxn"]
 
         if comp_fxn_name == "":
             return True
@@ -279,6 +293,35 @@ class POGGLexiconEntry:
             raise AttributeError(err.args[0], edge_entry)
 
         return True
+
+    def _validate_boolean_edge_entry(self, edge_entry):
+        # assume all valid until proven otherwise
+        true_SEMENT_valid, false_SEMENT_valid, main_comp_info_valid = True, True, True
+
+        # check each boolean attribute individually...hrm..
+        if "boolean_value_node" in edge_entry:
+            if (edge_entry["boolean_value_node"] != "" and edge_entry["boolean_value_node"] != "parent"
+                    and edge_entry["boolean_value_node"] != "child"):
+                edge_entry[
+                    "failure_msg"] = f"'boolean_value_node' should have a value of 'parent' or 'child'"
+                raise ValueError(edge_entry["failure_msg"], edge_entry)
+
+            if "true_SEMENT" in edge_entry:
+                if isinstance(edge_entry["true_SEMENT"], dict):
+                    if "comp_fxn" in edge_entry["true_SEMENT"]:
+                        true_SEMENT_valid = self._validate_edge_entry(edge_entry["true_SEMENT"])
+
+            if "false_SEMENT" in edge_entry:
+                if isinstance(edge_entry["false_SEMENT"], dict):
+                    if "comp_fxn" in edge_entry["false_SEMENT"]:
+                        false_SEMENT_valid = self._validate_edge_entry(edge_entry["false_SEMENT"])
+
+            if "main_comp_info" in edge_entry:
+                if "comp_fxn" in edge_entry["main_comp_info"]:
+                    main_comp_info_valid = self._validate_edge_entry(edge_entry["main_comp_info"])
+
+        return true_SEMENT_valid and false_SEMENT_valid and main_comp_info_valid
+
 
     def _check_node_entry_completion(self, node_entry):
         """
@@ -444,6 +487,54 @@ class POGGLexiconEntry:
                 return False
 
         return True
+
+    def _check_boolean_edge_entry_completion(self, edge_entry):
+        # check each boolean attribute individually...hrm..
+        if "boolean_value_node" not in edge_entry:
+            return False
+        else:
+            if "boolean_value_node" not in edge_entry:
+                return False
+            else:
+                if edge_entry["boolean_value_node"] != "parent" and edge_entry["boolean_value_node"] != "child":
+                    return False
+
+            if "true_SEMENT" not in edge_entry:
+                return False
+            else:
+                if edge_entry["true_SEMENT"] == "":
+                    return False
+                elif isinstance(edge_entry["true_SEMENT"], dict):
+                    if "comp_fxn" not in edge_entry["true_SEMENT"]:
+                        return False
+                    else:
+                        if not self._check_edge_entry_completion(edge_entry["true_SEMENT"]):
+                            return False
+
+            if "false_SEMENT" not in edge_entry:
+                return False
+            else:
+                if edge_entry["false_SEMENT"] == "":
+                    return False
+                elif isinstance(edge_entry["false_SEMENT"], dict):
+                    if "comp_fxn" not in edge_entry["false_SEMENT"]:
+                        return False
+                    else:
+                        if not self._check_edge_entry_completion(edge_entry["false_SEMENT"]):
+                            return False
+
+            if "main_comp_info" not in edge_entry:
+                return False
+            else:
+                if "comp_fxn" not in edge_entry["main_comp_info"]:
+                    return False
+                else:
+                    if not self._check_edge_entry_completion(edge_entry["main_comp_info"]):
+                        return False
+
+        return True
+
+
 
     def _expand_node_entry(self, node_entry):
         """
@@ -617,17 +708,6 @@ class POGGLexiconEntry:
         if comp_fxn_name == "":
             return edge_entry
 
-        # TODO: this is lowkey ghastly but whatever
-        # eh maybe it's not so bad
-        if comp_fxn_name == "boolean_edge":
-            # basically create a nested node entry and then put the fully expanded dict as the value of "main_comp_info"
-            if "main_comp_info" not in edge_entry:
-                edge_entry["main_comp_info"] = {
-                    "comp_fxn": ""
-                }
-            else:
-                nested_entry = self._expand_edge_entry(edge_entry["main_comp_info"])
-
         # get parameters for the comp_fxn
         comp_fxn_obj = getattr(SemanticComposition, comp_fxn_name)
         parameters = inspect.signature(comp_fxn_obj).parameters
@@ -656,7 +736,6 @@ class POGGLexiconEntry:
                 else:
                     edge_entry[param_name] = ""
             # if it is in the entry, the type is SEMENT, and the value is not "parent" or "child" recurse down for further expansion
-            # (...or "boolean_SEMENT" which isn't super robust because that should only apply if the outer entry is a boolean edge but whatever for now
             elif (param_information.annotation.__name__ == "SEMENT"
                   and not (edge_entry[param_name] == "parent" or edge_entry[param_name] == "child" or edge_entry[param_name] == "boolean_SEMENT")):
                 if "_args" in param_name:
@@ -671,6 +750,33 @@ class POGGLexiconEntry:
 
         return edge_entry
 
+    def _expand_boolean_edge_entry(self, edge_entry):
+        if "boolean_value_node" not in edge_entry:
+            edge_entry["boolean_value_node"] = ""
+
+        if "true_SEMENT" not in edge_entry:
+            edge_entry["true_SEMENT"] = {
+                "comp_fxn": ""
+            }
+        else:
+            edge_entry["true_SEMENT"] = self._expand_edge_entry(edge_entry["true_SEMENT"])
+
+        if "false_SEMENT" not in edge_entry:
+            edge_entry["false_SEMENT"] = {
+                "comp_fxn": ""
+            }
+        else:
+            edge_entry["false_SEMENT"] = self._expand_edge_entry(edge_entry["false_SEMENT"])
+
+        # basically create an artificial nested node entry and then put the fully expanded dict as the value of "main_comp_info"
+        if "main_comp_info" not in edge_entry:
+            edge_entry["main_comp_info"] = {
+                "comp_fxn": "",
+            }
+        else:
+            nested_entry = self._expand_edge_entry(edge_entry["main_comp_info"])
+        return edge_entry
+
     def _convert_dict_format_to_POGGLexiconEntry_objects(self, dict_key=None, dict_entry=None):
 
         if dict_key is None:
@@ -680,7 +786,11 @@ class POGGLexiconEntry:
             dict_entry = self.entry_in_dict_format
             entry = self
         else:
-            entry = POGGLexiconEntry(dict_key, dict_entry, self.entry_type)
+            # don't propagate "boolean_edge" as type for sub entries
+            if self.entry_type == "boolean_edge":
+                entry = POGGLexiconEntry(dict_key, dict_entry, "edge")
+            else:
+                entry = POGGLexiconEntry(dict_key, dict_entry, self.entry_type)
 
         for param_name in dict_entry.keys():
             if param_name != "comp_fxn":
