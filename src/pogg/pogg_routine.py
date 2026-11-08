@@ -250,7 +250,7 @@ class POGGExperiment:
                             # TODO: SOME MERGES RETURN MULTIPLE SEMENTS
                             try:
                                 merged_SEMENT = processing_fxn_obj(current_SEMENT[0], second_SEMENT[0])
-                            except ValueError:
+                            except:
                                 merged_SEMENT = None
                             # failed merging functions return None
                             if merged_SEMENT is not None:
