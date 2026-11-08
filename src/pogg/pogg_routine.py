@@ -13,6 +13,7 @@ import json
 import re
 from delphin import ace
 from typing import List, Dict, overload
+import inspect
 
 from pogg_semantics.pogg_config import POGGCompositionConfig
 from pogg_semantics.semantic_composition import SemanticAlgebra, SemanticComposition, SEMENTUtil
@@ -21,7 +22,8 @@ from pogg.lexicon import POGGLexicon, POGGLexiconAutoFiller
 from pogg.data_handling import POGGDataset, POGGDataSplit, POGGGraphUtil
 from pogg.evaluation import (POGGEvaluation, POGGGraphEvaluation, POGGDataPointEvaluation,
                              POGGGraphReporting, POGGDataPointReporting, POGGDatasetReporting)
-from pogg.graph_to_SEMENT import POGGGraphConverter
+from pogg.graph_to_SEMENT import POGGGraphConverter, SEMENTProcessingRoutines
+from pogg_semantics.my_delphin import sementcodecs
 
 
 class POGGExperiment:
@@ -80,6 +82,29 @@ class POGGExperiment:
         self.evaluation = POGGEvaluation(self.experiment_name)
 
         self.sub_experiments = sub_experiments
+
+    def generate_from_SEMENT(self, gen_from: str):
+        # TODO: make this configurable, for now just choose one or the other
+        with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location,
+                              ['-r', 'root_gen_nopass']) as generator:
+            response = generator.interact(gen_from)
+            results = response.results()
+
+        # if there aren't results using nopass, ease up and allow passive,
+        if len(results) == 0:
+            with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location,
+                                  ['-r', 'root_gen']) as generator:
+                response = generator.interact(gen_from)
+                results = response.results()
+
+        # if still no results from generating full sentences, try fragments
+        if len(results) == 0:
+            with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location,
+                                  ['-r', 'root_frag']) as generator:
+                response = generator.interact(gen_from)
+                results = response.results()
+
+        return results
 
 
     def run_POGG_data_to_text_single_graph(self, graph_name, graph_dict):
@@ -140,22 +165,7 @@ class POGGExperiment:
             final_sement = self.graph_converter.semantic_algebra.prepare_for_generation(sement)
             graph_evaluation.set_prepped_SEMENT(final_sement)
 
-            # TODO: make this configurable, for now just choose one or the other
-            with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_gen_nopass']) as generator:
-                response = generator.interact(graph_evaluation.prepped_SEMENT_string)
-                results = response.results()
-
-            # if there aren't results using nopass, ease up and allow passive,
-            if len(results) == 0:
-                with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_gen']) as generator:
-                    response = generator.interact(graph_evaluation.prepped_SEMENT_string)
-                    results = response.results()
-
-            # if still no results from generating full sentences, try fragments
-            if len(results) == 0:
-                with ace.ACEGenerator(self.graph_converter.composition_config.grammar_location, ['-r', 'root_frag']) as generator:
-                    response = generator.interact(graph_evaluation.prepped_SEMENT_string)
-                    results = response.results()
+            results = self.generate_from_SEMENT(graph_evaluation.prepped_SEMENT_string)
 
             # Store results in evaluation object
             for r in results:
@@ -183,9 +193,100 @@ class POGGExperiment:
             # TODO: don't do this separately in the future but for now just leave it
             self.evaluation.add_graph(graph_name, graph_evaluation)
 
+        # do SEMENT processing here if any
+        # apply in order in the list
+        self.perform_SEMENT_processing(data_point_evaluation)
+
+
         # return POGGDataPointEvaluation
         data_point_evaluation.calculate_metrics()
         return data_point_evaluation
+
+
+    def perform_SEMENT_processing(self, data_point_evaluation):
+
+        # apply each processing routine
+        # dummy_fxns = [
+        #     "universal_singular",
+        #     "universal_present",
+        #     "specify_quantifiers_to_a",
+        #     "verb_phrase_coordination_merge",
+        #     "pronoun_replacement_merge"
+        # ]
+
+        #create list of working SEMENTs but only ones that generated results
+        working_SEMENTs = []
+        # first time get SEMENTs from graph evals
+        for _, graph_eval in data_point_evaluation.graph_evaluations.items():
+            if len(graph_eval.generated_results) > 0:
+                # use the ORIGINAL SEMENT because the prepped one is wrapped in GTOP which messes up LBL sharing
+                working_SEMENTs.append((SEMENTUtil.duplicate_sement(graph_eval.collapsed_SEMENT), 0))
+
+        finished_SEMENTs = []
+        for processing_fxn_name in self.SEMENT_processing:
+            # get processing_fxn_obj
+            processing_fxn_obj = getattr(self.graph_converter.semantic_composition, processing_fxn_name)
+            defined_parameter_keys = inspect.signature(processing_fxn_obj).parameters
+            num_SEMENT_args = len([defined_parameter_keys[key].annotation.__name__ for key in defined_parameter_keys
+                                   if defined_parameter_keys[key].annotation.__name__ == "SEMENT"])
+
+            new_working_SEMENTs = []
+            while len(working_SEMENTs) > 0:
+                current_SEMENT = working_SEMENTs.pop(0)
+
+
+                # if the function only takes one SEMENT, just apply it
+                if num_SEMENT_args == 1:
+                    # tuple (SEMENT, # of merges)
+                    new_working_SEMENTs.append((processing_fxn_obj(current_SEMENT[0]), 0))
+                else:
+                    # if already gone through two merge operations, skip it
+                    if current_SEMENT[1] >= 2:
+                        finished_SEMENTs.append(current_SEMENT)
+                        continue
+                    else:
+                        if len(working_SEMENTs) > 0:
+                            second_SEMENT = working_SEMENTs.pop(0)
+                            # TODO: SOME MERGES RETURN MULTIPLE SEMENTS
+                            try:
+                                merged_SEMENT = processing_fxn_obj(current_SEMENT[0], second_SEMENT[0])
+                            except ValueError:
+                                merged_SEMENT = None
+                            # failed merging functions return None
+                            if merged_SEMENT is not None:
+                                if not isinstance(merged_SEMENT, tuple) and not isinstance(merged_SEMENT, list):
+                                    merged_SEMENT = [merged_SEMENT]
+                                for s in merged_SEMENT:
+                                    s = SEMENTUtil.overwrite_eqs(s)
+                                    new_working_SEMENTs.append((s, current_SEMENT[1] + 1))
+                            else:
+                                # mark as merged (technically it might merge with another sentence but don't wanna loop forever)
+                                new_working_SEMENTs.append((current_SEMENT[0], current_SEMENT[1] + 1))
+                                new_working_SEMENTs.append((second_SEMENT[0], second_SEMENT[1] + 1))
+                        else:
+                            new_working_SEMENTs.append((current_SEMENT[0], current_SEMENT[1]+ 1))
+            working_SEMENTs = new_working_SEMENTs
+        finished_SEMENTs.extend(new_working_SEMENTs)
+
+
+        for sem, _ in finished_SEMENTs:
+            modified_prepped = self.graph_converter.semantic_algebra.prepare_for_generation(sem)
+            data_point_evaluation.modified_data_point_SEMENTs.append(modified_prepped)
+            sem_string = sementcodecs.encode(modified_prepped, indent=True)
+            data_point_evaluation.modified_data_point_SEMENT_strings.append(sem_string)
+
+            # TODO: for now this is just a parallel list...whatever
+            results = self.generate_from_SEMENT(sem_string)
+            result_set = set()
+            for r in results:
+                result_set.add(r['surface'])
+            data_point_evaluation.modified_generated_results.append(result_set)
+
+        return data_point_evaluation
+
+
+
+
 
     def run_experiment(self):
         """
@@ -217,6 +318,7 @@ class POGGExperiment:
 
             # TODO: WEE WOO
             self.evaluation.add_data_point(data_point_name, data_point_evaluation)
+
 
         # Calculate metrics for full dataset
         self.evaluation.calculate_metrics()
@@ -470,6 +572,10 @@ class POGGExperiment:
             with open(Path(data_point_output_dir, data_point_name + "_metrics.json"), "w") as f:
                 metrics_dict = data_point_evaluation.get_POGG_metrics_dict()
                 json.dump(metrics_dict, f, indent=4)
+
+            with open(Path(data_point_output_dir, data_point_name + "_text_outputs.json"), "w") as f:
+                text_outputs_dict = data_point_evaluation.get_text_outputs_dict()
+                json.dump(text_outputs_dict, f, indent=4)
 
             # 4. store eval files for each graph
             for graph_name, graph_evaluation in data_point_evaluation.graph_evaluations.items():

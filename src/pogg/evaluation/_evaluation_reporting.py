@@ -392,7 +392,7 @@ class POGGGraphReporting:
 
 class POGGDataPointReporting:
     @staticmethod
-    def build_dataset_metrics_table(data_point_eval):
+    def build_datapoint_metrics_table(data_point_eval):
         """
         Build an ASCII table detailing evaluation metrics for a dataset.
 
@@ -439,6 +439,10 @@ class POGGDataPointReporting:
         metrics_table.add_row(["Graphs w/ SEMENTs coverage", data_point_eval.graph_SEMENT_coverage])
         metrics_table.add_row(["Graphs that generated text", data_point_eval.graphs_with_text_count])
         metrics_table.add_row(["Graphs w/ text coverage", data_point_eval.graphs_with_text_coverage], divider=True)
+
+        metrics_table.add_row(["# Modified/Merged SEMENTs", len(data_point_eval.modified_data_point_SEMENT_strings)])
+        metrics_table.add_row(["# Modified/Merged w/ text results", data_point_eval.modified_SEMENTs_that_generate_count])
+        metrics_table.add_row(["# Modified/Merged w/ text results coverage", data_point_eval.modified_SEMENTs_that_generate_coverage], divider=True)
 
         metrics_table.add_row(["Total Node Count", data_point_eval.full_node_count])
         metrics_table.add_row(["Total Nodes Covered", data_point_eval.full_nodes_covered])
@@ -597,6 +601,22 @@ class POGGDataPointReporting:
         return incomplete_graphs_table
 
     @staticmethod
+    def build_modified_text_results_table(data_point_eval):
+        gen_text_table = PrettyTable(["#", "Generated Text"])
+        gen_text_table.title = "GENERATED ENGLISH TEXT"
+        gen_text_table.align = "l"
+
+        for results_list in data_point_eval.modified_generated_results:
+            for i, txt in enumerate(sorted(results_list)):
+                if i == len(results_list) - 1:
+                    divide = True
+                else:
+                    divide = False
+                gen_text_table.add_row([i + 1, txt], divider=divide)
+
+        return gen_text_table
+
+    @staticmethod
     def build_non_text_generating_graphs_table(data_point_eval):
         non_generating_graphs_table = PrettyTable([
             "Graph Name",
@@ -648,9 +668,12 @@ class POGGDataPointReporting:
         """
 
         report = f"DATA POINT: {data_point_eval.data_point_name}\n"
-        report += str(POGGDataPointReporting.build_dataset_metrics_table(data_point_eval)) + "\n\n"
+        report += str(POGGDataPointReporting.build_datapoint_metrics_table(data_point_eval)) + "\n\n"
         report += str(POGGDataPointReporting.build_data_point_SEMENT_table(data_point_eval, "ORIGINAL")) + "\n\n"
         report += str(POGGDataPointReporting.build_data_point_SEMENT_table(data_point_eval, "MODIFIED")) + "\n\n"
+
+        report += str(POGGDataPointReporting.build_modified_text_results_table(data_point_eval))
+
         report += str(POGGDataPointReporting.build_incomplete_graphs_table(data_point_eval)) + "\n\n"
         report += str(POGGDataPointReporting.build_non_text_generating_graphs_table(data_point_eval)) + "\n\n"
         report += str(POGGDataPointReporting.build_graphs_report_summary(data_point_eval)) + "\n\n"
@@ -710,6 +733,12 @@ class POGGDatasetReporting:
         metrics_table.add_row(["Graphs w/ SEMENTs coverage", dataset_eval.graph_SEMENT_coverage])
         metrics_table.add_row(["Graphs that generated text", dataset_eval.graphs_with_text_count])
         metrics_table.add_row(["Graphs w/ text coverage", dataset_eval.graphs_with_text_coverage], divider=True)
+
+        metrics_table.add_row(["Data Point Count", dataset_eval.data_point_count])
+        metrics_table.add_row(["# Data Points w/ Mod. SEMENTs", dataset_eval.data_points_with_modified_SEMENTs_count])
+        metrics_table.add_row(["# Data Points w/ Mod. SEMENTs cov.", dataset_eval.data_points_with_modified_SEMENTs_coverage])
+        metrics_table.add_row(["# Data Points w/ Mod. SEMENTs & full text", dataset_eval.data_points_with_full_text_results_count])
+        metrics_table.add_row(["# Data Points w/ Mod. SEMENTs & full text cov.", dataset_eval.data_points_with_full_text_results_coverage])
 
         metrics_table.add_row(["Total Node Count", dataset_eval.full_node_count])
         metrics_table.add_row(["Total Nodes Covered", dataset_eval.full_nodes_covered])
@@ -868,6 +897,21 @@ class POGGDatasetReporting:
         return non_generating_graphs_table
 
     @staticmethod
+    def build_incomplete_modified_results_table(dataset_eval):
+        non_generating_graphs_table = PrettyTable([
+            "Data Point Name"])
+        non_generating_graphs_table.title = "DATA POINTS WITH MODIFIED SEMENTs THAT DIDN'T GENERATE"
+        non_generating_graphs_table.align = "l"
+
+        for data_point_eval_key in sorted(dataset_eval.data_point_evaluations.keys()):
+            data_point_eval = dataset_eval.data_point_evaluations[data_point_eval_key]
+
+            if data_point_eval.modified_SEMENTs_that_generate_coverage != 1.0:
+                non_generating_graphs_table.add_row([data_point_eval.data_point_name])
+
+        return non_generating_graphs_table
+
+    @staticmethod
     def build_dataset_report(experiment):
         """
         Build a report for a dataset that includes a table of evaluation metrics for the whole dataset and a table
@@ -889,6 +933,7 @@ class POGGDatasetReporting:
         report += str(POGGDatasetReporting.build_dataset_metrics_table(experiment.evaluation)) + "\n\n"
         report += str(POGGDatasetReporting.build_incomplete_graphs_table(experiment.evaluation)) + "\n\n"
         report += str(POGGDatasetReporting.build_non_text_generating_graphs_table(experiment.evaluation)) + "\n\n"
+        report += str(POGGDatasetReporting.build_incomplete_modified_results_table(experiment.evaluation)) + "\n\n"
         report += str(POGGDatasetReporting.build_graphs_report_summary(experiment.evaluation)) + "\n\n"
         return report
 

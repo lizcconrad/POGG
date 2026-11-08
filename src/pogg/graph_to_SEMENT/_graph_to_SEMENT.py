@@ -410,6 +410,7 @@ class POGGGraphConverter:
             #     latest_sement = self.convert_edge_to_SEMENT(edge_data, latest_sement, full_child_sement, edge_evaluation)
 
 
+        # TODO: i'm not doing this anymore so this needs to be taken out but i'm not dealing with that now
         # return BOTH the composed SEMENT for the subgraph and the SEMENT of the root of the subgraph
         # this enables the "surgery" required for dealing with mutli-proposition SEMENTs
         return latest_sement, current_node_SEMENT

@@ -809,6 +809,12 @@ class POGGDataPointEvaluation:
         self.modified_data_point_SEMENTs = []
         self.modified_data_point_SEMENT_strings = []
 
+        # list of sets
+        self.modified_generated_results = []
+
+        self.modified_SEMENTs_that_generate_count = None
+        self.modified_SEMENTs_that_generate_coverage = None
+
         # NOT number of results, but number that generated text
         self.graphs_with_text_count = None
         self.graphs_with_text_coverage = None
@@ -934,6 +940,12 @@ class POGGDataPointEvaluation:
         self.full_edges_covered = 0
         self.full_edges_included = 0
 
+        self.modified_SEMENTs_that_generate_count = 0
+        for results in self.modified_generated_results:
+            if len(results) > 0:
+                self.modified_SEMENTs_that_generate_count += 1
+        self.modified_SEMENTs_that_generate_coverage = self.modified_SEMENTs_that_generate_count and self.modified_SEMENTs_that_generate_count / len(self.modified_data_point_SEMENTs)
+
         for graph_name in self.graph_evaluations.keys():
             graph_eval = self.graph_evaluations[graph_name]
 
@@ -961,6 +973,8 @@ class POGGDataPointEvaluation:
             self.full_edges_covered += graph_eval.edges_covered
             self.full_edges_included += graph_eval.edges_included
 
+
+
         self.graph_SEMENT_coverage = self.graph_count and self.graph_SEMENT_count / self.graph_count
         self.graphs_with_text_coverage = self.graph_count and self.graphs_with_text_count / self.graph_count
         self.graphs_with_gold_text_coverage = self.graph_count and self.graphs_with_gold_text_count / self.graph_count
@@ -980,6 +994,9 @@ class POGGDataPointEvaluation:
             'graphs_with_gold_text_count': self.graphs_with_gold_text_count,
             'graphs_with_complete_gold_text_count': self.graphs_with_complete_gold_text_count,
 
+            'modified_SEMENT_strings': self.modified_data_point_SEMENT_strings,
+            'modified_SEMENTs_that_generate_count': self.modified_SEMENTs_that_generate_count,
+
             'sem_alg_fxns_used': dict(sorted(self.sem_alg_fxns_used.items())),
             'sem_comp_fxns_used': dict(sorted(self.sem_comp_fxns_used.items())),
 
@@ -992,6 +1009,12 @@ class POGGDataPointEvaluation:
             'full_edges_included': self.full_edges_included,
 
             'gold_outputs': sorted(list(self.gold_outputs))
+        }
+
+    def get_text_outputs_dict(self):
+        return {
+            'gold_outputs': sorted(list(self.gold_outputs)),
+            'generated_results': [sorted(list(results)) for results in self.modified_generated_results]
         }
 
 class POGGEvaluation:
@@ -1049,6 +1072,12 @@ class POGGEvaluation:
         self.graphs_with_text_coverage = None
         self.graphs_with_gold_text_count = None
         self.graphs_with_complete_gold_text_count = None
+
+        self.data_point_count = None
+        self.data_points_with_modified_SEMENTs_count = None
+        self.data_points_with_modified_SEMENTs_coverage = None
+        self.data_points_with_full_text_results_count = None
+        self.data_points_with_full_text_results_coverage = None
 
         self.graphs_with_gold_text_coverage = None
         self.graphs_with_complete_gold_text_coverage = None
@@ -1209,7 +1238,7 @@ class POGGEvaluation:
         | ---- | ----------- |
         | `None` | -- |
         """
-        self.graph_count = len(self.graph_evaluations)
+        self.graph_count = len(self.graph_evaluations.keys())
 
         self.graph_SEMENT_count = 0
         self.graphs_with_text_count = 0
@@ -1224,6 +1253,22 @@ class POGGEvaluation:
 
         self.sem_alg_fxns_used_coverage = 0
         self.sem_comp_fxns_used_coverage = 0
+
+        self.data_point_count = len(self.data_point_evaluations.keys())
+        self.data_points_with_modified_SEMENTs_count = 0
+        self.data_points_with_modified_SEMENTs_coverage = 0
+        self.data_points_with_full_text_results_count = 0
+        self.data_points_with_full_text_results_coverage = 0
+
+        for data_point_name, data_point_eval in self.data_point_evaluations.items():
+            if len(data_point_eval.modified_data_point_SEMENTs) > 0:
+                self.data_points_with_modified_SEMENTs_count += 1
+
+            if data_point_eval.modified_SEMENTs_that_generate_coverage == 1.0:
+                self.data_points_with_full_text_results_count += 1
+
+        self.data_points_with_modified_SEMENTs_coverage = self.data_point_count and self.data_points_with_modified_SEMENTs_count / self.data_point_count
+        self.data_points_with_full_text_results_coverage = self.data_points_with_modified_SEMENTs_count and self.data_points_with_full_text_results_count / self.data_points_with_modified_SEMENTs_count
 
         for graph_name in self.graph_evaluations.keys():
             graph_eval = self.graph_evaluations[graph_name]
@@ -1272,6 +1317,10 @@ class POGGEvaluation:
             'graphs_with_text_count': self.graphs_with_text_count,
             'graphs_with_gold_text_count': self.graphs_with_gold_text_count,
             'graphs_with_complete_gold_text_count': self.graphs_with_complete_gold_text_count,
+
+            'data_point_count': self.data_point_count,
+            'data_points_with_modified_SEMENTs_count': self.data_points_with_modified_SEMENTs_count,
+            'data_points_with_full_text_results_count': self.data_points_with_full_text_results_count,
 
             'sem_alg_fxns_available': sorted(list(self.sem_alg_fxns_available)),
             'sem_comp_fxns_available': sorted(list(self.sem_comp_fxns_available)),
