@@ -223,6 +223,7 @@ class POGGExperiment:
                 working_SEMENTs.append((SEMENTUtil.duplicate_sement(graph_eval.collapsed_SEMENT), 0))
 
         finished_SEMENTs = []
+        new_working_SEMENTs = []
         for processing_fxn_name in self.SEMENT_processing:
             # get processing_fxn_obj
             processing_fxn_obj = getattr(self.graph_converter.semantic_composition, processing_fxn_name)
@@ -266,7 +267,8 @@ class POGGExperiment:
                         else:
                             new_working_SEMENTs.append((current_SEMENT[0], current_SEMENT[1]+ 1))
             working_SEMENTs = new_working_SEMENTs
-        finished_SEMENTs.extend(new_working_SEMENTs)
+        if len(new_working_SEMENTs) > 0:
+            finished_SEMENTs.extend(new_working_SEMENTs)
 
 
         for sem, _ in finished_SEMENTs:
